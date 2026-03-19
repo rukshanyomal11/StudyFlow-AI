@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import connectDB from './mongoose';
 import User from '@/models/User';
 
@@ -50,9 +51,47 @@ export const authOptions = {
         }
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      // Handle Google OAuth sign in
+      if (account?.provider === 'google') {
+        try {
+          await connectDB();
+
+          // Check if user exists
+          let existingUser = await User.findOne({ email: user.email });
+
+          if (!existingUser) {
+            // Create new user from Google profile
+            existingUser = await User.create({
+              name: user.name,
+              email: user.email,
+              avatar: user.image,
+              role: 'student', // Default role for Google sign-ups
+              isActive: true,
+              // No password needed for OAuth users
+            });
+          }
+
+          // Update user object with our user data
+          user.id = existingUser._id.toString();
+          user.role = existingUser.role;
+
+          return true;
+        } catch (error) {
+          console.error('Google sign in error:', error);
+          return false;
+        }
+      }
+
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
