@@ -6,10 +6,27 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { loginSchema } from '@/lib/validations/auth';
-import AuthNavbar from '@/components/layout/AuthNavbar';
+import Navbar from '@/components/layout/Navbar';
 import FormInput from '@/components/ui/FormInput';
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
+
+const focusPoints = [
+  {
+    title: 'Pick up where you left off',
+    description: 'Open your planner, upcoming sessions, and current goals in one place.',
+  },
+  {
+    title: 'See what needs attention',
+    description: 'Jump back into overdue tasks, streaks, and recommended study actions.',
+  },
+  {
+    title: 'Stay connected',
+    description: 'Review notes, quizzes, and study groups without digging through menus.',
+  },
+];
+
+const inputClassName = 'rounded-xl border-slate-200 bg-white py-3.5 text-[15px] shadow-sm shadow-slate-200/60 placeholder:text-slate-400';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +59,6 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password. Please try again.');
       } else {
-        // Redirect will be handled by NextAuth callback
         window.location.href = '/student/dashboard';
       }
     } catch (err) {
@@ -59,96 +75,117 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <AuthNavbar currentPage="login" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50">
+      <Navbar currentPage="login" />
 
-      <div className="flex flex-1">
-        {/* Left Panel - Branding (Hidden on mobile) */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
-          {/* Decorative circles */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full -ml-48 -mb-48" />
+      <main className="mx-auto flex w-full max-w-6xl flex-1 items-start px-4 pb-10 pt-5 sm:px-6 lg:px-8 lg:pb-16 lg:pt-8">
+        <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] xl:gap-12">
+          <section className="relative hidden overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 p-10 shadow-[0_35px_90px_rgba(15,23,42,0.10)] backdrop-blur lg:flex lg:flex-col">
+            <div className="absolute -right-20 top-0 h-56 w-56 rounded-full bg-blue-200/60 blur-3xl" />
+            <div className="absolute -bottom-16 left-0 h-48 w-48 rounded-full bg-amber-200/60 blur-3xl" />
 
-          <div className="relative z-10">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 text-white">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-                </svg>
-              </div>
-              <span className="text-2xl font-bold">StudyFlow AI</span>
-            </Link>
-          </div>
+            <div className="relative z-10">
+              <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+                Built for focused study sessions
+              </span>
 
-          {/* Center Content */}
-          <div className="relative z-10 space-y-6">
-            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-              Plan smarter.
-              <br />
-              Study better.
-            </h1>
-            <p className="text-xl text-blue-100 max-w-md">
-              Join thousands of students who are achieving their academic goals with AI-powered study planning.
-            </p>
+              <h1 className="mt-8 max-w-lg text-5xl font-bold leading-tight text-slate-900">
+                Sign in and get back to the plan.
+              </h1>
 
-            {/* Features */}
-            <div className="space-y-4 pt-8">
-              {[
-                'AI-powered study recommendations',
-                'Track your progress in real-time',
-                'Connect with study groups',
-                'Personalized learning paths',
-              ].map((feature, index) => (
-                <div key={index} className="flex items-center space-x-3 text-white">
-                  <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+              <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+                StudyFlow keeps your planner, sessions, progress, and next steps in one calm workspace so you can spend less time organizing and more time studying.
+              </p>
+            </div>
+
+            <div className="relative z-10 mt-10 grid gap-4">
+              {focusPoints.map((point) => (
+                <div
+                  key={point.title}
+                  className="rounded-3xl border border-slate-200 bg-white/85 p-5 shadow-sm shadow-slate-200/70"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-slate-900">{point.title}</h2>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{point.description}</p>
+                    </div>
                   </div>
-                  <span className="text-blue-100">{feature}</span>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Bottom */}
-          <div className="relative z-10">
-            <p className="text-blue-200 text-sm">
-              "StudyFlow AI helped me organize my study schedule and improve my grades significantly!"
-            </p>
-            <p className="text-white font-medium mt-2">- Sarah K., Student</p>
-          </div>
-        </div>
+            <div className="relative z-10 mt-auto rounded-[1.75rem] bg-slate-900 px-6 py-5 text-white shadow-xl shadow-slate-300/40">
+              <p className="text-sm leading-6 text-slate-300">
+                Your study flow should feel clear, not crowded. Start from one login and continue the work that matters today.
+              </p>
 
-        {/* Right Panel - Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 py-10">
-          <div className="w-full max-w-md">
-            {/* Form Card */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-                <p className="text-gray-600 mt-2">Sign in to continue your learning journey</p>
+              <div className="mt-5 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-3xl font-semibold">10k+</p>
+                  <p className="text-sm text-slate-400">students organizing their week with StudyFlow</p>
+                </div>
+
+                <Link href="/register" className="text-sm font-semibold text-blue-200 transition-colors hover:text-white">
+                  New here? Create an account
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          <section className="flex items-start justify-center lg:pt-4">
+            <div className="w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/88 p-6 shadow-[0_35px_90px_rgba(15,23,42,0.12)] backdrop-blur sm:p-8">
+              <div className="mb-6 lg:hidden">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-700">
+                  Welcome back
+                </p>
+                <h1 className="mt-3 text-3xl font-bold text-slate-900">
+                  Continue your study plan.
+                </h1>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Access your planner, progress, groups, and recommendations from one place.
+                </p>
               </div>
 
-              {/* Error Alert */}
+              <div className="mb-8 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-blue-700">StudyFlow AI</p>
+                  <h2 className="mt-2 text-3xl font-bold text-slate-900">Welcome back</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Sign in to continue your learning journey with a cleaner, focused workspace.
+                  </p>
+                </div>
+
+                <Link
+                  href="/register"
+                  className="hidden rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-900 sm:inline-flex"
+                >
+                  Create account
+                </Link>
+              </div>
+
               {error && (
-                <Alert type="error" className="mb-6">
+                <Alert type="error" className="mb-6 rounded-2xl">
                   {error}
                 </Alert>
               )}
 
-              {/* Login Form */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <FormInput
                   {...register('email')}
                   label="Email address"
                   type="email"
                   placeholder="you@example.com"
+                  autoComplete="email"
                   error={errors.email?.message}
                   disabled={isLoading}
+                  className={inputClassName}
                   icon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                     </svg>
                   }
@@ -159,46 +196,46 @@ export default function LoginPage() {
                   label="Password"
                   type="password"
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   error={errors.password?.message}
                   disabled={isLoading}
+                  className={inputClassName}
                   icon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   }
                 />
 
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center">
+                <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="inline-flex items-center text-sm text-slate-600">
                     <input
                       {...register('rememberMe')}
                       type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       disabled={isLoading}
                     />
-                    <span className="ml-2 text-sm text-gray-700">Remember me</span>
+                    <span className="ml-2">Remember me</span>
                   </label>
 
                   <Link
                     href="/forgot-password"
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800"
                   >
                     Forgot password?
                   </Link>
                 </div>
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
-                  className="w-full"
+                  className="w-full rounded-xl"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <svg className="mr-3 h-5 w-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
@@ -210,26 +247,24 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-slate-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500 font-medium">or continue with</span>
+                  <span className="bg-white px-4 font-medium text-slate-500">or continue with</span>
                 </div>
               </div>
 
-              {/* Google Sign In */}
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                className="w-full"
+                className="w-full rounded-xl border-slate-200 py-3.5 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
               >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -238,20 +273,19 @@ export default function LoginPage() {
                 Sign in with Google
               </Button>
 
-              {/* Sign Up Link */}
-              <p className="mt-6 text-center text-sm text-gray-600">
-                Don't have an account?{' '}
+              <p className="mt-6 text-center text-sm text-slate-600">
+                Don&apos;t have an account?{' '}
                 <Link
                   href="/register"
-                  className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  className="font-semibold text-blue-700 transition-colors hover:text-blue-800"
                 >
                   Sign up
                 </Link>
               </p>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
