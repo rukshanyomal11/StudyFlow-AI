@@ -1,8 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
-import Button from '@/components/ui/Button';
-import Card, { CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/button';
+import Card, { CardContent } from '@/components/ui/card';
 
 const TeamMember = ({ name, role, description, avatar }) => (
   <Card>

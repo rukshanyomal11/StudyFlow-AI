@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Button from '@/components/ui/button';
 import { getGreeting } from '@/lib/utils';
 
 const StatCard = ({ title, value, subtitle, icon, color = 'blue' }) => {

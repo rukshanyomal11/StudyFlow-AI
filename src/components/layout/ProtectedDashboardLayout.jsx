@@ -34,21 +34,25 @@ export default function ProtectedDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar links={links} />
+    <div className="h-screen overflow-hidden bg-gray-50">
+      <div className="flex h-full">
+        <Sidebar links={links} className="sticky top-0" />
 
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-              You are viewing the {roleLabels[role]} blueprint workspace for
-              StudyFlow AI.
-            </div>
-            {children}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="shrink-0">
+            <Navbar />
           </div>
-        </main>
+
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-6">
+              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                You are viewing the {roleLabels[role]} blueprint workspace for
+                StudyFlow AI.
+              </div>
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
-import Button from '@/components/ui/Button';
-import Card, { CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/button';
+import Card, { CardContent } from '@/components/ui/card';
 
 const PricingCard = ({ title, price, period, description, features, isPopular, buttonText, buttonLink }) => (
   <Card className={`relative ${isPopular ? 'border-2 border-blue-500 shadow-xl' : ''}`}>

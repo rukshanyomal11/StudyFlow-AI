@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import Card, { CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
   return (

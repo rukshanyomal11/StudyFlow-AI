@@ -136,14 +136,16 @@ const Sidebar = ({ links, className = '' }) => {
   const pathname = usePathname();
 
   return (
-    <div className={`w-64 bg-white border-r border-gray-200 flex flex-col ${className}`}>
+    <aside
+      className={`h-screen w-64 shrink-0 border-r border-gray-200 bg-white ${className}`}
+    >
       {/* Logo */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="border-b border-gray-200 p-4">
         <Logo size="md" />
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="h-[calc(100vh-73px)] space-y-1 overflow-y-auto p-4">
         {links.map((link) => {
           const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
 
@@ -168,7 +170,7 @@ const Sidebar = ({ links, className = '' }) => {
           );
         })}
       </nav>
-    </div>
+    </aside>
   );
 };
 

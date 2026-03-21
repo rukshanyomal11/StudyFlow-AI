@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { loginSchema } from '@/lib/validations/auth';
 import Navbar from '@/components/layout/Navbar';
 import FormInput from '@/components/ui/FormInput';
 import Alert from '@/components/ui/Alert';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const focusPoints = [
   {
@@ -29,8 +30,16 @@ const focusPoints = [
 const inputClassName = 'rounded-xl border-slate-200 bg-white py-3.5 text-[15px] shadow-sm shadow-slate-200/60 placeholder:text-slate-400';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard');
+    }
+  }, [router, status]);
 
   const {
     register,
@@ -59,7 +68,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password. Please try again.');
       } else {
-        window.location.href = '/student/dashboard';
+        router.replace('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -70,8 +79,9 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    setError('');
     setIsLoading(true);
-    await signIn('google', { callbackUrl: '/student/dashboard' });
+    await signIn('google', { callbackUrl: '/dashboard' });
   };
 
   return (

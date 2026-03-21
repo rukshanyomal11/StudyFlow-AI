@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
-import Button from '@/components/ui/Button';
-import Card, { CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/button';
+import Card, { CardContent } from '@/components/ui/card';
 
 const FeatureCard = ({ icon, title, description }) => (
   <Card className="text-center" hover>

@@ -3,7 +3,7 @@ import Card, {
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/components/ui/Card';
+} from '@/components/ui/card';
 import PageHeader from '@/components/common/PageHeader';
 import { studyflowPages } from '@/data/studyflowPages';
 

@@ -107,6 +107,12 @@ export const authOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Custom redirect logic based on user role
+      // This callback is called on signIn and signOut
+      // We'll use it to redirect to the appropriate dashboard
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
   },
   pages: {
     signIn: '/login',

@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerSchema } from '@/lib/validations/auth';
 import Navbar from '@/components/layout/Navbar';
 import FormInput from '@/components/ui/FormInput';
 import Alert from '@/components/ui/Alert';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import PasswordStrength from '@/components/ui/PasswordStrength';
 
 const setupHighlights = [
@@ -57,6 +57,8 @@ const inputClassName = 'rounded-xl border-slate-200 bg-white py-3.5 text-[15px] 
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -64,6 +66,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors },
   } = useForm({
@@ -80,6 +83,20 @@ export default function RegisterPage() {
 
   const password = watch('password');
   const role = watch('role');
+
+  React.useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard');
+    }
+  }, [router, status]);
+
+  React.useEffect(() => {
+    const requestedRole = searchParams.get('role');
+
+    if (requestedRole === 'mentor' || requestedRole === 'student') {
+      setValue('role', requestedRole, { shouldValidate: true });
+    }
+  }, [searchParams, setValue]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -104,10 +121,23 @@ export default function RegisterPage() {
         throw new Error(result.error || 'Registration failed');
       }
 
-      setSuccess('Account created successfully! Redirecting to login...');
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
+      setSuccess('Account created successfully! Signing you in...');
+
+      // Automatically sign in the user
+      const signInResult = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError('Account created but sign in failed. Please login manually.');
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      } else {
+        router.replace('/dashboard');
+      }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred. Please try again.');
       console.error('Registration error:', err);
@@ -118,7 +148,7 @@ export default function RegisterPage() {
 
   const handleGoogleSignup = async () => {
     setIsLoading(true);
-    await signIn('google', { callbackUrl: '/student/dashboard' });
+    await signIn('google', { callbackUrl: '/dashboard' });
   };
 
   return (
