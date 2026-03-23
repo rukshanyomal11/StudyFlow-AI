@@ -4,12 +4,13 @@ import React from 'react';
 const Card = React.forwardRef(({
   children,
   className = '',
+  hover = false,
   ...props
 }, ref) => {
   return (
     <div
       ref={ref}
-      className={`rounded-lg border border-gray-200 bg-white text-gray-950 shadow-sm dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 ${className}`}
+      className={`rounded-lg border border-gray-200 bg-white text-gray-950 shadow-sm dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 ${hover ? 'transition-all duration-200 hover:-translate-y-1 hover:shadow-lg' : ''} ${className}`}
       {...props}
     >
       {children}
