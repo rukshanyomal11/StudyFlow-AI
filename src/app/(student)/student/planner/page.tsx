@@ -1,0 +1,778 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { DragEvent, ReactNode } from "react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Filter,
+  GripVertical,
+  ListTodo,
+  PencilLine,
+  Plus,
+  Save,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
+import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
+import { studentSidebarLinks } from "@/data/sidebarLinks";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+type TaskPriority = "High" | "Medium" | "Low";
+type TaskStatus = "To Do" | "In Progress" | "Done";
+
+interface PlannerTask {
+  id: string;
+  title: string;
+  subject: string;
+  date: string;
+  time: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+}
+
+interface PlannerFormState {
+  title: string;
+  subject: string;
+  date: string;
+  time: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+}
+
+const INITIAL_TASKS: PlannerTask[] = [
+  {
+    id: "task-01",
+    title: "Finish mechanics revision notes",
+    subject: "Physics",
+    date: "2026-03-24",
+    time: "16:30",
+    priority: "High",
+    status: "In Progress",
+  },
+  {
+    id: "task-02",
+    title: "Complete derivatives problem set",
+    subject: "Mathematics",
+    date: "2026-03-24",
+    time: "18:00",
+    priority: "High",
+    status: "To Do",
+  },
+  {
+    id: "task-03",
+    title: "Review bonding flashcards",
+    subject: "Chemistry",
+    date: "2026-03-25",
+    time: "17:15",
+    priority: "Medium",
+    status: "To Do",
+  },
+  {
+    id: "task-04",
+    title: "Write history chapter summary",
+    subject: "History",
+    date: "2026-03-25",
+    time: "19:00",
+    priority: "Low",
+    status: "Done",
+  },
+  {
+    id: "task-05",
+    title: "Practice essay structure outline",
+    subject: "English",
+    date: "2026-03-26",
+    time: "15:45",
+    priority: "Medium",
+    status: "To Do",
+  },
+];
+
+const EMPTY_FORM: PlannerFormState = {
+  title: "",
+  subject: "",
+  date: "",
+  time: "",
+  priority: "Medium",
+  status: "To Do",
+};
+
+const inputClassName =
+  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+
+const selectClassName =
+  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function formatTaskDate(date: string, time: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+  const taskDate = new Date(year, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(taskDate);
+}
+
+function SectionCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+      <CardHeader className="pb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              {description}
+            </CardDescription>
+          </div>
+          {action ? <div className="shrink-0">{action}</div> : null}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">{children}</CardContent>
+    </Card>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="space-y-2" htmlFor={htmlFor}>
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+export default function StudentPlannerPage() {
+  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [form, setForm] = useState<PlannerFormState>(EMPTY_FORM);
+  const [subjectFilter, setSubjectFilter] = useState("All Subjects");
+  const [dateFilter, setDateFilter] = useState("");
+  const [statusMessage, setStatusMessage] = useState(
+    "Drag task cards to reorder your study flow.",
+  );
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+
+  const subjectOptions = useMemo(
+    () => ["All Subjects", ...new Set(tasks.map((task) => task.subject))],
+    [tasks],
+  );
+
+  const filteredTasks = useMemo(
+    () =>
+      tasks.filter((task) => {
+        const matchesSubject =
+          subjectFilter === "All Subjects" || task.subject === subjectFilter;
+        const matchesDate = !dateFilter || task.date === dateFilter;
+
+        return matchesSubject && matchesDate;
+      }),
+    [dateFilter, subjectFilter, tasks],
+  );
+
+  const completedCount = useMemo(
+    () => tasks.filter((task) => task.status === "Done").length,
+    [tasks],
+  );
+  const inProgressCount = useMemo(
+    () => tasks.filter((task) => task.status === "In Progress").length,
+    [tasks],
+  );
+  const highPriorityCount = useMemo(
+    () => tasks.filter((task) => task.priority === "High").length,
+    [tasks],
+  );
+
+  const openCreateModal = () => {
+    setEditingTaskId(null);
+    setForm(EMPTY_FORM);
+    setIsModalOpen(true);
+    setStatusMessage("Create a new planner task.");
+  };
+
+  const openEditModal = (task: PlannerTask) => {
+    setEditingTaskId(task.id);
+    setForm({
+      title: task.title,
+      subject: task.subject,
+      date: task.date,
+      time: task.time,
+      priority: task.priority,
+      status: task.status,
+    });
+    setIsModalOpen(true);
+    setStatusMessage("Editing selected task.");
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTaskId(null);
+    setForm(EMPTY_FORM);
+  };
+
+  const handleSaveTask = () => {
+    const title = form.title.trim();
+    const subject = form.subject.trim();
+
+    if (!title || !subject || !form.date || !form.time) {
+      setStatusMessage("Fill in title, subject, date, and time before saving.");
+      return;
+    }
+
+    if (editingTaskId) {
+      setTasks((current) =>
+        current.map((task) =>
+          task.id === editingTaskId
+            ? {
+                ...task,
+                title,
+                subject,
+                date: form.date,
+                time: form.time,
+                priority: form.priority,
+                status: form.status,
+              }
+            : task,
+        ),
+      );
+      setStatusMessage("Task updated successfully.");
+    } else {
+      setTasks((current) => [
+        {
+          id: `task-${Date.now()}`,
+          title,
+          subject,
+          date: form.date,
+          time: form.time,
+          priority: form.priority,
+          status: form.status,
+        },
+        ...current,
+      ]);
+      setStatusMessage("Task added to your planner.");
+    }
+
+    closeModal();
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks((current) => current.filter((task) => task.id !== taskId));
+    setStatusMessage("Task removed from your planner.");
+
+    if (editingTaskId === taskId) {
+      closeModal();
+    }
+  };
+
+  const handleDragStart = (taskId: string) => {
+    setDraggedTaskId(taskId);
+    setStatusMessage("Move the task over another card to reorder.");
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>, taskId: string) => {
+    event.preventDefault();
+    setDragOverTaskId(taskId);
+  };
+
+  const handleDrop = (targetTaskId: string) => {
+    if (!draggedTaskId || draggedTaskId === targetTaskId) {
+      setDraggedTaskId(null);
+      setDragOverTaskId(null);
+      return;
+    }
+
+    setTasks((current) => {
+      const next = [...current];
+      const fromIndex = next.findIndex((task) => task.id === draggedTaskId);
+      const toIndex = next.findIndex((task) => task.id === targetTaskId);
+
+      if (fromIndex === -1 || toIndex === -1) {
+        return current;
+      }
+
+      const [movedTask] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, movedTask);
+      return next;
+    });
+
+    setDraggedTaskId(null);
+    setDragOverTaskId(null);
+    setStatusMessage("Task order updated.");
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
+    setDragOverTaskId(null);
+  };
+
+  return (
+    <ProtectedDashboardLayout
+      role="student"
+      links={studentSidebarLinks}
+      loadingMessage="Loading your planner..."
+    >
+      <div className="space-y-8 pb-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_44%,#e0f2fe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="space-y-4">
+              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+                Study Planner
+              </Badge>
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  Plan your study flow
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                  Organize tasks, filter by subject or date, and keep your most
+                  important study work moving with a clean, modern planner.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
+                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                  {tasks.length} total tasks
+                </span>
+                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                  {inProgressCount} in progress
+                </span>
+                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                  {highPriorityCount} high priority
+                </span>
+              </div>
+            </div>
+
+            <Button
+              className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+              onClick={openCreateModal}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Planned Tasks</p>
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                    {tasks.length}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">Across your study week</p>
+                </div>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 to-slate-700 text-white">
+                  <ListTodo className="h-5 w-5" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Completed</p>
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                    {completedCount}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">Tasks already finished</p>
+                </div>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white">
+                  <CheckCircle2 className="h-5 w-5" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Focus Signal</p>
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                    {filteredTasks.length}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">Tasks match current filters</p>
+                </div>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 text-white">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <SectionCard
+          action={
+            <Button
+              className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+              onClick={() => {
+                setSubjectFilter("All Subjects");
+                setDateFilter("");
+                setStatusMessage("Filters cleared.");
+              }}
+              variant="outline"
+            >
+              Clear Filters
+            </Button>
+          }
+          description="Filter tasks by subject and study date to focus on the work that matters right now."
+          title="Planner Filters"
+        >
+          <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700">Subject</span>
+              <div className="relative">
+                <Filter className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
+                <select
+                  className={cn(selectClassName, "pl-11")}
+                  onChange={(event) => setSubjectFilter(event.target.value)}
+                  value={subjectFilter}
+                >
+                  {subjectOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700">Date</span>
+              <div className="relative">
+                <CalendarDays className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
+                <input
+                  className={cn(inputClassName, "pl-11")}
+                  onChange={(event) => setDateFilter(event.target.value)}
+                  type="date"
+                  value={dateFilter}
+                />
+              </div>
+            </label>
+
+            <div className="flex items-end">
+              <div className="w-full rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-600 md:w-auto">
+                {statusMessage}
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          description="Drag any task card to reorder your study plan. Use edit and delete actions to keep the queue clean."
+          title="Task List"
+        >
+          <div className="hidden rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:gap-4">
+            <span>Task</span>
+            <span>Subject</span>
+            <span>Date / Time</span>
+            <span>Priority</span>
+            <span>Status</span>
+            <span className="text-right">Actions</span>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {filteredTasks.length ? (
+              filteredTasks.map((task) => (
+                <div
+                  className={cn(
+                    "rounded-[24px] border bg-white p-4 shadow-sm transition",
+                    dragOverTaskId === task.id
+                      ? "border-sky-400 ring-4 ring-sky-100"
+                      : "border-slate-200/80 hover:border-slate-300 hover:shadow-md",
+                    draggedTaskId === task.id && "opacity-70",
+                  )}
+                  draggable
+                  key={task.id}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(event) => handleDragOver(event, task.id)}
+                  onDragStart={() => handleDragStart(task.id)}
+                  onDrop={() => handleDrop(task.id)}
+                >
+                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:items-center lg:gap-4">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                        <GripVertical className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-950">
+                          {task.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500 lg:hidden">
+                          {task.subject}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-slate-700">{task.subject}</div>
+
+                    <div className="flex items-center gap-2 text-sm text-slate-700">
+                      <Clock3 className="h-4 w-4 text-slate-400" />
+                      {formatTaskDate(task.date, task.time)}
+                    </div>
+
+                    <div>
+                      <Badge
+                        className={cn(
+                          "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                          task.priority === "High"
+                            ? "border-transparent bg-rose-500 text-white"
+                            : task.priority === "Medium"
+                              ? "border-transparent bg-amber-500 text-white"
+                              : "border-transparent bg-emerald-500 text-white",
+                        )}
+                      >
+                        {task.priority}
+                      </Badge>
+                    </div>
+
+                    <div>
+                      <Badge
+                        className={cn(
+                          "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                          task.status === "Done"
+                            ? "border-transparent bg-emerald-100 text-emerald-700"
+                            : task.status === "In Progress"
+                              ? "border-transparent bg-sky-100 text-sky-700"
+                              : "border-transparent bg-slate-100 text-slate-700",
+                        )}
+                      >
+                        {task.status}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
+                      <Button
+                        className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50"
+                        onClick={() => openEditModal(task)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <PencilLine className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100"
+                        onClick={() => handleDeleteTask(task.id)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 p-12 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-white text-slate-800 shadow-sm">
+                  <ListTodo className="h-6 w-6" />
+                </div>
+                <h3 className="mt-5 text-xl font-semibold text-slate-950">
+                  No tasks match these filters
+                </h3>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+                  Adjust the selected subject or date filter, or add a fresh task
+                  to keep your planner moving.
+                </p>
+                <Button
+                  className="mt-6 h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                  onClick={openCreateModal}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Task
+                </Button>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        {isModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
+            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-950">
+                    {editingTaskId ? "Edit Task" : "Add Task"}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Set the task details, priority, timing, and status in one clean modal.
+                  </p>
+                </div>
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                  onClick={closeModal}
+                  type="button"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-5 px-6 py-6">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <Field htmlFor="task-title" label="Title">
+                    <input
+                      className={inputClassName}
+                      id="task-title"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                      placeholder="Finish chapter review"
+                      value={form.title}
+                    />
+                  </Field>
+
+                  <Field htmlFor="task-subject" label="Subject">
+                    <input
+                      className={inputClassName}
+                      id="task-subject"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          subject: event.target.value,
+                        }))
+                      }
+                      placeholder="Physics"
+                      value={form.subject}
+                    />
+                  </Field>
+
+                  <Field htmlFor="task-date" label="Date">
+                    <input
+                      className={inputClassName}
+                      id="task-date"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          date: event.target.value,
+                        }))
+                      }
+                      type="date"
+                      value={form.date}
+                    />
+                  </Field>
+
+                  <Field htmlFor="task-time" label="Time">
+                    <input
+                      className={inputClassName}
+                      id="task-time"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          time: event.target.value,
+                        }))
+                      }
+                      type="time"
+                      value={form.time}
+                    />
+                  </Field>
+
+                  <Field htmlFor="task-priority" label="Priority">
+                    <select
+                      className={selectClassName}
+                      id="task-priority"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          priority: event.target.value as TaskPriority,
+                        }))
+                      }
+                      value={form.priority}
+                    >
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  </Field>
+
+                  <Field htmlFor="task-status" label="Status">
+                    <select
+                      className={selectClassName}
+                      id="task-status"
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          status: event.target.value as TaskStatus,
+                        }))
+                      }
+                      value={form.status}
+                    >
+                      <option value="To Do">To Do</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </Field>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-500">
+                  Planner tasks stay local for now and are ready to connect to MongoDB later.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                    onClick={closeModal}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    onClick={handleSaveTask}
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {editingTaskId ? "Save Changes" : "Add Task"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </ProtectedDashboardLayout>
+  );
+}

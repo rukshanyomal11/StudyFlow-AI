@@ -1,0 +1,734 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { ChangeEvent, ReactNode } from "react";
+import {
+  Archive,
+  BookOpen,
+  Eye,
+  FileText,
+  FolderOpen,
+  Paperclip,
+  PencilLine,
+  PlayCircle,
+  Plus,
+  Sparkles,
+  Target,
+  Trash2,
+  Upload,
+  Users,
+  X,
+} from "lucide-react";
+import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
+import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+type ContentType = "Notes" | "PDFs" | "Videos" | "Assignments";
+type ContentStatus = "Published" | "Draft" | "Archived";
+type ContentVisibility = "Assigned Students" | "All Assigned Cohorts" | "Private Draft";
+type TabType = "All" | ContentType;
+type ModalMode = "create" | "edit" | null;
+
+interface ContentItem {
+  id: string;
+  title: string;
+  type: ContentType;
+  subject: string;
+  uploadDate: string;
+  assignedTo: string;
+  status: ContentStatus;
+  description: string;
+  visibility: ContentVisibility;
+  fileName: string;
+  isRecent: boolean;
+}
+
+interface ContentDraft {
+  title: string;
+  subject: string;
+  type: ContentType;
+  description: string;
+  visibility: ContentVisibility;
+  fileName: string;
+}
+
+const CONTENT_TABS: TabType[] = ["All", "Notes", "PDFs", "Videos", "Assignments"];
+
+const INITIAL_CONTENT: ContentItem[] = [
+  { id: "content-01", title: "Organic Chemistry Reaction Notes", type: "Notes", subject: "Chemistry", uploadDate: "Today", assignedTo: "Chemistry cohort (42)", status: "Published", description: "Concise reaction pathway notes with key patterns and quick memory cues.", visibility: "Assigned Students", fileName: "organic-reaction-notes.pdf", isRecent: true },
+  { id: "content-02", title: "Mechanics Worked Examples Pack", type: "PDFs", subject: "Physics", uploadDate: "Yesterday", assignedTo: "Physics cohort (31)", status: "Published", description: "Step-by-step solutions for force diagrams, momentum, and motion breakdowns.", visibility: "Assigned Students", fileName: "mechanics-examples-pack.pdf", isRecent: true },
+  { id: "content-03", title: "Algebra Revision Walkthrough", type: "Videos", subject: "Mathematics", uploadDate: "2 days ago", assignedTo: "Grade 11 algebra group", status: "Published", description: "A short mentor-led walkthrough covering equation simplification and factorization.", visibility: "All Assigned Cohorts", fileName: "algebra-revision-walkthrough.mp4", isRecent: true },
+  { id: "content-04", title: "Timed Essay Practice Brief", type: "Assignments", subject: "Literature", uploadDate: "4 days ago", assignedTo: "Writing improvement group", status: "Draft", description: "A structured assignment brief for timed essay intros and thesis clarity.", visibility: "Private Draft", fileName: "timed-essay-practice.docx", isRecent: false },
+  { id: "content-05", title: "Biology Cell Structure Notes", type: "Notes", subject: "Biology", uploadDate: "1 week ago", assignedTo: "Grade 10 biology class", status: "Published", description: "High-yield revision notes with diagrams and quick summary cues.", visibility: "Assigned Students", fileName: "biology-cell-structure.pdf", isRecent: false },
+  { id: "content-06", title: "Reading Comprehension Skill Drill", type: "PDFs", subject: "English", uploadDate: "1 week ago", assignedTo: "Reading support group", status: "Archived", description: "Past comprehension passages with answer frameworks and annotation hints.", visibility: "Assigned Students", fileName: "reading-comprehension-drill.pdf", isRecent: false },
+  { id: "content-07", title: "Vector Basics Visual Lesson", type: "Videos", subject: "Mathematics", uploadDate: "2 weeks ago", assignedTo: "Advanced Level maths", status: "Published", description: "A visual explainer introducing vector notation, magnitude, and direction.", visibility: "All Assigned Cohorts", fileName: "vector-basics-lesson.mp4", isRecent: false },
+];
+
+const EMPTY_DRAFT: ContentDraft = {
+  title: "",
+  subject: "",
+  type: "Notes",
+  description: "",
+  visibility: "Assigned Students",
+  fileName: "",
+};
+
+const inputClassName =
+  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+
+const textareaClassName =
+  "min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function SectionCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Card className="rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.22)]">
+      <CardHeader className="pb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              {description}
+            </CardDescription>
+          </div>
+          {action ? <div className="shrink-0">{action}</div> : null}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">{children}</CardContent>
+    </Card>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  detail,
+  icon,
+  accentClassName,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: ReactNode;
+  accentClassName: string;
+}) {
+  return (
+    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-slate-500">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+              {value}
+            </p>
+            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+          </div>
+          <span
+            className={cn(
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              accentClassName,
+            )}
+          >
+            {icon}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function typeBadgeClass(type: ContentType) {
+  if (type === "Notes") return "border-transparent bg-sky-100 text-sky-700";
+  if (type === "PDFs") return "border-transparent bg-amber-100 text-amber-700";
+  if (type === "Videos") return "border-transparent bg-violet-100 text-violet-700";
+  return "border-transparent bg-emerald-100 text-emerald-700";
+}
+
+function statusBadgeClass(status: ContentStatus) {
+  if (status === "Published") return "border-transparent bg-emerald-100 text-emerald-700";
+  if (status === "Draft") return "border-transparent bg-amber-100 text-amber-700";
+  return "border-transparent bg-slate-200 text-slate-700";
+}
+
+export default function MentorContentPage() {
+  const [materials, setMaterials] = useState(INITIAL_CONTENT);
+  const [activeTab, setActiveTab] = useState<TabType>("All");
+  const [selectedMaterialId, setSelectedMaterialId] = useState(INITIAL_CONTENT[0]?.id ?? "");
+  const [modalMode, setModalMode] = useState<ModalMode>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<ContentDraft>(EMPTY_DRAFT);
+  const [statusMessage, setStatusMessage] = useState(
+    "Select a material to review status, visibility, and assignment coverage.",
+  );
+
+  const filteredMaterials = useMemo(
+    () =>
+      materials.filter((item) =>
+        activeTab === "All" ? true : item.type === activeTab,
+      ),
+    [activeTab, materials],
+  );
+
+  const selectedMaterial =
+    filteredMaterials.find((item) => item.id === selectedMaterialId) ??
+    filteredMaterials[0] ??
+    null;
+
+  const totalMaterials = materials.length;
+  const notesUploaded = materials.filter((item) => item.type === "Notes").length;
+  const videoResources = materials.filter(
+    (item) => item.type === "Videos" || item.type === "PDFs",
+  ).length;
+  const recentlyAdded = materials.filter((item) => item.isRecent).length;
+
+  const openCreateModal = (type?: ContentType) => {
+    setModalMode("create");
+    setEditingId(null);
+    setDraft({
+      ...EMPTY_DRAFT,
+      type: type ?? "Notes",
+    });
+    setStatusMessage("Prepare a new material and assign it to the right learners.");
+  };
+
+  const openEditModal = (item: ContentItem) => {
+    setModalMode("edit");
+    setEditingId(item.id);
+    setDraft({
+      title: item.title,
+      subject: item.subject,
+      type: item.type,
+      description: item.description,
+      visibility: item.visibility,
+      fileName: item.fileName,
+    });
+    setSelectedMaterialId(item.id);
+    setStatusMessage(`Editing ${item.title}.`);
+  };
+
+  const closeModal = () => {
+    setModalMode(null);
+    setEditingId(null);
+    setDraft(EMPTY_DRAFT);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setDraft((current) => ({
+      ...current,
+      fileName: file.name,
+    }));
+  };
+
+  const handleSaveMaterial = () => {
+    const title = draft.title.trim();
+    const subject = draft.subject.trim();
+    const description = draft.description.trim();
+
+    if (!title || !subject || !description || !draft.fileName) {
+      setStatusMessage("Add a title, subject, description, and attachment before saving.");
+      return;
+    }
+
+    if (modalMode === "edit" && editingId) {
+      setMaterials((current) =>
+        current.map((item) =>
+          item.id === editingId
+            ? {
+                ...item,
+                title,
+                subject,
+                type: draft.type,
+                description,
+                visibility: draft.visibility,
+                fileName: draft.fileName,
+              }
+            : item,
+        ),
+      );
+      setStatusMessage(`Updated ${title}.`);
+      closeModal();
+      return;
+    }
+
+    const newItem: ContentItem = {
+      id: `content-${Date.now()}`,
+      title,
+      subject,
+      type: draft.type,
+      description,
+      visibility: draft.visibility,
+      fileName: draft.fileName,
+      uploadDate: "Today",
+      assignedTo: "Newly assigned cohort",
+      status: draft.visibility === "Private Draft" ? "Draft" : "Published",
+      isRecent: true,
+    };
+
+    setMaterials((current) => [newItem, ...current]);
+    setSelectedMaterialId(newItem.id);
+    setStatusMessage(`Uploaded ${newItem.title}.`);
+    closeModal();
+  };
+
+  const handleView = (id: string) => {
+    const item = materials.find((material) => material.id === id);
+
+    if (!item) {
+      return;
+    }
+
+    setSelectedMaterialId(id);
+    setStatusMessage(`Opened ${item.title}.`);
+  };
+
+  const handleAssign = (id: string) => {
+    const item = materials.find((material) => material.id === id);
+
+    if (!item) {
+      return;
+    }
+
+    setSelectedMaterialId(id);
+    setStatusMessage(`Assignment flow ready for ${item.title}.`);
+  };
+
+  const handleArchive = (id: string) => {
+    setMaterials((current) =>
+      current.map((item) =>
+        item.id === id ? { ...item, status: "Archived" } : item,
+      ),
+    );
+
+    const item = materials.find((material) => material.id === id);
+    if (item) {
+      setStatusMessage(`${item.title} moved to archive.`);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    const item = materials.find((material) => material.id === id);
+    setMaterials((current) => current.filter((material) => material.id !== id));
+    if (item) {
+      setStatusMessage(`${item.title} deleted from the library.`);
+    }
+  };
+
+  return (
+    <ProtectedDashboardLayout
+      role="mentor"
+      links={mentorSidebarLinks}
+      loadingMessage="Loading your content workspace..."
+    >
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
+        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+          <div
+            className="absolute inset-0 opacity-95"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(20, 184, 166, 0.22), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 118, 110, 0.96))",
+            }}
+          />
+          <CardContent className="relative p-8 md:p-10 xl:p-12">
+            <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl space-y-5">
+                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                  <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                  Mentor content library
+                </Badge>
+
+                <div className="space-y-3">
+                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                    Content
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                    Organize notes, PDFs, videos, and assignments in one clean
+                    teaching workspace built for StudyFlow AI mentors.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 hover:bg-slate-100"
+                onClick={() => openCreateModal()}
+                type="button"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Material
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard accentClassName="from-slate-900 to-slate-700" detail="Materials in your mentor library" icon={<FolderOpen className="h-5 w-5" />} label="Total Materials" value={`${totalMaterials}`} />
+          <SummaryCard accentClassName="from-sky-600 to-cyan-500" detail="Notes and lesson summaries uploaded" icon={<BookOpen className="h-5 w-5" />} label="Notes Uploaded" value={`${notesUploaded}`} />
+          <SummaryCard accentClassName="from-violet-600 to-fuchsia-500" detail="Videos and downloadable resources" icon={<PlayCircle className="h-5 w-5" />} label="Videos / Resources" value={`${videoResources}`} />
+          <SummaryCard accentClassName="from-emerald-600 to-teal-500" detail="Materials added in the recent cycle" icon={<Sparkles className="h-5 w-5" />} label="Recently Added" value={`${recentlyAdded}`} />
+        </section>
+
+        <div className="grid gap-8 xl:grid-cols-[1.12fr_0.88fr]">
+          <SectionCard
+            action={
+              <Badge className="border-transparent bg-sky-100 text-sky-700">
+                {filteredMaterials.length} visible
+              </Badge>
+            }
+            description="Switch content tabs to focus on notes, PDFs, videos, or assignments, then manage each item from the same workspace."
+            title="Content Library"
+          >
+            <div className="mb-5 flex flex-wrap gap-3">
+              {CONTENT_TABS.map((tab) => (
+                <Button
+                  key={tab}
+                  className={cn(
+                    "rounded-2xl px-5",
+                    activeTab === tab
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                  )}
+                  onClick={() => setActiveTab(tab)}
+                  type="button"
+                  variant={activeTab === tab ? "default" : "outline"}
+                >
+                  {tab}
+                </Button>
+              ))}
+            </div>
+
+            <div className="hidden xl:block">
+              <div className="grid grid-cols-[1.55fr_0.95fr_0.9fr_0.9fr_1.2fr_0.9fr_1.5fr] gap-4 border-b border-slate-200 px-2 pb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span>Title</span>
+                <span>Type</span>
+                <span>Subject</span>
+                <span>Uploaded</span>
+                <span>Assigned To</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {filteredMaterials.map((item) => (
+                  <div
+                    className={cn(
+                      "grid grid-cols-[1.55fr_0.95fr_0.9fr_0.9fr_1.2fr_0.9fr_1.5fr] items-start gap-4 rounded-[24px] border p-4 transition",
+                      selectedMaterial?.id === item.id
+                        ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
+                        : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                    )}
+                    key={item.id}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-950">{item.title}</p>
+                      <p className="mt-1 text-sm text-slate-500">{item.fileName}</p>
+                    </div>
+                    <Badge className={typeBadgeClass(item.type)}>{item.type}</Badge>
+                    <p className="text-sm text-slate-600">{item.subject}</p>
+                    <p className="text-sm text-slate-600">{item.uploadDate}</p>
+                    <p className="text-sm text-slate-600">{item.assignedTo}</p>
+                    <Badge className={statusBadgeClass(item.status)}>{item.status}</Badge>
+                    <div className="flex flex-wrap gap-2">
+                      <Button className="h-9 rounded-2xl bg-slate-950 px-3 text-white hover:bg-slate-800" onClick={() => handleView(item.id)} type="button">
+                        <Eye className="mr-2 h-4 w-4" />
+                        View
+                      </Button>
+                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => openEditModal(item)} type="button" variant="outline">
+                        <PencilLine className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleAssign(item.id)} type="button" variant="outline">
+                        <Users className="mr-2 h-4 w-4" />
+                        Assign
+                      </Button>
+                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleArchive(item.id)} type="button" variant="outline">
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archive
+                      </Button>
+                      <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" onClick={() => handleDelete(item.id)} type="button" variant="outline">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 xl:hidden">
+              {filteredMaterials.map((item) => (
+                <div
+                  className={cn(
+                    "rounded-[26px] border p-5 transition",
+                    selectedMaterial?.id === item.id
+                      ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
+                      : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                  )}
+                  key={item.id}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-base font-semibold text-slate-950">{item.title}</p>
+                        <Badge className={typeBadgeClass(item.type)}>{item.type}</Badge>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-500">{item.fileName}</p>
+                    </div>
+                    <Badge className={statusBadgeClass(item.status)}>{item.status}</Badge>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
+                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Subject</p>
+                      <p className="mt-2 font-semibold text-slate-950">{item.subject}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Uploaded</p>
+                      <p className="mt-2 font-semibold text-slate-950">{item.uploadDate}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Assigned</p>
+                      <p className="mt-2 font-semibold text-slate-950">{item.assignedTo}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button className="h-9 rounded-2xl bg-slate-950 px-3 text-white hover:bg-slate-800" onClick={() => handleView(item.id)} type="button">
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
+                    </Button>
+                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => openEditModal(item)} type="button" variant="outline">
+                      Edit
+                    </Button>
+                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleAssign(item.id)} type="button" variant="outline">
+                      Assign
+                    </Button>
+                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleArchive(item.id)} type="button" variant="outline">
+                      Archive
+                    </Button>
+                    <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" onClick={() => handleDelete(item.id)} type="button" variant="outline">
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          <div className="space-y-8">
+            <SectionCard
+              description="Review the selected material at a glance before assigning, editing, or archiving it."
+              title="Material Overview"
+            >
+              {selectedMaterial ? (
+                <div className="space-y-5">
+                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-xl font-semibold text-slate-950">
+                            {selectedMaterial.title}
+                          </h2>
+                          <Badge className={typeBadgeClass(selectedMaterial.type)}>
+                            {selectedMaterial.type}
+                          </Badge>
+                          <Badge className={statusBadgeClass(selectedMaterial.status)}>
+                            {selectedMaterial.status}
+                          </Badge>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                          {selectedMaterial.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        Subject
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-slate-950">
+                        {selectedMaterial.subject}
+                      </p>
+                    </div>
+                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        Uploaded
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-slate-950">
+                        {selectedMaterial.uploadDate}
+                      </p>
+                    </div>
+                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        Assigned To
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-slate-950">
+                        {selectedMaterial.assignedTo}
+                      </p>
+                    </div>
+                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        Visibility
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-slate-950">
+                        {selectedMaterial.visibility}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                        <Paperclip className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">Attachment</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {selectedMaterial.fileName}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[26px] border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center text-sm text-slate-600">
+                  No material is available in the current tab.
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard
+              description="Fast paths for the most common content management tasks."
+              title="Quick Actions"
+            >
+              <div className="grid gap-4">
+                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(37,99,235,0.42)] transition hover:-translate-y-1" onClick={() => openCreateModal("Notes")} type="button">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-200"><BookOpen className="h-5 w-5" /></span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Upload Note</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">Start a new note or mentor summary for a student group.</p>
+                </button>
+
+                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_55%,#ddd6fe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(109,40,217,0.25)] transition hover:-translate-y-1" onClick={() => openCreateModal("Videos")} type="button">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200"><Sparkles className="h-5 w-5" /></span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Create Resource</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">Prepare a new PDF, video, or teaching resource with the right visibility.</p>
+                </button>
+
+                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(5,150,105,0.34)] transition hover:-translate-y-1" onClick={() => selectedMaterial && handleAssign(selectedMaterial.id)} type="button">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200"><Users className="h-5 w-5" /></span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Assign Material</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">Push the selected content into the right student or group workflow.</p>
+                </button>
+              </div>
+
+              <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {statusMessage}
+              </div>
+            </SectionCard>
+          </div>
+        </div>
+
+        {modalMode ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
+            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-950">
+                    {modalMode === "create" ? "Upload Material" : "Edit Material"}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Add content metadata, attachment details, and visibility in one place.
+                  </p>
+                </div>
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                  onClick={closeModal}
+                  type="button"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="grid gap-5 px-6 py-6 md:grid-cols-2">
+                <input className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="Title" value={draft.title} />
+                <input className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, subject: event.target.value }))} placeholder="Subject" value={draft.subject} />
+                <select className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, type: event.target.value as ContentType }))} value={draft.type}>
+                  <option value="Notes">Notes</option>
+                  <option value="PDFs">PDFs</option>
+                  <option value="Videos">Videos</option>
+                  <option value="Assignments">Assignments</option>
+                </select>
+                <select className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, visibility: event.target.value as ContentVisibility }))} value={draft.visibility}>
+                  <option value="Assigned Students">Assigned Students</option>
+                  <option value="All Assigned Cohorts">All Assigned Cohorts</option>
+                  <option value="Private Draft">Private Draft</option>
+                </select>
+
+                <div className="md:col-span-2">
+                  <textarea className={textareaClassName} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" rows={5} value={draft.description} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block">
+                    <input accept="*" className="hidden" onChange={handleFileChange} type="file" />
+                    <span className="flex min-h-[108px] w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-600 transition hover:border-slate-400 hover:bg-slate-100">
+                      <Upload className="mb-3 h-6 w-6 text-slate-500" />
+                      <span className="font-medium text-slate-800">
+                        {draft.fileName || "Choose attachment"}
+                      </span>
+                      <span className="mt-1 text-slate-500">
+                        Upload a file or keep the current attachment name for this demo.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-500">
+                  File uploads are local-only for now and ready to connect to storage later.
+                </p>
+                <div className="flex gap-3">
+                  <Button className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50" onClick={closeModal} type="button" variant="outline">
+                    Cancel
+                  </Button>
+                  <Button className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800" onClick={handleSaveMaterial} type="button">
+                    <Upload className="mr-2 h-4 w-4" />
+                    {modalMode === "create" ? "Upload Material" : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </ProtectedDashboardLayout>
+  );
+}
