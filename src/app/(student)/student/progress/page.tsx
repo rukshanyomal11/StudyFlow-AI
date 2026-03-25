@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { ReactNode } from "react";
 import {
@@ -119,7 +119,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
         <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
@@ -145,7 +145,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -180,33 +180,33 @@ export default function StudentProgressPage() {
       loadingMessage="Loading your progress dashboard..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_44%,#dcfce7_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Progress Analytics
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Progress dashboard
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Track your study rhythm, see how each subject is moving, and spot
                   the weak areas that need a little more attention this week.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Weekly progress {weeklyProgress}%
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   5 active subjects
                 </span>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/15 bg-white/10 px-5 py-4 text-sm text-slate-100/90 backdrop-blur">
+            <div className="rounded-[28px] border border-white/85 bg-white/94 px-5 py-4 text-sm text-slate-600 shadow-[0_18px_38px_-28px_rgba(56,189,248,0.22)]">
               Study consistency is improving. Keep leaning into math and history
               while giving more recovery time to physics and chemistry topics.
             </div>
@@ -279,7 +279,7 @@ export default function StudentProgressPage() {
             <div className="space-y-4">
               {weakAreas.map((area) => (
                 <div
-                  className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                  className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
                   key={area.topic}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -366,9 +366,9 @@ export default function StudentProgressPage() {
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+              <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-slate-800 shadow-sm">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.3)]">
                     <BookOpen className="h-4 w-4" />
                   </span>
                   <div>
@@ -380,9 +380,9 @@ export default function StudentProgressPage() {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+              <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-slate-800 shadow-sm">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.3)]">
                     <Sparkles className="h-4 w-4" />
                   </span>
                   <div>
@@ -400,3 +400,8 @@ export default function StudentProgressPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+

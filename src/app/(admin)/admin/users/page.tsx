@@ -433,7 +433,7 @@ function SelectionCheckbox({
 function RoleBadge({ role }: { role: UserRole }) {
   const badgeClassName =
     role === "Admin"
-      ? "border-slate-200 bg-slate-900 text-white"
+      ? "border-sky-200 bg-sky-50 text-sky-700"
       : role === "Mentor"
         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
         : "border-sky-200 bg-sky-50 text-sky-700";
@@ -463,7 +463,7 @@ function StatusBadge({ status }: { status: UserStatus }) {
 function PlanBadge({ plan }: { plan: UserPlan }) {
   const badgeClassName =
     plan === "Enterprise"
-      ? "border-slate-200 bg-slate-900 text-white"
+      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
       : plan === "Team"
         ? "border-violet-200 bg-violet-50 text-violet-700"
         : plan === "Pro"
@@ -487,7 +487,7 @@ function InfoItem({
   icon: typeof Mail;
 }) {
   return (
-    <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
+    <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
         <Icon className="h-4 w-4" />
         {label}
@@ -645,7 +645,7 @@ export default function AdminUsersManagementPage() {
       value: users.length.toLocaleString(),
       helper: "All accounts across the platform",
       icon: Users,
-      accentClassName: "from-slate-900 via-slate-800 to-slate-700",
+      accentClassName: "from-indigo-700 to-sky-600",
     },
     {
       title: "Active Users",
@@ -889,41 +889,41 @@ export default function AdminUsersManagementPage() {
       loadingMessage="Loading admin users workspace..."
     >
       <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(241, 184, 75, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(45, 212, 191, 0.18), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(30, 41, 59, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.14), transparent 24%), radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.12), transparent 28%), linear-gradient(135deg, rgba(255,255,255,1), rgba(240,249,255,0.98) 52%, rgba(236,253,245,0.98))",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
                   <Users className="mr-2 h-3.5 w-3.5" />
                   Admin users management
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
                     Users
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
                     Manage learners, mentors, and admins from one premium control
                     surface. Review account access, subscriptions, and platform
                     health without leaving the admin workspace.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 text-sm text-slate-200">
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {users.filter((user) => user.status === "Active").length} active accounts
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {users.filter((user) => user.role === "Mentor").length} mentors live
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {users.filter((user) => user.plan !== "Free").length} paid subscriptions
                   </div>
                 </div>
@@ -932,7 +932,7 @@ export default function AdminUsersManagementPage() {
               <div className="flex justify-start xl:justify-end">
                 <Button
                   type="button"
-                  className="h-12 rounded-2xl border-[color:var(--accent)] bg-[color:var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[color:var(--accent-strong)]"
+                  className="h-12 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700"
                   onClick={openCreatePanel}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1085,7 +1085,7 @@ export default function AdminUsersManagementPage() {
 
                 <Button
                   type="button"
-                  className="rounded-2xl bg-slate-900 px-4 text-white hover:bg-slate-800"
+                  className="rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
                   disabled={filteredUsers.length === 0}
                   onClick={handleExportUsers}
                 >
@@ -1119,7 +1119,7 @@ export default function AdminUsersManagementPage() {
           <CardContent>
             {filteredUsers.length === 0 ? (
               <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/70 px-6 py-14 text-center">
-                <div className="mx-auto inline-flex rounded-2xl bg-slate-900 p-3 text-white">
+                <div className="mx-auto inline-flex rounded-2xl bg-sky-600 p-3 text-white shadow-lg shadow-sky-100">
                   <Search className="h-6 w-6" />
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-slate-900">
@@ -1182,7 +1182,7 @@ export default function AdminUsersManagementPage() {
                                   className={cn(
                                     "text-sm font-semibold text-white",
                                     user.role === "Admin"
-                                      ? "bg-slate-900"
+                                      ? "bg-sky-600"
                                       : user.role === "Mentor"
                                         ? "bg-teal-700"
                                         : "bg-[color:var(--accent)]",
@@ -1265,7 +1265,7 @@ export default function AdminUsersManagementPage() {
                               className={cn(
                                 "text-sm font-semibold text-white",
                                 user.role === "Admin"
-                                  ? "bg-slate-900"
+                                  ? "bg-sky-600"
                                   : user.role === "Mentor"
                                     ? "bg-teal-700"
                                     : "bg-[color:var(--accent)]",
@@ -1393,7 +1393,7 @@ export default function AdminUsersManagementPage() {
                           className={cn(
                             "text-base font-semibold text-white",
                             formState.role === "Admin"
-                              ? "bg-slate-900"
+                              ? "bg-sky-600"
                               : formState.role === "Mentor"
                                 ? "bg-teal-700"
                                 : "bg-[color:var(--accent)]",
@@ -1658,7 +1658,7 @@ export default function AdminUsersManagementPage() {
                     {panelState.mode !== "view" ? (
                       <Button
                         type="button"
-                        className="rounded-2xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+                        className="rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                         onClick={handleSaveUser}
                       >
                         {panelState.mode === "create" ? "Create User" : "Save Changes"}
@@ -1666,7 +1666,7 @@ export default function AdminUsersManagementPage() {
                     ) : (
                       <Button
                         type="button"
-                        className="rounded-2xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+                        className="rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                         onClick={closePanel}
                       >
                         Close

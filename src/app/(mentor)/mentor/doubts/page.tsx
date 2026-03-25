@@ -167,6 +167,15 @@ function previewMessage(message: string) {
   return message.length <= 118 ? message : `${message.slice(0, 115)}...`;
 }
 
+const SURFACE_CARD_CLASS_NAME =
+  "rounded-[30px] border border-slate-200/90 bg-white/95 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "bg-sky-600 text-white hover:bg-sky-700 dark:!bg-sky-600 dark:!text-white dark:hover:!bg-sky-700";
+
+const SECONDARY_BUTTON_CLASS_NAME =
+  "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
+
 function SectionCard({
   title,
   description,
@@ -179,12 +188,12 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.22)]">
+    <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -210,19 +219,19 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">
               {value}
             </p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]",
               accentClassName,
             )}
           >
@@ -246,8 +255,8 @@ function InsightMetric({
   detail: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/90 p-5">
-      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+    <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
+      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
         {icon}
       </span>
       <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -428,28 +437,28 @@ export default function MentorDoubtsPage() {
       links={mentorSidebarLinks}
       loadingMessage="Loading your doubts workspace..."
     >
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 24%), radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.18), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(14, 116, 144, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.16), transparent 24%), radial-gradient(circle at 70% 85%, rgba(245, 158, 11, 0.12), transparent 18%), linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98) 48%, rgba(236, 253, 245, 0.98) 100%)",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:!border-sky-200 dark:!bg-white dark:!text-sky-700">
                   <MessageSquare className="mr-2 h-3.5 w-3.5" />
                   Mentor helpdesk queue
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
                     Doubts
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
                     Review student questions, prioritize urgent blockers, and
                     send fast mentor guidance from one clean StudyFlow AI
                     support workspace.
@@ -458,7 +467,7 @@ export default function MentorDoubtsPage() {
               </div>
 
               <Button
-                className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 hover:bg-slate-100"
+                className={cn("h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]", PRIMARY_BUTTON_CLASS_NAME)}
                 onClick={() => {
                   setFiltersExpanded((current) => !current);
                   setActionMessage(
@@ -476,7 +485,7 @@ export default function MentorDoubtsPage() {
 
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Open and historical student questions in the queue"
             icon={<MessageSquare className="h-5 w-5" />}
             label="Total Doubts"
@@ -508,7 +517,7 @@ export default function MentorDoubtsPage() {
         <SectionCard
           action={
             <Button
-              className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+              className={cn("h-10 rounded-2xl px-4", SECONDARY_BUTTON_CLASS_NAME)}
               onClick={clearFilters}
               type="button"
               variant="outline"
@@ -659,7 +668,7 @@ export default function MentorDoubtsPage() {
                     </Badge>
                     <p className="text-sm text-slate-600">{item.createdTime}</p>
                     <Button
-                      className="h-9 rounded-2xl bg-slate-950 px-3 text-white hover:bg-slate-800"
+                      className={cn("h-9 rounded-2xl px-3", PRIMARY_BUTTON_CLASS_NAME)}
                       onClick={() => openDoubt(item.id)}
                       type="button"
                     >
@@ -735,7 +744,7 @@ export default function MentorDoubtsPage() {
                   </div>
 
                   <Button
-                    className="mt-4 h-9 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                    className={cn("mt-4 h-9 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
                     onClick={() => openDoubt(item.id)}
                     type="button"
                   >
@@ -816,9 +825,9 @@ export default function MentorDoubtsPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
                         <BookOpen className="h-5 w-5" />
                       </span>
                       <div>
@@ -890,7 +899,7 @@ export default function MentorDoubtsPage() {
                           : "Send a reply to mark this doubt as answered."}
                       </p>
                       <Button
-                        className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                        className={cn("h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
                         onClick={handleSendReply}
                         type="button"
                       >

@@ -89,18 +89,30 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const SURFACE_CARD_CLASS_NAME =
+  "rounded-[30px] border border-slate-200/90 bg-white/95 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
+
+const SOFT_PANEL_CLASS_NAME =
+  "rounded-[26px] border border-slate-200/90 bg-white/90 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)] dark:!border-slate-200 dark:!bg-white";
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "bg-sky-600 text-white hover:bg-sky-700 dark:!bg-sky-600 dark:!text-white dark:hover:!bg-sky-700";
+
+const SECONDARY_BUTTON_CLASS_NAME =
+  "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
+
 function getInitials(name: string) {
   return name.split(" ").slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
 function SectionCard({ title, description, action, children }: { title: string; description: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <Card className="rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.22)]">
+    <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{description}</CardDescription>
+            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">{description}</CardDescription>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
@@ -112,15 +124,15 @@ function SectionCard({ title, description, action, children }: { title: string; 
 
 function SummaryCard({ label, value, detail, icon, accentClassName }: { label: string; value: string; detail: string; icon: ReactNode; accentClassName: string }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">{value}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
           </div>
-          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70", accentClassName)}>{icon}</span>
+          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]", accentClassName)}>{icon}</span>
         </div>
       </CardContent>
     </Card>
@@ -245,28 +257,28 @@ export default function MentorStudentsPage() {
 
   return (
     <ProtectedDashboardLayout role="mentor" links={mentorSidebarLinks} loadingMessage="Loading your students workspace...">
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(20, 184, 166, 0.22), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 118, 110, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.18), transparent 24%), radial-gradient(circle at 70% 85%, rgba(245, 158, 11, 0.12), transparent 18%), linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98) 48%, rgba(236, 253, 245, 0.98) 100%)",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:!border-sky-200 dark:!bg-white dark:!text-sky-700">
                   <Users className="mr-2 h-3.5 w-3.5" />
                   Mentor student management
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
                     Students
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
                     Review learner progress, surface weak subjects quickly, and
                     keep mentoring decisions close to the students who need them.
                   </p>
@@ -274,7 +286,7 @@ export default function MentorStudentsPage() {
               </div>
 
               <Button
-                className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 hover:bg-slate-100"
+                className={cn("h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]", PRIMARY_BUTTON_CLASS_NAME)}
                 onClick={() => setAssignModalOpen(true)}
                 type="button"
               >
@@ -286,7 +298,7 @@ export default function MentorStudentsPage() {
         </Card>
 
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard accentClassName="from-slate-900 to-slate-700" detail="Students currently assigned to you" icon={<Users className="h-5 w-5" />} label="Total Students" value={`${totalStudents}`} />
+          <SummaryCard accentClassName="from-indigo-700 to-sky-600" detail="Students currently assigned to you" icon={<Users className="h-5 w-5" />} label="Total Students" value={`${totalStudents}`} />
           <SummaryCard accentClassName="from-emerald-600 to-teal-500" detail="Learners active today" icon={<Sparkles className="h-5 w-5" />} label="Active Students" value={`${activeStudents}`} />
           <SummaryCard accentClassName="from-amber-500 to-orange-500" detail="Students who need closer support" icon={<ShieldAlert className="h-5 w-5" />} label="Need Attention" value={`${studentsNeedingAttention}`} />
           <SummaryCard accentClassName="from-sky-600 to-cyan-500" detail="High-performing learners" icon={<Target className="h-5 w-5" />} label="Top Performers" value={`${topPerformers}`} />
@@ -359,7 +371,7 @@ export default function MentorStudentsPage() {
                     <p className="text-sm text-slate-600">{student.weakSubject}</p>
                     <Badge className={statusBadgeClass(student.activityStatus)}>{student.activityStatus}</Badge>
                     <Button
-                      className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                      className={cn("h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
                       onClick={() => {
                         setSelectedStudentId(student.id);
                         setActionMessage(`Opened ${student.fullName}.`);
@@ -397,7 +409,7 @@ export default function MentorStudentsPage() {
                         <p className="mt-2 text-sm text-slate-600">{student.email}</p>
                       </div>
                     </div>
-                    <Badge className="border-transparent bg-slate-100 text-slate-700">{student.level}</Badge>
+                    <Badge className="border-transparent bg-sky-50 text-sky-700 dark:!bg-sky-50 dark:!text-sky-700">{student.level}</Badge>
                   </div>
 
                   <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
@@ -416,7 +428,7 @@ export default function MentorStudentsPage() {
                   </div>
 
                   <Button
-                    className="mt-4 h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                    className={cn("mt-4 h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
                     onClick={() => {
                       setSelectedStudentId(student.id);
                       setActionMessage(`Opened ${student.fullName}.`);
@@ -437,7 +449,7 @@ export default function MentorStudentsPage() {
             >
               {selectedStudent ? (
                 <div className="space-y-5">
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <div className="flex items-start gap-4">
                       <Avatar className="h-16 w-16">
                         <AvatarFallback className="bg-slate-900 text-lg text-white">{getInitials(selectedStudent.fullName)}</AvatarFallback>
@@ -455,18 +467,18 @@ export default function MentorStudentsPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-slate-950">Current Progress</p>
                       <span className="text-sm font-semibold text-slate-950">{selectedStudent.progress}%</span>
                     </div>
-                    <Progress className="mt-4 h-3 bg-slate-200" indicatorClassName="bg-slate-950" value={selectedStudent.progress} />
+                    <Progress className="mt-4 h-3 bg-slate-200 dark:!bg-slate-200" indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500" value={selectedStudent.progress} />
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Badge className="border-transparent bg-amber-100 text-amber-700">Weak Subject: {selectedStudent.weakSubject}</Badge>
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <p className="text-sm font-semibold text-slate-950">Recent Quizzes</p>
                     <div className="mt-4 space-y-3">
                       {selectedStudent.recentQuizzes.map((quiz) => (
@@ -475,13 +487,13 @@ export default function MentorStudentsPage() {
                             <p className="text-sm font-semibold text-slate-950">{quiz.title}</p>
                             <p className="mt-1 text-sm text-slate-500">{quiz.date}</p>
                           </div>
-                          <Badge className="border-transparent bg-slate-900 text-white">{quiz.score}</Badge>
+                          <Badge className="border-transparent bg-sky-600 text-white">{quiz.score}</Badge>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <p className="text-sm font-semibold text-slate-950">Assigned Tasks</p>
                     <div className="mt-4 space-y-3">
                       {selectedStudent.assignedTasks.map((task) => (
@@ -502,7 +514,7 @@ export default function MentorStudentsPage() {
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-slate-950">Mentor Notes</p>
                       <Button
-                        className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                        className={cn("h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
                         onClick={() => setActionMessage(`Saved mentor notes for ${selectedStudent.fullName}.`)}
                         type="button"
                       >
@@ -590,10 +602,10 @@ export default function MentorStudentsPage() {
                   Connect this flow to MongoDB later to persist mentor assignments.
                 </p>
                 <div className="flex gap-3">
-                  <Button className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50" onClick={() => setAssignModalOpen(false)} type="button" variant="outline">
+                  <Button className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => setAssignModalOpen(false)} type="button" variant="outline">
                     Cancel
                   </Button>
-                  <Button className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800" onClick={handleAssignStudent} type="button">
+                  <Button className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)} onClick={handleAssignStudent} type="button">
                     <Plus className="mr-2 h-4 w-4" />
                     Assign Student
                   </Button>

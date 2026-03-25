@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -207,7 +207,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -238,7 +238,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -400,33 +400,33 @@ export default function StudentQuizzesPage() {
       loadingMessage="Loading your quizzes..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_44%,#ecfeff_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Quiz Practice
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Clean quiz workflow
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Pick a quiz, answer each question with focus, and review the result
                   with score, correct answers, and weak topic insights right after.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {QUIZZES.length} quizzes available
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Avg. score {averageLatestScore}%
                 </span>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/15 bg-white/10 px-5 py-4 text-sm text-slate-100/90 backdrop-blur">
+            <div className="rounded-[28px] border border-white/85 bg-white/94 px-5 py-4 text-sm text-slate-600 shadow-[0_18px_38px_-28px_rgba(56,189,248,0.22)]">
               {statusMessage}
             </div>
           </div>
@@ -434,7 +434,7 @@ export default function StudentQuizzesPage() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Ready to take now"
             icon={<ClipboardList className="h-5 w-5" />}
             label="Available Quizzes"
@@ -464,13 +464,13 @@ export default function StudentQuizzesPage() {
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {QUIZZES.map((quiz) => (
                 <Card
-                  className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.24)] transition hover:-translate-y-1 hover:shadow-[0_26px_65px_-38px_rgba(15,23,42,0.26)]"
+                  className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] transition hover:-translate-y-1 shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)] hover:shadow-[0_34px_76px_-38px_rgba(59,130,246,0.22)]"
                   key={quiz.id}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <Badge className="border-transparent bg-slate-900 text-white">
+                        <Badge className="border-transparent bg-sky-100 text-sky-700">
                           {quiz.subject}
                         </Badge>
                         <h3 className="mt-4 text-xl font-semibold text-slate-950">
@@ -480,7 +480,7 @@ export default function StudentQuizzesPage() {
                           {quiz.description}
                         </p>
                       </div>
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-800">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
                         <BookOpen className="h-5 w-5" />
                       </span>
                     </div>
@@ -489,15 +489,15 @@ export default function StudentQuizzesPage() {
                       <Badge className={cn("px-3 py-1", getDifficultyClassName(quiz.difficulty))}>
                         {quiz.difficulty}
                       </Badge>
-                      <Badge className="border-transparent bg-slate-100 text-slate-700">
+                      <Badge className="border-transparent bg-sky-100 text-sky-700">
                         {quiz.questions.length} questions
                       </Badge>
-                      <Badge className="border-transparent bg-slate-100 text-slate-700">
+                      <Badge className="border-transparent bg-sky-100 text-sky-700">
                         {quiz.durationMinutes} min
                       </Badge>
                     </div>
 
-                    <div className="mt-6 rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-4">
+                    <div className="mt-6 rounded-[22px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-medium text-slate-600">
                           Latest score
@@ -508,13 +508,13 @@ export default function StudentQuizzesPage() {
                       </div>
                       <Progress
                         className="mt-3 h-3"
-                        indicatorClassName="bg-slate-950"
+                        indicatorClassName="bg-sky-600"
                         value={quiz.latestScore}
                       />
                     </div>
 
                     <Button
-                      className="mt-6 h-11 w-full rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                      className="mt-6 h-11 w-full rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                       onClick={() => startQuiz(quiz)}
                     >
                       <PlayCircle className="mr-2 h-4 w-4" />
@@ -531,7 +531,7 @@ export default function StudentQuizzesPage() {
           <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
             <SectionCard
               action={
-                <Badge className="border-transparent bg-slate-900 text-white">
+                <Badge className="border-transparent bg-sky-100 text-sky-700">
                   {answeredCount} / {activeQuiz.questions.length} answered
                 </Badge>
               }
@@ -539,7 +539,7 @@ export default function StudentQuizzesPage() {
               title={activeQuiz.title}
             >
               <div className="space-y-5">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-medium text-slate-500">
@@ -555,7 +555,7 @@ export default function StudentQuizzesPage() {
                   </div>
                   <Progress
                     className="mt-5 h-3"
-                    indicatorClassName="bg-slate-950"
+                    indicatorClassName="bg-sky-600"
                     value={quizProgress}
                   />
                 </div>
@@ -571,7 +571,7 @@ export default function StudentQuizzesPage() {
                           "flex w-full items-start gap-4 rounded-[24px] border p-4 text-left transition",
                           isSelected
                             ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                            : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                            : "border-sky-100/80 bg-white/95 hover:border-sky-200 hover:shadow-[0_18px_40px_-24px_rgba(59,130,246,0.16)]",
                         )}
                         key={option}
                         onClick={() => handleSelectOption(optionIndex)}
@@ -582,7 +582,7 @@ export default function StudentQuizzesPage() {
                             "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm font-semibold",
                             isSelected
                               ? "border-sky-500 bg-sky-500 text-white"
-                              : "border-slate-200 bg-slate-50 text-slate-500",
+                              : "border-sky-100 bg-sky-50 text-sky-500",
                           )}
                         >
                           {String.fromCharCode(65 + optionIndex)}
@@ -597,7 +597,7 @@ export default function StudentQuizzesPage() {
 
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                    className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                     disabled={currentQuestionIndex === 0}
                     onClick={() =>
                       setCurrentQuestionIndex((current) => Math.max(current - 1, 0))
@@ -609,7 +609,7 @@ export default function StudentQuizzesPage() {
                   </Button>
                   {currentQuestionIndex < activeQuiz.questions.length - 1 ? (
                     <Button
-                      className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                      className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                       onClick={() =>
                         setCurrentQuestionIndex((current) =>
                           Math.min(current + 1, activeQuiz.questions.length - 1),
@@ -636,7 +636,7 @@ export default function StudentQuizzesPage() {
               title="Quiz Overview"
             >
               <div className="space-y-5">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <p className="text-sm font-medium text-slate-500">Difficulty</p>
                   <Badge className={cn("mt-3 px-3 py-1", getDifficultyClassName(activeQuiz.difficulty))}>
                     {activeQuiz.difficulty}
@@ -644,13 +644,13 @@ export default function StudentQuizzesPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Questions</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {activeQuiz.questions.length}
                     </p>
                   </div>
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Duration</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {activeQuiz.durationMinutes} min
@@ -658,13 +658,13 @@ export default function StudentQuizzesPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <p className="text-sm font-semibold text-slate-950">
                     Latest score trend
                   </p>
                   <Progress
                     className="mt-4 h-3"
-                    indicatorClassName="bg-slate-950"
+                    indicatorClassName="bg-sky-600"
                     value={activeQuiz.latestScore}
                   />
                   <p className="mt-3 text-sm text-slate-500">
@@ -672,7 +672,7 @@ export default function StudentQuizzesPage() {
                   </p>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <p className="text-sm font-semibold text-slate-950">
                     Focus reminder
                   </p>
@@ -692,14 +692,14 @@ export default function StudentQuizzesPage() {
               action={
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                    className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                     onClick={() => setView("list")}
                     variant="outline"
                   >
                     Back To Quizzes
                   </Button>
                   <Button
-                    className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                    className="h-10 rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
                     onClick={restartQuiz}
                   >
                     <RotateCcw className="mr-2 h-4 w-4" />
@@ -711,33 +711,33 @@ export default function StudentQuizzesPage() {
               title="Quiz Result"
             >
               <div className="space-y-5">
-                <div className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_55%,#ecfeff_130%)] p-6 text-white shadow-[0_28px_65px_-40px_rgba(15,23,42,0.55)]">
-                  <p className="text-sm font-medium text-slate-100/85">
+                <div className="rounded-[28px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_52%,#ecfeff_100%)] p-6 text-slate-950 shadow-[0_28px_65px_-44px_rgba(14,165,233,0.18)]">
+                  <p className="text-sm font-medium text-slate-500">
                     {activeQuiz.title}
                   </p>
                   <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <p className="text-5xl font-semibold tracking-tight">
+                      <p className="text-5xl font-semibold tracking-tight text-slate-950">
                         {result.score}%
                       </p>
-                      <p className="mt-2 text-sm text-slate-100/80">
+                      <p className="mt-2 text-sm text-slate-600">
                         {result.correctCount} correct out of {result.totalQuestions}
                       </p>
                     </div>
-                    <Badge className="border-white/15 bg-white/12 px-3 py-1 text-white backdrop-blur">
+                    <Badge className="border border-sky-100 bg-sky-50 px-3 py-1 text-sky-700">
                       {activeQuiz.subject}
                     </Badge>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Correct Answers</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {result.correctCount}
                     </p>
                   </div>
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Weak Topics</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {result.weakTopics.length}
@@ -745,7 +745,7 @@ export default function StudentQuizzesPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <p className="text-sm font-semibold text-slate-950">Weak Topics</p>
                   {result.weakTopics.length ? (
                     <div className="mt-4 flex flex-wrap gap-3">
@@ -754,7 +754,7 @@ export default function StudentQuizzesPage() {
                           className="border-transparent bg-rose-100 px-3 py-1 text-rose-700"
                           key={topic.topic}
                         >
-                          {topic.topic} • {topic.misses} miss{topic.misses > 1 ? "es" : ""}
+                          {topic.topic} â€¢ {topic.misses} miss{topic.misses > 1 ? "es" : ""}
                         </Badge>
                       ))}
                     </div>
@@ -774,7 +774,7 @@ export default function StudentQuizzesPage() {
               <div className="space-y-4">
                 {result.reviews.map((review, index) => (
                   <div
-                    className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                    className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
                     key={review.questionId}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -783,7 +783,7 @@ export default function StudentQuizzesPage() {
                           {index + 1}. {review.prompt}
                         </p>
                         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                          <Badge className="border-transparent bg-slate-900 text-white">
+                          <Badge className="border-transparent bg-sky-100 text-sky-700">
                             {review.topic}
                           </Badge>
                           <Badge
@@ -828,3 +828,9 @@ export default function StudentQuizzesPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+
+

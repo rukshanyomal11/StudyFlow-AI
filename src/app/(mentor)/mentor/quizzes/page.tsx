@@ -94,14 +94,23 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const SURFACE_CARD_CLASS_NAME =
+  "rounded-[30px] border border-slate-200/90 bg-white/95 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "bg-sky-600 text-white hover:bg-sky-700 dark:!bg-sky-600 dark:!text-white dark:hover:!bg-sky-700";
+
+const SECONDARY_BUTTON_CLASS_NAME =
+  "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
+
 function SectionCard({ title, description, action, children }: { title: string; description: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <Card className="rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.22)]">
+    <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{description}</CardDescription>
+            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">{description}</CardDescription>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
@@ -113,15 +122,15 @@ function SectionCard({ title, description, action, children }: { title: string; 
 
 function SummaryCard({ label, value, detail, icon, accentClassName }: { label: string; value: string; detail: string; icon: ReactNode; accentClassName: string }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">{value}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
           </div>
-          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70", accentClassName)}>{icon}</span>
+          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]", accentClassName)}>{icon}</span>
         </div>
       </CardContent>
     </Card>
@@ -309,34 +318,34 @@ export default function MentorQuizzesPage() {
 
   return (
     <ProtectedDashboardLayout role="mentor" links={mentorSidebarLinks} loadingMessage="Loading your quizzes workspace...">
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(20, 184, 166, 0.22), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 118, 110, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.18), transparent 24%), radial-gradient(circle at 70% 85%, rgba(245, 158, 11, 0.12), transparent 18%), linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98) 48%, rgba(236, 253, 245, 0.98) 100%)",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:!border-sky-200 dark:!bg-white dark:!text-sky-700">
                   <ClipboardList className="mr-2 h-3.5 w-3.5" />
                   Mentor assessment studio
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
                     Quizzes
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
                     Build, assign, and refine quizzes in one clean assessment management workspace for StudyFlow AI mentors.
                   </p>
                 </div>
               </div>
 
-              <Button className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 hover:bg-slate-100" onClick={openCreateModal} type="button">
+              <Button className={cn("h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]", PRIMARY_BUTTON_CLASS_NAME)} onClick={openCreateModal} type="button">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Quiz
               </Button>
@@ -345,7 +354,7 @@ export default function MentorQuizzesPage() {
         </Card>
 
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard accentClassName="from-slate-900 to-slate-700" detail="Assessment items in your library" icon={<ClipboardList className="h-5 w-5" />} label="Total Quizzes" value={`${totalQuizzes}`} />
+          <SummaryCard accentClassName="from-indigo-700 to-sky-600" detail="Assessment items in your library" icon={<ClipboardList className="h-5 w-5" />} label="Total Quizzes" value={`${totalQuizzes}`} />
           <SummaryCard accentClassName="from-emerald-600 to-teal-500" detail="Quizzes currently available to learners" icon={<CheckCircle2 className="h-5 w-5" />} label="Active Quizzes" value={`${activeQuizzes}`} />
           <SummaryCard accentClassName="from-sky-600 to-cyan-500" detail="Submitted attempts across all quizzes" icon={<Users className="h-5 w-5" />} label="Completed Attempts" value={`${completedAttempts}`} />
           <SummaryCard accentClassName="from-violet-600 to-fuchsia-500" detail="Average score across the quiz library" icon={<Target className="h-5 w-5" />} label="Average Score" value={`${averageScore}%`} />
@@ -393,19 +402,19 @@ export default function MentorQuizzesPage() {
                     <p className="text-sm font-semibold text-slate-950">{quiz.averageScore}%</p>
                     <Badge className={statusBadgeClass(quiz.status)}>{quiz.status}</Badge>
                     <div className="flex flex-wrap gap-2">
-                      <Button className="h-9 rounded-2xl bg-slate-950 px-3 text-white hover:bg-slate-800" onClick={() => handleView(quiz.id)} type="button">
+                      <Button className={cn("h-9 rounded-2xl px-3", PRIMARY_BUTTON_CLASS_NAME)} onClick={() => handleView(quiz.id)} type="button">
                         <Eye className="mr-2 h-4 w-4" />
                         View
                       </Button>
-                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => openEditModal(quiz)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => openEditModal(quiz)} type="button" variant="outline">
                         <PencilLine className="mr-2 h-4 w-4" />
                         Edit
                       </Button>
-                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleAssign(quiz.id)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleAssign(quiz.id)} type="button" variant="outline">
                         <Users className="mr-2 h-4 w-4" />
                         Assign
                       </Button>
-                      <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleDuplicate(quiz.id)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleDuplicate(quiz.id)} type="button" variant="outline">
                         <Copy className="mr-2 h-4 w-4" />
                         Duplicate
                       </Button>
@@ -454,17 +463,17 @@ export default function MentorQuizzesPage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button className="h-9 rounded-2xl bg-slate-950 px-3 text-white hover:bg-slate-800" onClick={() => handleView(quiz.id)} type="button">
+                    <Button className={cn("h-9 rounded-2xl px-3", PRIMARY_BUTTON_CLASS_NAME)} onClick={() => handleView(quiz.id)} type="button">
                       <Eye className="mr-2 h-4 w-4" />
                       View
                     </Button>
-                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => openEditModal(quiz)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => openEditModal(quiz)} type="button" variant="outline">
                       Edit
                     </Button>
-                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleAssign(quiz.id)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleAssign(quiz.id)} type="button" variant="outline">
                       Assign
                     </Button>
-                    <Button className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50" onClick={() => handleDuplicate(quiz.id)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleDuplicate(quiz.id)} type="button" variant="outline">
                       Duplicate
                     </Button>
                     <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" onClick={() => handleDelete(quiz.id)} type="button" variant="outline">
@@ -483,7 +492,7 @@ export default function MentorQuizzesPage() {
             >
               {selectedQuiz ? (
                 <div className="space-y-5">
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-xl font-semibold text-slate-950">{selectedQuiz.title}</h2>
                       <Badge className={statusBadgeClass(selectedQuiz.status)}>{selectedQuiz.status}</Badge>
@@ -510,9 +519,9 @@ export default function MentorQuizzesPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
                         <FileQuestion className="h-5 w-5" />
                       </span>
                       <div>
@@ -638,10 +647,10 @@ export default function MentorQuizzesPage() {
                   Quiz creation stays local in this demo and is ready to connect to MongoDB later.
                 </p>
                 <div className="flex gap-3">
-                  <Button className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50" onClick={closeModal} type="button" variant="outline">
+                  <Button className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)} onClick={closeModal} type="button" variant="outline">
                     Cancel
                   </Button>
-                  <Button className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800" onClick={handleSaveQuiz} type="button">
+                  <Button className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)} onClick={handleSaveQuiz} type="button">
                     <Plus className="mr-2 h-4 w-4" />
                     {modalMode === "create" ? "Create Quiz" : "Save Changes"}
                   </Button>

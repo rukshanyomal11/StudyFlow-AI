@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -163,10 +163,10 @@ const EMPTY_DRAFT: GroupDraft = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-100 bg-white px-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 const textareaClassName =
-  "min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "min-h-[120px] w-full rounded-2xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -192,7 +192,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -223,7 +223,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -427,27 +427,27 @@ export default function StudentGroupsPage() {
       loadingMessage="Loading your study groups..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#7c3aed_44%,#ede9fe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Study Groups
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Collaboration hub
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Discover active study groups, join shared learning spaces, and
                   collaborate through members, chat, and shared tasks in one clean UI.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {groups.length} groups available
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {joinedGroupCount} joined groups
                 </span>
               </div>
@@ -455,14 +455,14 @@ export default function StudentGroupsPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button
-                className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+                className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                 onClick={openCreateModal}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Create Group
               </Button>
               <Button
-                className="h-11 rounded-2xl border border-white/15 bg-white/10 px-5 text-white hover:bg-white/15"
+                className="h-11 rounded-2xl border border-sky-200 bg-white px-5 text-sky-700 hover:bg-sky-50"
                 onClick={openJoinModal}
               >
                 <BadgePlus className="mr-2 h-4 w-4" />
@@ -474,7 +474,7 @@ export default function StudentGroupsPage() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Open collaboration spaces"
             icon={<Users className="h-5 w-5" />}
             label="Groups"
@@ -500,7 +500,7 @@ export default function StudentGroupsPage() {
           <SectionCard
             action={
               <Button
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                 onClick={openJoinModal}
                 variant="outline"
               >
@@ -523,7 +523,7 @@ export default function StudentGroupsPage() {
                       "w-full rounded-[24px] border p-4 text-left transition",
                       isSelected
                         ? "border-violet-300 bg-violet-50/70 ring-4 ring-violet-100"
-                        : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                        : "border-sky-100/80 bg-white/95 hover:border-sky-200 hover:shadow-[0_18px_40px_-24px_rgba(59,130,246,0.16)]",
                     )}
                     key={group.id}
                     onClick={() => {
@@ -538,7 +538,7 @@ export default function StudentGroupsPage() {
                           <p className="text-sm font-semibold text-slate-950">
                             {group.name}
                           </p>
-                          <Badge className="border-transparent bg-slate-900 text-white">
+                          <Badge className="border-transparent bg-sky-100 text-sky-700">
                             {group.subject}
                           </Badge>
                           {isJoined ? (
@@ -551,19 +551,19 @@ export default function StudentGroupsPage() {
                           {group.description}
                         </p>
                       </div>
-                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
                         <BookOpen className="h-4 w-4" />
                       </span>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-                      <span className="rounded-full bg-slate-100 px-3 py-1">
+                      <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                         {group.members.length} members
                       </span>
-                      <span className="rounded-full bg-slate-100 px-3 py-1">
+                      <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                         Code {group.joinCode}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-3 py-1">
+                      <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                         {group.tasks.length} tasks
                       </span>
                     </div>
@@ -579,14 +579,14 @@ export default function StudentGroupsPage() {
             >
               {selectedGroup ? (
                 <div className="space-y-6">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-xl font-semibold text-slate-950">
                             {selectedGroup.name}
                           </h3>
-                          <Badge className="border-transparent bg-slate-900 text-white">
+                          <Badge className="border-transparent bg-sky-100 text-sky-700">
                             {selectedGroup.subject}
                           </Badge>
                         </div>
@@ -594,7 +594,7 @@ export default function StudentGroupsPage() {
                           {selectedGroup.description}
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                      <div className="rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-sm text-slate-600 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                         Join code:{" "}
                         <span className="font-semibold text-slate-950">
                           {selectedGroup.joinCode}
@@ -605,7 +605,7 @@ export default function StudentGroupsPage() {
 
                   <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
                     <div className="space-y-6">
-                      <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                      <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-semibold text-slate-950">
                             Members
@@ -617,11 +617,11 @@ export default function StudentGroupsPage() {
                         <div className="mt-4 space-y-3">
                           {selectedGroup.members.map((member) => (
                             <div
-                              className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                              className="flex items-center gap-3 rounded-[20px] border border-sky-100 bg-white px-4 py-3 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]"
                               key={member.id}
                             >
                               <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-slate-100 text-slate-700">
+                                <AvatarFallback className="bg-sky-50 text-sky-700">
                                   {getInitials(member.name)}
                                 </AvatarFallback>
                               </Avatar>
@@ -638,7 +638,7 @@ export default function StudentGroupsPage() {
                         </div>
                       </div>
 
-                      <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                      <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-semibold text-slate-950">
                             Shared Tasks
@@ -651,7 +651,7 @@ export default function StudentGroupsPage() {
                         <div className="mt-4 space-y-3">
                           {selectedGroup.tasks.map((task) => (
                             <button
-                              className="flex w-full items-start gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition hover:border-slate-300"
+                              className="flex w-full items-start gap-3 rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-left shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition hover:border-sky-200"
                               key={task.id}
                               onClick={() => handleToggleTask(task.id)}
                               type="button"
@@ -661,7 +661,7 @@ export default function StudentGroupsPage() {
                                   "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl",
                                   task.completed
                                     ? "bg-emerald-500 text-white"
-                                    : "bg-slate-100 text-slate-500",
+                                    : "bg-sky-50 text-sky-500",
                                 )}
                               >
                                 <CheckCircle2 className="h-4 w-4" />
@@ -687,7 +687,7 @@ export default function StudentGroupsPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                    <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-slate-950">
                           Group Chat
@@ -697,7 +697,7 @@ export default function StudentGroupsPage() {
                         </Badge>
                       </div>
 
-                      <div className="mt-4 h-[420px] space-y-3 overflow-y-auto rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="mt-4 h-[420px] space-y-3 overflow-y-auto rounded-[20px] border border-sky-100 bg-white p-4 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                         {selectedGroup.chat.map((message) => {
                           const isCurrentUser = message.sender === CURRENT_STUDENT.name;
 
@@ -711,10 +711,10 @@ export default function StudentGroupsPage() {
                             >
                               <div
                                 className={cn(
-                                  "max-w-[85%] rounded-[20px] px-4 py-3 text-sm shadow-sm",
+                                  "max-w-[85%] rounded-[20px] px-4 py-3 text-sm shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]",
                                   isCurrentUser
-                                    ? "bg-slate-950 text-white"
-                                    : "bg-slate-100 text-slate-800",
+                                    ? "bg-sky-600 text-white"
+                                    : "bg-sky-50 text-sky-700",
                                 )}
                               >
                                 <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70">
@@ -738,7 +738,7 @@ export default function StudentGroupsPage() {
                           value={chatInput}
                         />
                         <Button
-                          className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                          className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                           onClick={handleSendMessage}
                         >
                           <Save className="mr-2 h-4 w-4" />
@@ -751,7 +751,7 @@ export default function StudentGroupsPage() {
               ) : null}
             </SectionCard>
 
-            <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+            <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] px-4 py-3 text-sm text-slate-600">
               {statusMessage}
             </div>
           </div>
@@ -759,7 +759,7 @@ export default function StudentGroupsPage() {
 
         {modalMode ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
-            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
+            <div className="w-full max-w-2xl rounded-[32px] border border-sky-100 bg-white shadow-[0_32px_80px_-34px_rgba(56,189,248,0.22)]">
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-950">
@@ -772,7 +772,7 @@ export default function StudentGroupsPage() {
                   </p>
                 </div>
                 <button
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-100 text-slate-500 transition hover:bg-sky-50 hover:text-sky-700"
                   onClick={closeModal}
                   type="button"
                 >
@@ -854,14 +854,14 @@ export default function StudentGroupsPage() {
                 </p>
                 <div className="flex gap-3">
                   <Button
-                    className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                    className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                     onClick={closeModal}
                     variant="outline"
                   >
                     Cancel
                   </Button>
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={modalMode === "create" ? handleCreateGroup : handleJoinGroup}
                   >
                     {modalMode === "create" ? (
@@ -885,3 +885,8 @@ export default function StudentGroupsPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+

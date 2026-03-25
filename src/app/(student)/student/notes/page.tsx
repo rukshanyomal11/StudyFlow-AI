@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -87,7 +87,7 @@ const EMPTY_DRAFT: NoteDraft = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-100 bg-white px-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -126,7 +126,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -157,7 +157,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -192,7 +192,7 @@ function ToolbarButton({
 }) {
   return (
     <button
-      className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+      className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-100 bg-white text-slate-700 transition hover:bg-sky-50 hover:text-slate-950"
       onClick={onClick}
       title={label}
       type="button"
@@ -368,34 +368,34 @@ export default function StudentNotesPage() {
       loadingMessage="Loading your notes..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_44%,#e0f2fe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Study Notes
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Clean notes workspace
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Keep quick revision notes, organize them by subject, and write
                   with a lightweight rich text editor that stays focused on study work.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {notes.length} total notes
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {activeSubjects} subjects
                 </span>
               </div>
             </div>
 
             <Button
-              className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+              className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
               onClick={handleCreateNote}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -406,7 +406,7 @@ export default function StudentNotesPage() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Saved in your notes library"
             icon={<NotebookPen className="h-5 w-5" />}
             label="Notes"
@@ -434,7 +434,7 @@ export default function StudentNotesPage() {
               <div className="relative w-full sm:w-[240px]">
                 <Filter className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
                 <select
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 shadow-sm transition focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100"
+                  className="h-11 w-full rounded-2xl border border-sky-100 bg-white pl-11 pr-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100"
                   onChange={(event) => setSubjectFilter(event.target.value)}
                   value={subjectFilter}
                 >
@@ -460,7 +460,7 @@ export default function StudentNotesPage() {
                         "w-full rounded-[24px] border p-4 text-left transition",
                         isSelected
                           ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                          : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                          : "border-sky-100/80 bg-white/95 hover:border-sky-200 hover:shadow-[0_18px_40px_-24px_rgba(59,130,246,0.16)]",
                       )}
                       key={note.id}
                       onClick={() => selectNote(note)}
@@ -475,16 +475,16 @@ export default function StudentNotesPage() {
                             {stripHtml(note.contentHtml)}
                           </p>
                         </div>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
                           <PencilLine className="h-4 w-4" />
                         </span>
                       </div>
 
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                        <Badge className="border-transparent bg-slate-900 px-3 py-1 text-white">
+                        <Badge className="border-transparent bg-sky-100 px-3 py-1 text-sky-700">
                           {note.subject}
                         </Badge>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                        <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                           {formatUpdatedAt(note.updatedAt)}
                         </span>
                       </div>
@@ -492,8 +492,8 @@ export default function StudentNotesPage() {
                   );
                 })
               ) : (
-                <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 p-12 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-white text-slate-800 shadow-sm">
+                <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-sky-50 text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.3)]">
                     <Sparkles className="h-6 w-6" />
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-slate-950">
@@ -504,7 +504,7 @@ export default function StudentNotesPage() {
                     keep your revision material organized.
                   </p>
                   <Button
-                    className="mt-6 h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="mt-6 h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={handleCreateNote}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -527,7 +527,7 @@ export default function StudentNotesPage() {
                   Delete
                 </Button>
                 <Button
-                  className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                  className="h-10 rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
                   onClick={handleSaveNote}
                 >
                   <Save className="mr-2 h-4 w-4" />
@@ -571,7 +571,7 @@ export default function StudentNotesPage() {
                 </label>
               </div>
 
-              <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-4">
+              <div className="rounded-[26px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                 <div className="flex flex-wrap gap-2">
                   <ToolbarButton
                     icon={<Bold className="h-4 w-4" />}
@@ -612,7 +612,7 @@ export default function StudentNotesPage() {
                     </div>
                   ) : null}
                   <div
-                    className="min-h-[360px] rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-sm leading-7 text-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-sky-100"
+                    className="min-h-[360px] rounded-[24px] border border-sky-100 bg-white px-4 py-4 text-sm leading-7 text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] focus:outline-none focus:ring-4 focus:ring-sky-100"
                     contentEditable
                     onInput={(event) =>
                       setDraft((current) => ({
@@ -626,7 +626,7 @@ export default function StudentNotesPage() {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+              <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] px-4 py-3 text-sm text-slate-600">
                 {statusMessage}
               </div>
             </div>
@@ -636,3 +636,7 @@ export default function StudentNotesPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+

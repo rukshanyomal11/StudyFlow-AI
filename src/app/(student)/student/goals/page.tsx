@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -98,10 +98,10 @@ const EMPTY_DRAFT: GoalDraft = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-100 bg-white px-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 const textareaClassName =
-  "min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "min-h-[120px] w-full rounded-2xl border border-sky-100 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -155,7 +155,7 @@ function getDeadlineTone(goal: GoalItem) {
   }
 
   return {
-    badge: "border-transparent bg-slate-900 text-white",
+    badge: "border-transparent bg-sky-100 text-sky-700",
     label: "On Track",
   };
 }
@@ -172,7 +172,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -203,7 +203,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -390,34 +390,34 @@ export default function StudentGoalsPage() {
       loadingMessage="Loading your goals..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_44%,#ecfccb_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Goal Tracker
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Study goals
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Track long-term academic targets, keep progress visible, and stay
                   ahead of the deadlines that matter most this term.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {goals.length} active goals
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {averageProgress}% average progress
                 </span>
               </div>
             </div>
 
             <Button
-              className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+              className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
               onClick={openCreateMode}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -428,7 +428,7 @@ export default function StudentGoalsPage() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Tracked in your dashboard"
             icon={<Target className="h-5 w-5" />}
             label="Goals"
@@ -454,7 +454,7 @@ export default function StudentGoalsPage() {
           <SectionCard
             action={
               <Button
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                 onClick={openCreateMode}
                 variant="outline"
               >
@@ -476,7 +476,7 @@ export default function StudentGoalsPage() {
                         "w-full rounded-[24px] border p-4 text-left transition",
                         goal.id === selectedGoalId && !isCreateMode
                           ? "border-emerald-300 bg-emerald-50/70 ring-4 ring-emerald-100"
-                          : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                          : "border-sky-100/80 bg-white/95 hover:border-sky-200 hover:shadow-[0_18px_40px_-24px_rgba(59,130,246,0.16)]",
                       )}
                       key={goal.id}
                       onClick={() => selectGoal(goal)}
@@ -493,10 +493,10 @@ export default function StudentGoalsPage() {
                             </Badge>
                           </div>
                           <p className="mt-2 text-sm text-slate-500">
-                            {goal.subject} • Due {formatDeadline(goal.deadline)}
+                            {goal.subject} â€¢ Due {formatDeadline(goal.deadline)}
                           </p>
                         </div>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
                           <Flag className="h-4 w-4" />
                         </span>
                       </div>
@@ -510,7 +510,7 @@ export default function StudentGoalsPage() {
                         </div>
                         <Progress
                           className="mt-3 h-3"
-                          indicatorClassName="bg-slate-950"
+                          indicatorClassName="bg-sky-600"
                           value={goal.progress}
                         />
                       </div>
@@ -522,8 +522,8 @@ export default function StudentGoalsPage() {
                   );
                 })
               ) : (
-                <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 p-12 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-white text-slate-800 shadow-sm">
+                <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-sky-50 text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.3)]">
                     <Sparkles className="h-6 w-6" />
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-slate-950">
@@ -533,7 +533,7 @@ export default function StudentGoalsPage() {
                     Add your first study goal to start tracking progress and deadlines in one clean place.
                   </p>
                   <Button
-                    className="mt-6 h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="mt-6 h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={openCreateMode}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -557,7 +557,7 @@ export default function StudentGoalsPage() {
                     Delete
                   </Button>
                   <Button
-                    className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                    className="h-10 rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
                     onClick={handleSaveGoal}
                   >
                     <Save className="mr-2 h-4 w-4" />
@@ -665,7 +665,7 @@ export default function StudentGoalsPage() {
                   />
                 </label>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <p className="text-sm font-semibold text-slate-950">
                     Current status
                   </p>
@@ -687,7 +687,7 @@ export default function StudentGoalsPage() {
 
                   return (
                     <div
-                      className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                      className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
                       key={goal.id}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -696,7 +696,7 @@ export default function StudentGoalsPage() {
                             {goal.title}
                           </p>
                           <p className="mt-1 text-sm text-slate-500">
-                            {goal.subject} • Due {formatDeadline(goal.deadline)}
+                            {goal.subject} â€¢ Due {formatDeadline(goal.deadline)}
                           </p>
                         </div>
                         <Badge className={cn("px-3 py-1 text-[11px] uppercase tracking-[0.18em]", tone.badge)}>
@@ -722,3 +722,8 @@ export default function StudentGoalsPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+

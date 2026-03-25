@@ -145,6 +145,15 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const SURFACE_CARD_CLASS_NAME =
+  "rounded-[28px] border border-slate-200/90 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "bg-sky-600 text-white hover:bg-sky-700 dark:!bg-sky-600 dark:!text-white dark:hover:!bg-sky-700";
+
+const SECONDARY_BUTTON_CLASS_NAME =
+  "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
+
 function SectionCard({
   title,
   description,
@@ -159,16 +168,16 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.24)]">
+    <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-200/80">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
               {icon}
             </span>
             <div>
-              <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-              <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
+              <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">
                 {description}
               </CardDescription>
             </div>
@@ -218,10 +227,10 @@ function ToggleRow({
         ? "bg-sky-600"
         : tone === "amber"
           ? "bg-amber-500"
-          : "bg-slate-950";
+          : "bg-sky-600";
 
   return (
-    <div className="flex items-start justify-between gap-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+    <div className="flex items-start justify-between gap-4 rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
       <div>
         <p className="text-sm font-semibold text-slate-950">{label}</p>
         <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
@@ -383,20 +392,20 @@ export default function MentorSettingsPage() {
       loadingMessage="Loading your mentor settings..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#155e75_46%,#ecfeff_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_58%)]" />
-          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-white/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(239,246,255,0.98)_52%,rgba(236,253,245,0.98)_100%)] p-6 shadow-[0_30px_80px_-42px_rgba(15,23,42,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.14),transparent_58%)]" />
+          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-sky-100/80 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
                 <Sparkles className="mr-2 h-3.5 w-3.5" />
                 Mentor control center
               </Badge>
               <div className="space-y-3">
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Settings
                 </h1>
-                <p className="max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Manage your mentor identity, teaching workflow, notification
                   preferences, security controls, and workspace appearance from
                   one premium StudyFlow AI settings surface.
@@ -406,7 +415,7 @@ export default function MentorSettingsPage() {
 
             <div className="flex flex-col gap-4 sm:items-end">
               <Button
-                className="h-11 rounded-2xl border border-white/15 bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+                className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)}
                 onClick={handleSaveChanges}
                 type="button"
               >
@@ -415,19 +424,19 @@ export default function MentorSettingsPage() {
               </Button>
 
               <div className="flex flex-wrap gap-3">
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-200">
+                <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     Alerts Enabled
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
                     {enabledNotificationCount} / 4
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-200">
+                <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     Teaching Automation
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
                     {enabledTeachingPreferences} active
                   </p>
                 </div>
@@ -582,7 +591,7 @@ export default function MentorSettingsPage() {
             <SectionCard
               action={
                 <Button
-                  className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                  className={cn("h-10 rounded-2xl px-4", SECONDARY_BUTTON_CLASS_NAME)}
                   onClick={handleEndOtherSessions}
                   type="button"
                   variant="outline"
@@ -651,7 +660,7 @@ export default function MentorSettingsPage() {
 
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)}
                     onClick={handlePasswordUpdate}
                     type="button"
                   >

@@ -544,7 +544,7 @@ export default function AdminReportsPage() {
       value: reports.length.toLocaleString(),
       helper: "All moderation and platform reports",
       icon: FileWarning,
-      accentClassName: "from-slate-900 via-slate-800 to-slate-700",
+      accentClassName: "from-indigo-700 to-sky-600",
     },
     {
       title: "Pending Reports",
@@ -654,40 +654,40 @@ export default function AdminReportsPage() {
       loadingMessage="Loading reports and moderation workspace..."
     >
       <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(241, 184, 75, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(45, 212, 191, 0.18), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(30, 41, 59, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.14), transparent 24%), radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.12), transparent 28%), linear-gradient(135deg, rgba(255,255,255,1), rgba(240,249,255,0.98) 52%, rgba(236,253,245,0.98))",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
                   <ShieldAlert className="mr-2 h-3.5 w-3.5" />
                   Admin moderation center
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
                     Reports
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
                     Review safety, content, academic, and billing reports from one
                     premium moderation workspace built for fast admin response.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 text-sm text-slate-200">
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {reports.filter((report) => report.priority === "Critical").length} critical cases
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {reports.filter((report) => report.status === "Pending").length} new today
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-sky-100 bg-white px-4 py-2 shadow-sm">
                     {activity.length} moderation log entries
                   </div>
                 </div>
@@ -696,7 +696,7 @@ export default function AdminReportsPage() {
               <div className="flex justify-start xl:justify-end">
                 <Button
                   type="button"
-                  className="h-12 rounded-2xl border-[color:var(--accent)] bg-[color:var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[color:var(--accent-strong)]"
+                  className="h-12 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700"
                   onClick={() => setRulesOpen(true)}
                 >
                   <BookText className="mr-2 h-4 w-4" />
@@ -764,7 +764,7 @@ export default function AdminReportsPage() {
           >
             {filteredReports.length === 0 ? (
               <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/70 px-6 py-14 text-center">
-                <div className="mx-auto inline-flex rounded-2xl bg-slate-900 p-3 text-white">
+                <div className="mx-auto inline-flex rounded-2xl bg-sky-600 p-3 text-white shadow-lg shadow-sky-100">
                   <Filter className="h-6 w-6" />
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-slate-900">
@@ -909,7 +909,7 @@ export default function AdminReportsPage() {
                   className="rounded-[26px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="inline-flex rounded-2xl bg-gradient-to-br from-slate-900 to-teal-700 p-3 text-white shadow-lg">
+                    <div className="inline-flex rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
                       <Sparkles className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -973,7 +973,7 @@ export default function AdminReportsPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-3">
-                        <div className="inline-flex rounded-2xl bg-gradient-to-br from-slate-900 to-teal-700 p-3 text-white shadow-lg">
+                        <div className="inline-flex rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
                           <Flag className="h-5 w-5" />
                         </div>
                         <div>
@@ -1181,7 +1181,7 @@ export default function AdminReportsPage() {
                     className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="inline-flex rounded-2xl bg-gradient-to-br from-slate-900 to-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-lg">
+                      <div className="inline-flex rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-lg">
                         {index + 1}
                       </div>
                       <p className="text-sm leading-7 text-slate-700">{rule}</p>
@@ -1192,7 +1192,7 @@ export default function AdminReportsPage() {
                 <div className="flex justify-end">
                   <Button
                     type="button"
-                    className="rounded-2xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+                    className="rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={() => setRulesOpen(false)}
                   >
                     Close

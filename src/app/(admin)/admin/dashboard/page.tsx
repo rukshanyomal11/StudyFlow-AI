@@ -131,14 +131,14 @@ const heroActions: HeroAction[] = [
     icon: FileText,
     variant: "outline",
     className:
-      "border-white/15 bg-white/10 text-white hover:bg-white/15 hover:text-white",
+      "border-sky-200 bg-white text-sky-700 hover:bg-sky-50 hover:text-sky-800",
   },
   {
     label: "Platform Settings",
     href: "/admin/settings",
     icon: Settings2,
     variant: "secondary",
-    className: "bg-white text-slate-950 hover:bg-slate-100",
+    className: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
   },
 ];
 
@@ -149,7 +149,7 @@ const stats: StatItem[] = [
     delta: "+8.4%",
     detail: "vs last 7 days",
     icon: Users,
-    accentClassName: "from-slate-900 via-slate-800 to-slate-700",
+    accentClassName: "from-indigo-700 to-sky-600",
   },
   {
     label: "Total Students",
@@ -256,7 +256,7 @@ const analyticsHighlights: HighlightItem[] = [
     value: "AI Quiz Builder",
     description: "Drives 38% of all weekly admin-approved activity.",
     icon: Sparkles,
-    accentClassName: "from-slate-900 to-teal-700",
+    accentClassName: "from-indigo-700 to-sky-600",
   },
   {
     label: "Total Study Sessions",
@@ -339,7 +339,7 @@ const quickSettings: QuickSetting[] = [
     description: "Review role scopes and platform-level access rules.",
     href: "/admin/settings?tab=permissions",
     icon: ShieldCheck,
-    accentClassName: "from-slate-900 to-slate-700",
+    accentClassName: "from-indigo-700 to-sky-600",
   },
   {
     title: "App Settings",
@@ -420,7 +420,7 @@ function SectionShell({
 function RoleBadge({ role }: { role: RecentUser["role"] }) {
   const className =
     role === "Admin"
-      ? "border-slate-200 bg-slate-900 text-white"
+      ? "border-sky-200 bg-sky-50 text-sky-700"
       : role === "Mentor"
         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
         : "border-sky-200 bg-sky-50 text-sky-700";
@@ -474,36 +474,36 @@ export default function AdminDashboardPage() {
       loadingMessage="Loading admin dashboard..."
     >
       <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(241, 184, 75, 0.28), transparent 24%), radial-gradient(circle at 85% 15%, rgba(45, 212, 191, 0.22), transparent 25%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(12, 74, 110, 0.92))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 26%), radial-gradient(circle at 88% 18%, rgba(16, 185, 129, 0.16), transparent 24%), radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.12), transparent 28%), linear-gradient(135deg, rgba(255,255,255,1), rgba(240,249,255,0.98) 52%, rgba(236,253,245,0.98))",
             }}
           />
-          <div className="soft-grid absolute inset-0 opacity-[0.08]" />
+          <div className="soft-grid absolute inset-0 opacity-[0.12]" />
 
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl space-y-6">
-                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-200">
-                  <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                  <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
                     <Sparkles className="mr-2 h-3.5 w-3.5" />
                     Admin command center
                   </Badge>
 
-                  <div className="flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-sm text-slate-200 backdrop-blur">
+                  <div className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
                     <CalendarDays className="h-4 w-4" />
                     <span>{currentDate}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h1 className="text-balance text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
                     {getGreeting()}, {adminProfile.name}
                   </h1>
-                  <p className="max-w-3xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
                     {adminProfile.summary}
                   </p>
                 </div>
@@ -512,12 +512,12 @@ export default function AdminDashboardPage() {
                   {heroHighlights.map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur"
+                      className="rounded-[24px] border border-sky-100 bg-white/90 p-4 shadow-[0_18px_40px_rgba(14,165,233,0.08)]"
                     >
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                         {item.label}
                       </p>
-                      <p className="mt-2 text-xl font-semibold text-white">
+                      <p className="mt-2 text-xl font-semibold text-slate-950">
                         {item.value}
                       </p>
                     </div>
@@ -616,7 +616,7 @@ export default function AdminDashboardPage() {
                   >
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
-                        <AvatarFallback className="bg-slate-900 text-white">
+                        <AvatarFallback className="bg-sky-600 text-white">
                           {getInitials(user.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -846,81 +846,81 @@ export default function AdminDashboardPage() {
               </div>
             </SectionShell>
 
-            <Card className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_90px_rgba(15,23,42,0.28)]">
+            <Card className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-white text-slate-950 shadow-[0_24px_80px_rgba(14,165,233,0.14)]">
               <div
                 className="absolute inset-0 opacity-95"
                 style={{
                   backgroundImage:
-                    "radial-gradient(circle at top left, rgba(241, 184, 75, 0.22), transparent 28%), radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 26%), linear-gradient(145deg, rgba(15, 23, 42, 1), rgba(17, 94, 89, 0.92))",
+                    "radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28%), radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 28%), linear-gradient(145deg, rgba(255,255,255,1), rgba(240,249,255,0.98), rgba(236,253,245,0.94))",
                 }}
               />
 
               <CardContent className="relative p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-3">
-                    <Badge className="rounded-full border border-white/12 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                    <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
                       Subscription summary
                     </Badge>
-                    <h2 className="text-3xl font-semibold tracking-tight text-white">
+                    <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
                       {subscriptionSummary.revenue}
                     </h2>
-                    <p className="text-sm leading-6 text-slate-200">
+                    <p className="text-sm leading-6 text-slate-600">
                       {subscriptionSummary.note}
                     </p>
                   </div>
 
-                  <div className="inline-flex rounded-2xl border border-white/10 bg-white/10 p-3">
+                  <div className="inline-flex rounded-2xl border border-sky-100 bg-white p-3 text-sky-700 shadow-sm">
                     <Wallet className="h-6 w-6" />
                   </div>
                 </div>
 
-                <div className="mt-6 space-y-4 rounded-[26px] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                <div className="mt-6 space-y-4 rounded-[26px] border border-sky-100 bg-white/85 p-5 shadow-[0_18px_40px_rgba(14,165,233,0.08)]">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-4 text-sm">
-                      <span className="text-slate-300">Free users</span>
-                      <span className="font-semibold text-white">
+                      <span className="text-slate-500">Free users</span>
+                      <span className="font-semibold text-slate-950">
                         {subscriptionSummary.freeUsers.toLocaleString()} ({freeShare}%)
                       </span>
                     </div>
                     <Progress
                       value={freeShare}
-                      className="h-2.5 bg-white/10"
-                      indicatorClassName="bg-slate-200"
+                      className="h-2.5 bg-sky-100"
+                      indicatorClassName="bg-sky-300"
                     />
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-4 text-sm">
-                      <span className="text-slate-300">Premium users</span>
-                      <span className="font-semibold text-white">
+                      <span className="text-slate-500">Premium users</span>
+                      <span className="font-semibold text-slate-950">
                         {subscriptionSummary.premiumUsers.toLocaleString()} ({premiumShare}%)
                       </span>
                     </div>
                     <Progress
                       value={premiumShare}
-                      className="h-2.5 bg-white/10"
+                      className="h-2.5 bg-sky-100"
                       indicatorClassName="bg-[color:var(--gold)]"
                     />
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                    <div className="flex items-center gap-2 text-sm text-slate-300">
-                      <TrendingUp className="h-4 w-4 text-amber-300" />
+                  <div className="rounded-[24px] border border-sky-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                      <TrendingUp className="h-4 w-4 text-amber-500" />
                       Conversion rate
                     </div>
-                    <p className="mt-2 text-2xl font-semibold text-white">
+                    <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {subscriptionSummary.conversionRate}
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] border border-emerald-300/20 bg-emerald-400/10 p-4">
-                    <div className="flex items-center gap-2 text-sm text-emerald-100">
+                  <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/80 p-4">
+                    <div className="flex items-center gap-2 text-sm text-emerald-700">
                       <BarChart3 className="h-4 w-4" />
                       Revenue summary
                     </div>
-                    <p className="mt-2 text-2xl font-semibold text-white">
+                    <p className="mt-2 text-2xl font-semibold text-slate-950">
                       {subscriptionSummary.annualRunRate}
                     </p>
                   </div>

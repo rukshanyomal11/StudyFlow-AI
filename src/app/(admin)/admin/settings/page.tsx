@@ -165,7 +165,7 @@ function SectionCard({
     <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.24)]">
       <CardHeader className="pb-5">
         <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-200/80">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-lg shadow-sky-100">
             {icon}
           </span>
           <div>
@@ -218,7 +218,7 @@ function ToggleRow({
         ? "bg-sky-600"
         : tone === "amber"
           ? "bg-amber-500"
-          : "bg-slate-950";
+        : "bg-sky-600";
 
   return (
     <div className="flex items-start justify-between gap-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
@@ -432,32 +432,32 @@ export default function AdminSettingsPage() {
       loadingMessage="Loading StudyFlow AI settings..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_48%,#eff6ff_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_58%)]" />
-          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-white/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_50%,#ecfdf5_100%)] p-6 shadow-[0_30px_80px_-42px_rgba(14,165,233,0.22)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
+          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
                 Admin Settings Panel
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Settings
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Configure the core platform rules, permissions, alerts, security,
                   AI modules, and visual preferences that shape the StudyFlow AI
                   admin experience.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-sky-100 bg-white px-4 py-2 shadow-sm">
                   {settings.general.maintenanceMode ? "Maintenance mode on" : "Platform live"}
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-sky-100 bg-white px-4 py-2 shadow-sm">
                   {enabledPlatformCount}/4 platform modules enabled
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-sky-100 bg-white px-4 py-2 shadow-sm">
                   {settings.security.enforceTwoFactor
                     ? "2FA enforced"
                     : "2FA optional"}
@@ -474,7 +474,7 @@ export default function AdminSettingsPage() {
                 <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </Button>
-              <p className="max-w-xs text-sm leading-6 text-slate-100/85">
+              <p className="max-w-xs text-sm leading-6 text-slate-600">
                 {saveMessage}
               </p>
             </div>
@@ -962,24 +962,24 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_55%,#f8fafc_140%)] p-5 text-white shadow-[0_20px_50px_-35px_rgba(15,23,42,0.65)]">
+                <div className="rounded-[24px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_55%,#ecfdf5_120%)] p-5 text-slate-950 shadow-[0_20px_50px_-35px_rgba(14,165,233,0.18)]">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-white/90">
+                      <p className="text-sm font-semibold text-slate-600">
                         Workspace visual mode
                       </p>
                       <p className="mt-2 text-xl font-semibold">
                         {settings.appearance.themeMode} / {settings.appearance.brandColor}
                       </p>
-                      <p className="mt-2 text-sm text-slate-100/80">
+                      <p className="mt-2 text-sm text-slate-500">
                         Density: {settings.appearance.dashboardDensity}
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 backdrop-blur">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100 bg-white text-sky-700 shadow-sm">
                         <MoonStar className="h-5 w-5" />
                       </span>
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 backdrop-blur">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100 bg-white text-sky-700 shadow-sm">
                         <AppWindow className="h-5 w-5" />
                       </span>
                     </div>

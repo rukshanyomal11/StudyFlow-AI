@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -61,10 +61,10 @@ const INITIAL_SETTINGS: SettingsState = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-100 bg-white px-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition placeholder:text-slate-400 focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 const selectClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-100 bg-white px-4 text-sm text-slate-900 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] transition focus:border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -82,7 +82,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -113,7 +113,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -166,7 +166,7 @@ function ToggleRow({
   onToggle: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-semibold text-slate-950">{title}</p>
         <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
@@ -176,8 +176,8 @@ function ToggleRow({
         className={cn(
           "inline-flex h-11 min-w-[112px] items-center justify-center rounded-2xl px-4 text-sm font-medium transition",
           checked
-            ? "bg-slate-950 text-white hover:bg-slate-800"
-            : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+            ? "bg-sky-600 text-white hover:bg-sky-700"
+            : "border border-sky-100 bg-white text-slate-700 hover:bg-sky-50",
         )}
         onClick={onToggle}
         type="button"
@@ -332,28 +332,28 @@ export default function StudentSettingsPage() {
       loadingMessage="Loading your settings..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_44%,#ccfbf1_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
-          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
+          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/40 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 Student Settings
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Personalize your StudyFlow workspace
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Adjust themes, notification preferences, privacy controls, and
                   account actions from one clean settings hub built for students.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {todayLabel}
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Theme: {settings.theme}
                 </span>
               </div>
@@ -361,7 +361,7 @@ export default function StudentSettingsPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button
-                className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+                className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                 onClick={handleSaveChanges}
                 type="button"
               >
@@ -374,7 +374,7 @@ export default function StudentSettingsPage() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Current appearance mode"
             icon={<MoonStar className="h-5 w-5" />}
             label="Theme"
@@ -533,9 +533,9 @@ export default function StudentSettingsPage() {
               title="Account Actions"
             >
               <div className="space-y-6">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <div className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-600 text-white">
                       <KeyRound className="h-5 w-5" />
                     </span>
                     <div>
@@ -597,7 +597,7 @@ export default function StudentSettingsPage() {
                   <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-slate-500">{passwordMessage}</p>
                     <Button
-                      className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                      className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                       onClick={handleChangePassword}
                       type="button"
                     >
@@ -623,7 +623,7 @@ export default function StudentSettingsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-[20px] border border-rose-200 bg-white px-4 py-4 shadow-sm">
+                  <div className="mt-5 rounded-[20px] border border-rose-200 bg-white px-4 py-4 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-semibold text-slate-950">
@@ -639,7 +639,7 @@ export default function StudentSettingsPage() {
                           "inline-flex h-11 min-w-[128px] items-center justify-center rounded-2xl px-4 text-sm font-medium transition",
                           deleteArmed
                             ? "bg-rose-600 text-white hover:bg-rose-700"
-                            : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                            : "border border-sky-100 bg-white text-slate-700 hover:bg-sky-50",
                         )}
                         onClick={() => setDeleteArmed((current) => !current)}
                         type="button"
@@ -669,7 +669,7 @@ export default function StudentSettingsPage() {
               title="Settings Snapshot"
             >
               <div className="space-y-4">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
                       <Globe2 className="h-5 w-5" />
@@ -686,7 +686,7 @@ export default function StudentSettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                       <CheckCircle2 className="h-5 w-5" />
@@ -700,7 +700,7 @@ export default function StudentSettingsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
                       <UserCog className="h-5 w-5" />
@@ -723,3 +723,8 @@ export default function StudentSettingsPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+

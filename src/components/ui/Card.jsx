@@ -10,7 +10,7 @@ const Card = React.forwardRef(({
   return (
     <div
       ref={ref}
-      className={`rounded-lg border border-gray-200 bg-white text-gray-950 shadow-sm dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 ${hover ? 'transition-all duration-200 hover:-translate-y-1 hover:shadow-lg' : ''} ${className}`}
+      className={`rounded-lg border border-gray-200 bg-white text-gray-950 shadow-sm ${hover ? 'transition-all duration-200 hover:-translate-y-1 hover:shadow-lg' : ''} ${className}`}
       {...props}
     >
       {children}
@@ -44,7 +44,7 @@ CardTitle.displayName = 'CardTitle';
 const CardDescription = React.forwardRef(({ children, className = '', ...props }, ref) => (
   <p
     ref={ref}
-    className={`text-sm text-gray-500 dark:text-gray-400 ${className}`}
+    className={`text-sm text-gray-500 ${className}`}
     {...props}
   >
     {children}

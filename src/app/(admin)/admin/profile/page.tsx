@@ -471,31 +471,31 @@ export default function AdminProfilePage() {
       loadingMessage="Loading your admin profile..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_48%,#eff6ff_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_58%)]" />
-          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-white/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_50%,#ecfdf5_100%)] p-6 shadow-[0_30px_80px_-42px_rgba(14,165,233,0.22)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
+          <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <Avatar className="h-24 w-24 rounded-[28px] border-4 border-white/15 shadow-2xl">
+              <Avatar className="h-24 w-24 rounded-[28px] border-4 border-white shadow-[0_24px_50px_rgba(14,165,233,0.14)]">
                 {profileAvatar ? (
                   <AvatarImage src={profileAvatar} alt={profile.fullName} />
                 ) : null}
-                <AvatarFallback className="rounded-[24px] bg-white/15 text-2xl font-semibold text-white">
+                <AvatarFallback className="rounded-[24px] bg-sky-600 text-2xl font-semibold text-white">
                   {getInitials(profile.fullName)}
                 </AvatarFallback>
               </Avatar>
 
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                     {profile.fullName}
                   </h1>
-                  <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+                  <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
                     {profile.role}
                   </Badge>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-100/90">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     {profile.email}
@@ -506,7 +506,7 @@ export default function AdminProfilePage() {
                   </span>
                 </div>
 
-                <p className="max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   Manage your StudyFlow AI admin identity, security posture, and
                   workspace preferences from one premium control surface.
                 </p>
@@ -523,19 +523,19 @@ export default function AdminProfilePage() {
               </Button>
 
               <div className="flex flex-wrap gap-3">
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-200">
+                <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     Permissions
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
                     {profile.permissionsCount} active
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-200">
+                <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     Security
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-slate-950">
                     {profile.securityStatus}
                   </p>
                 </div>
@@ -549,7 +549,7 @@ export default function AdminProfilePage() {
             label="Role"
             value={profile.role}
             icon={<ShieldCheck className="h-5 w-5" />}
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
           />
           <OverviewCard
             label="Last Login"
@@ -769,7 +769,7 @@ export default function AdminProfilePage() {
                       </div>
 
                       <Button
-                        className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                        className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                         onClick={handleSaveProfile}
                       >
                         <Save className="mr-2 h-4 w-4" />
@@ -855,7 +855,7 @@ export default function AdminProfilePage() {
                   </div>
 
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={handlePasswordUpdate}
                   >
                     <KeyRound className="mr-2 h-4 w-4" />
@@ -1006,7 +1006,7 @@ export default function AdminProfilePage() {
                       className={cn(
                         "relative h-7 w-12 rounded-full transition",
                         preferenceForm.notifications
-                          ? "bg-slate-950"
+                          ? "bg-sky-600"
                           : "bg-slate-300",
                       )}
                       onClick={() =>
@@ -1058,7 +1058,7 @@ export default function AdminProfilePage() {
                     )}
                   </div>
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={handleSavePreferences}
                   >
                     <Save className="mr-2 h-4 w-4" />

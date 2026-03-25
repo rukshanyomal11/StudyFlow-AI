@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +62,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -93,7 +93,7 @@ function SignalCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -228,47 +228,47 @@ export default function StudentRecommendationsPage() {
       loadingMessage="Loading your AI recommendations..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#0ea5e9_45%,#e0f2fe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.26),transparent_58%)]" />
-          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
+          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/40 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                 AI Recommendations
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Smart next steps for today&apos;s study plan
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   StudyFlow AI is surfacing the most useful next topic, the best
                   revision reset, and the quiz most likely to improve your momentum
                   right now.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   {todayLabel}
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Personalized from your recent activity
                 </span>
               </div>
             </div>
 
-            <div className="w-full max-w-md rounded-[28px] border border-white/15 bg-white/10 p-5 backdrop-blur">
+            <div className="w-full max-w-md rounded-[28px] border border-sky-100 bg-white p-5 shadow-[0_18px_40px_rgba(14,165,233,0.08)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-100/80">
+                  <p className="text-sm font-medium text-slate-500">
                     Recommendation confidence
                   </p>
-                  <p className="mt-2 text-3xl font-semibold text-white">91%</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-950">91%</p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-white">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50 text-sky-700">
                   <Sparkles className="h-5 w-5" />
                 </span>
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-100/80">
+              <p className="mt-4 text-sm leading-6 text-slate-500">
                 Based on subject activity, quiz performance, revision gaps, and your
                 strongest study windows this week.
               </p>
@@ -316,7 +316,7 @@ export default function StudentRecommendationsPage() {
                       "w-full rounded-[28px] border p-5 transition",
                       isSelected
                         ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                        : "border-slate-200/80 bg-white hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md",
+                        : "border-sky-100/80 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md",
                     )}
                     key={recommendation.id}
                   >
@@ -330,10 +330,10 @@ export default function StudentRecommendationsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <Badge className="border-transparent bg-slate-900 text-white">
+                            <Badge className="border-transparent bg-sky-100 text-sky-700">
                               {recommendation.typeLabel}
                             </Badge>
-                            <Badge className="border-transparent bg-slate-100 text-slate-700">
+                            <Badge className="border-transparent bg-sky-100 text-sky-700">
                               {recommendation.subject}
                             </Badge>
                           </div>
@@ -355,10 +355,10 @@ export default function StudentRecommendationsPage() {
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-                        <span className="rounded-full bg-slate-100 px-3 py-1">
+                        <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                           Confidence {recommendation.confidence}
                         </span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1">
+                        <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                           {recommendation.effort}
                         </span>
                       </div>
@@ -366,7 +366,7 @@ export default function StudentRecommendationsPage() {
 
                     <div className="mt-5 flex flex-wrap gap-3">
                       <Button
-                        className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                        className="h-10 rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
                         onClick={() =>
                           router.push(recommendation.primaryAction.href)
                         }
@@ -376,7 +376,7 @@ export default function StudentRecommendationsPage() {
                       </Button>
                       {recommendation.secondaryAction ? (
                         <Button
-                          className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                          className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                           onClick={() =>
                             router.push(recommendation.secondaryAction!.href)
                           }
@@ -404,14 +404,14 @@ export default function StudentRecommendationsPage() {
               title="Recommendation Detail"
             >
               <div className="space-y-5">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="border-transparent bg-slate-900 text-white">
+                        <Badge className="border-transparent bg-sky-100 text-sky-700">
                           {selectedRecommendation.typeLabel}
                         </Badge>
-                        <Badge className="border-transparent bg-slate-100 text-slate-700">
+                        <Badge className="border-transparent bg-sky-100 text-sky-700">
                           {selectedRecommendation.subject}
                         </Badge>
                       </div>
@@ -434,7 +434,7 @@ export default function StudentRecommendationsPage() {
                   </p>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <div className="rounded-[20px] border border-sky-100 bg-white px-4 py-3 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                         Confidence
                       </p>
@@ -442,7 +442,7 @@ export default function StudentRecommendationsPage() {
                         {selectedRecommendation.confidence}
                       </p>
                     </div>
-                    <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <div className="rounded-[20px] border border-sky-100 bg-white px-4 py-3 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                         Suggested effort
                       </p>
@@ -453,7 +453,7 @@ export default function StudentRecommendationsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <div className="flex items-center gap-2">
                     <Clock3 className="h-4 w-4 text-sky-600" />
                     <p className="text-sm font-semibold text-slate-950">
@@ -463,10 +463,10 @@ export default function StudentRecommendationsPage() {
                   <div className="mt-4 space-y-3">
                     {selectedRecommendation.steps.map((step, index) => (
                       <div
-                        className="flex items-start gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                        className="flex items-start gap-3 rounded-[20px] border border-sky-100 bg-white px-4 py-3 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]"
                         key={step}
                       >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sm font-semibold text-sky-700">
                           {index + 1}
                         </span>
                         <p className="text-sm leading-6 text-slate-600">{step}</p>
@@ -477,7 +477,7 @@ export default function StudentRecommendationsPage() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                     onClick={() =>
                       router.push(selectedRecommendation.primaryAction.href)
                     }
@@ -486,7 +486,7 @@ export default function StudentRecommendationsPage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
-                    className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                    className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
                     onClick={() =>
                       router.push(
                         selectedRecommendation.secondaryAction?.href ??
@@ -507,7 +507,7 @@ export default function StudentRecommendationsPage() {
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <button
-                  className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(37,99,235,0.45)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(37,99,235,0.42)]"
+                  className="group rounded-[28px] border border-sky-100/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(37,99,235,0.45)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(37,99,235,0.42)]"
                   onClick={() => router.push("/student/flashcards")}
                   type="button"
                 >
@@ -524,7 +524,7 @@ export default function StudentRecommendationsPage() {
                 </button>
 
                 <button
-                  className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(5,150,105,0.38)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(5,150,105,0.35)]"
+                  className="group rounded-[28px] border border-sky-100/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(5,150,105,0.38)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(5,150,105,0.35)]"
                   onClick={() => router.push("/student/quizzes")}
                   type="button"
                 >
@@ -547,3 +547,9 @@ export default function StudentRecommendationsPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+
+
+
+

@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "build": "next build --webpack",
+    "build:turbo": "next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -33,5 +35,9 @@
     "eslint-config-next": "16.1.6",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2"
+  },
+  "optionalDependencies": {
+    "@next/swc-win32-x64-msvc": "^16.1.6",
+    "lightningcss-win32-x64-msvc": "^1.32.0"
   }
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import type { DragEvent, ReactNode } from "react";
@@ -108,10 +108,10 @@ const EMPTY_FORM: PlannerFormState = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 const selectClassName =
-  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+  "h-11 w-full rounded-2xl border border-sky-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -120,7 +120,13 @@ function cn(...classes: Array<string | false | null | undefined>) {
 function formatTaskDate(date: string, time: string) {
   const [year, month, day] = date.split("-").map(Number);
   const [hours, minutes] = time.split(":").map(Number);
-  const taskDate = new Date(year, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0);
+  const taskDate = new Date(
+    year,
+    (month ?? 1) - 1,
+    day ?? 1,
+    hours ?? 0,
+    minutes ?? 0,
+  );
 
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -142,19 +148,22 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
-      <CardHeader className="pb-5">
+    <Card className="relative overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_48px_-30px_rgba(15,23,42,0.08)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.06),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.05),transparent_30%)]" />
+      <CardHeader className="relative pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <CardTitle className="text-xl font-bold text-slate-950">
+              {title}
+            </CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-base leading-7 text-slate-600">
               {description}
             </CardDescription>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       </CardHeader>
-      <CardContent className="pt-0">{children}</CardContent>
+      <CardContent className="relative pt-0">{children}</CardContent>
     </Card>
   );
 }
@@ -169,8 +178,8 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="space-y-2" htmlFor={htmlFor}>
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+    <label className="space-y-2.5" htmlFor={htmlFor}>
+      <span className="text-sm font-semibold text-slate-700">{label}</span>
       {children}
     </label>
   );
@@ -305,7 +314,10 @@ export default function StudentPlannerPage() {
     setStatusMessage("Move the task over another card to reorder.");
   };
 
-  const handleDragOver = (event: DragEvent<HTMLDivElement>, taskId: string) => {
+  const handleDragOver = (
+    event: DragEvent<HTMLDivElement>,
+    taskId: string,
+  ) => {
     event.preventDefault();
     setDragOverTaskId(taskId);
   };
@@ -348,37 +360,48 @@ export default function StudentPlannerPage() {
       loadingMessage="Loading your planner..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_44%,#e0f2fe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
+        <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_24%,#f6f3ff_56%,#fff8ef_82%,#fffdf9_100%)]" />
+        <div className="fixed left-[-80px] top-[120px] -z-10 h-[260px] w-[260px] rounded-full bg-fuchsia-200/18 blur-3xl" />
+        <div className="fixed right-[-60px] top-[220px] -z-10 h-[280px] w-[280px] rounded-full bg-cyan-200/18 blur-3xl" />
+        <div className="fixed bottom-[30px] left-[30%] -z-10 h-[220px] w-[220px] rounded-full bg-amber-200/12 blur-3xl" />
+
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_36%,#ecfeff_72%,#fff8e8_108%)] p-6 shadow-[0_22px_60px_-34px_rgba(56,189,248,0.16)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.10),transparent_58%)]" />
+          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/20 blur-3xl" />
+          <div className="absolute right-10 top-4 h-32 w-32 rounded-full bg-fuchsia-200/16 blur-3xl" />
+
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-700" />
                 Study Planner
-              </Badge>
+              </div>
+
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   Plan your study flow
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-base leading-8 text-slate-700">
                   Organize tasks, filter by subject or date, and keep your most
                   important study work moving with a clean, modern planner.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+
+              <div className="flex flex-wrap gap-3 text-sm">
+                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
                   {tasks.length} total tasks
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
                   {inProgressCount} in progress
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
                   {highPriorityCount} high priority
                 </span>
               </div>
             </div>
 
             <Button
-              className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+              className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
               onClick={openCreateModal}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -388,51 +411,63 @@ export default function StudentPlannerPage() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+          <Card className="rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_48px_-30px_rgba(59,130,246,0.10)]">
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Planned Tasks</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  <p className="text-sm font-semibold text-slate-600">
+                    Planned Tasks
+                  </p>
+                  <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
                     {tasks.length}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">Across your study week</p>
+                  <p className="mt-2 text-sm font-medium text-slate-500">
+                    Across your study week
+                  </p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 to-slate-700 text-white">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 text-white shadow-[0_16px_30px_-16px_rgba(37,99,235,0.25)]">
                   <ListTodo className="h-5 w-5" />
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+          <Card className="rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_48px_-30px_rgba(59,130,246,0.10)]">
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Completed</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  <p className="text-sm font-semibold text-slate-600">
+                    Completed
+                  </p>
+                  <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
                     {completedCount}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">Tasks already finished</p>
+                  <p className="mt-2 text-sm font-medium text-slate-500">
+                    Tasks already finished
+                  </p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white shadow-[0_16px_30px_-16px_rgba(5,150,105,0.24)]">
                   <CheckCircle2 className="h-5 w-5" />
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+          <Card className="rounded-[30px] border border-slate-200 bg-white shadow-[0_18px_48px_-30px_rgba(59,130,246,0.10)]">
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Focus Signal</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  <p className="text-sm font-semibold text-slate-600">
+                    Focus Signal
+                  </p>
+                  <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
                     {filteredTasks.length}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">Tasks match current filters</p>
+                  <p className="mt-2 text-sm font-medium text-slate-500">
+                    Tasks match current filters
+                  </p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 text-white">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.24)]">
                   <Sparkles className="h-5 w-5" />
                 </span>
               </div>
@@ -443,7 +478,7 @@ export default function StudentPlannerPage() {
         <SectionCard
           action={
             <Button
-              className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+              className="h-10 rounded-2xl border border-sky-200 bg-white px-4 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
               onClick={() => {
                 setSubjectFilter("All Subjects");
                 setDateFilter("");
@@ -458,8 +493,10 @@ export default function StudentPlannerPage() {
           title="Planner Filters"
         >
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Subject</span>
+            <label className="space-y-2.5">
+              <span className="text-sm font-semibold text-slate-700">
+                Subject
+              </span>
               <div className="relative">
                 <Filter className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
                 <select
@@ -476,8 +513,8 @@ export default function StudentPlannerPage() {
               </div>
             </label>
 
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Date</span>
+            <label className="space-y-2.5">
+              <span className="text-sm font-semibold text-slate-700">Date</span>
               <div className="relative">
                 <CalendarDays className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
                 <input
@@ -490,7 +527,7 @@ export default function StudentPlannerPage() {
             </label>
 
             <div className="flex items-end">
-              <div className="w-full rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-600 md:w-auto">
+              <div className="w-full rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm md:w-auto">
                 {statusMessage}
               </div>
             </div>
@@ -501,7 +538,7 @@ export default function StudentPlannerPage() {
           description="Drag any task card to reorder your study plan. Use edit and delete actions to keep the queue clean."
           title="Task List"
         >
-          <div className="hidden rounded-[24px] border border-slate-200/80 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:gap-4">
+          <div className="hidden rounded-[24px] border border-slate-300 bg-slate-50 px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-600 lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:gap-4">
             <span>Task</span>
             <span>Subject</span>
             <span>Date / Time</span>
@@ -510,15 +547,15 @@ export default function StudentPlannerPage() {
             <span className="text-right">Actions</span>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-4">
             {filteredTasks.length ? (
               filteredTasks.map((task) => (
                 <div
                   className={cn(
-                    "rounded-[24px] border bg-white p-4 shadow-sm transition",
+                    "rounded-[26px] border bg-white p-5 shadow-[0_10px_28px_-20px_rgba(15,23,42,0.08)] transition",
                     dragOverTaskId === task.id
                       ? "border-sky-400 ring-4 ring-sky-100"
-                      : "border-slate-200/80 hover:border-slate-300 hover:shadow-md",
+                      : "border-slate-200 hover:border-sky-200 hover:shadow-[0_16px_34px_-22px_rgba(14,165,233,0.14)]",
                     draggedTaskId === task.id && "opacity-70",
                   )}
                   draggable
@@ -529,23 +566,25 @@ export default function StudentPlannerPage() {
                   onDrop={() => handleDrop(task.id)}
                 >
                   <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:items-center lg:gap-4">
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                    <div className="flex items-start gap-4">
+                      <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
                         <GripVertical className="h-5 w-5" />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-950">
+                        <p className="text-base font-bold text-slate-950">
                           {task.title}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500 lg:hidden">
+                        <p className="mt-1 text-sm font-medium text-slate-500 lg:hidden">
                           {task.subject}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-sm text-slate-700">{task.subject}</div>
+                    <div className="text-base font-medium text-slate-800">
+                      {task.subject}
+                    </div>
 
-                    <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <div className="flex items-center gap-2 text-base font-medium text-slate-800">
                       <Clock3 className="h-4 w-4 text-slate-400" />
                       {formatTaskDate(task.date, task.time)}
                     </div>
@@ -553,12 +592,12 @@ export default function StudentPlannerPage() {
                     <div>
                       <Badge
                         className={cn(
-                          "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em]",
                           task.priority === "High"
                             ? "border-transparent bg-rose-500 text-white"
                             : task.priority === "Medium"
-                              ? "border-transparent bg-amber-500 text-white"
-                              : "border-transparent bg-emerald-500 text-white",
+                              ? "border-transparent bg-slate-900 text-white"
+                              : "border-transparent bg-slate-900 text-white",
                         )}
                       >
                         {task.priority}
@@ -568,12 +607,12 @@ export default function StudentPlannerPage() {
                     <div>
                       <Badge
                         className={cn(
-                          "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em]",
                           task.status === "Done"
-                            ? "border-transparent bg-emerald-100 text-emerald-700"
+                            ? "border-transparent bg-emerald-600 text-white"
                             : task.status === "In Progress"
-                              ? "border-transparent bg-sky-100 text-sky-700"
-                              : "border-transparent bg-slate-100 text-slate-700",
+                              ? "border-transparent bg-sky-200 text-sky-900"
+                              : "border-transparent bg-slate-200 text-slate-700",
                         )}
                       >
                         {task.status}
@@ -582,16 +621,15 @@ export default function StudentPlannerPage() {
 
                     <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
                       <Button
-                        className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-slate-900 hover:bg-slate-50"
+                        className="h-10 rounded-2xl bg-slate-950 px-4 font-semibold text-white hover:bg-slate-800"
                         onClick={() => openEditModal(task)}
                         size="sm"
-                        variant="outline"
                       >
                         <PencilLine className="mr-2 h-4 w-4" />
                         Edit
                       </Button>
                       <Button
-                        className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100"
+                        className="h-10 rounded-2xl border border-rose-200 bg-rose-50 px-4 font-semibold text-rose-700 hover:bg-rose-100"
                         onClick={() => handleDeleteTask(task.id)}
                         size="sm"
                         variant="outline"
@@ -604,19 +642,19 @@ export default function StudentPlannerPage() {
                 </div>
               ))
             ) : (
-              <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 p-12 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-white text-slate-800 shadow-sm">
+              <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.22)]">
                   <ListTodo className="h-6 w-6" />
                 </div>
-                <h3 className="mt-5 text-xl font-semibold text-slate-950">
+                <h3 className="mt-5 text-xl font-bold text-slate-950">
                   No tasks match these filters
                 </h3>
-                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
                   Adjust the selected subject or date filter, or add a fresh task
                   to keep your planner moving.
                 </p>
                 <Button
-                  className="mt-6 h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                  className="mt-6 h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
                   onClick={openCreateModal}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -628,19 +666,19 @@ export default function StudentPlannerPage() {
         </SectionCard>
 
         {isModalOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
-            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-[2px]">
+            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_32px_80px_-34px_rgba(56,189,248,0.22)]">
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-950">
+                  <h2 className="text-xl font-bold text-slate-950">
                     {editingTaskId ? "Edit Task" : "Add Task"}
                   </h2>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm font-medium text-slate-500">
                     Set the task details, priority, timing, and status in one clean modal.
                   </p>
                 </div>
                 <button
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-sky-50 hover:text-sky-700"
                   onClick={closeModal}
                   type="button"
                 >
@@ -749,19 +787,19 @@ export default function StudentPlannerPage() {
               </div>
 
               <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-slate-500">
+                <p className="text-sm font-medium text-slate-500">
                   Planner tasks stay local for now and are ready to connect to MongoDB later.
                 </p>
                 <div className="flex gap-3">
                   <Button
-                    className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                    className="h-11 rounded-2xl border border-sky-200 bg-white px-5 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
                     onClick={closeModal}
                     variant="outline"
                   >
                     Cancel
                   </Button>
                   <Button
-                    className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
                     onClick={handleSaveTask}
                   >
                     <Save className="mr-2 h-4 w-4" />

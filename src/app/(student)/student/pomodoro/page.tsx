@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -52,7 +52,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_30px_70px_-40px_rgba(56,189,248,0.18)]">
       <CardHeader className="pb-5">
         <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
         <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
@@ -78,7 +78,7 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
+    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -169,8 +169,8 @@ export default function StudentPomodoroPage() {
       ? {
           ringFrom: "#0f172a",
           ringTo: "#2563eb",
-          badgeClassName: "border-transparent bg-slate-900 text-white",
-          accentClassName: "from-slate-900 to-sky-600",
+          badgeClassName: "border-transparent bg-sky-100 text-sky-700",
+          accentClassName: "from-indigo-700 to-sky-600",
         }
       : {
           ringFrom: "#0f766e",
@@ -186,33 +186,33 @@ export default function StudentPomodoroPage() {
       loadingMessage="Loading your Pomodoro timer..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_44%,#eff6ff_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
           <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_58%)]" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
                 Pomodoro Focus
               </Badge>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Minimal focus timer
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
                   A clean 25/5 focus routine built to reduce friction, protect
                   your attention, and help you stay consistent across every study block.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Default cycle: 25 / 5
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
                   Next mode: {nextMode}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/15 bg-white/10 px-5 py-4 text-sm text-slate-100/90 backdrop-blur">
+            <div className="rounded-[28px] border border-white/85 bg-white/94 px-5 py-4 text-sm text-slate-600 shadow-[0_18px_38px_-28px_rgba(56,189,248,0.22)]">
               {statusMessage}
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function StudentPomodoroPage() {
             value={`${completedBreaks}`}
           />
           <SummaryCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Recovered from finished cycles"
             icon={<Target className="h-5 w-5" />}
             label="Focus Minutes"
@@ -276,7 +276,7 @@ export default function StudentPomodoroPage() {
 
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button
-                  className="h-11 rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                  className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
                   onClick={handleToggleTimer}
                 >
                   {isRunning ? (
@@ -292,7 +292,7 @@ export default function StudentPomodoroPage() {
                   )}
                 </Button>
                 <Button
-                  className="h-11 rounded-2xl border border-slate-200 bg-white px-5 text-slate-900 hover:bg-slate-50"
+                  className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-sm hover:bg-sky-50"
                   onClick={handleReset}
                   variant="outline"
                 >
@@ -309,7 +309,7 @@ export default function StudentPomodoroPage() {
               title="Cycle Overview"
             >
               <div className="space-y-5">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-slate-500">
@@ -334,7 +334,7 @@ export default function StudentPomodoroPage() {
                   </div>
                   <Progress
                     className="mt-5 h-3"
-                    indicatorClassName="bg-slate-950"
+                    indicatorClassName="bg-sky-600"
                     value={cycleProgress}
                   />
                   <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
@@ -344,13 +344,13 @@ export default function StudentPomodoroPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Focus preset</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       25 min
                     </p>
                   </div>
-                  <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                     <p className="text-sm font-medium text-slate-500">Break preset</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
                       5 min
@@ -365,7 +365,7 @@ export default function StudentPomodoroPage() {
               title="Focus Notes"
             >
               <div className="space-y-4">
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-start gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm">
                       <Clock3 className="h-5 w-5" />
@@ -382,7 +382,7 @@ export default function StudentPomodoroPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-start gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
                       <Coffee className="h-5 w-5" />
@@ -399,7 +399,7 @@ export default function StudentPomodoroPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4">
                   <div className="flex items-start gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-violet-600 shadow-sm">
                       <Sparkles className="h-5 w-5" />
@@ -423,3 +423,6 @@ export default function StudentPomodoroPage() {
     </ProtectedDashboardLayout>
   );
 }
+
+
+

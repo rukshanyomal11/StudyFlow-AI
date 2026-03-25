@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -72,19 +72,22 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.22)]">
-      <CardHeader className="pb-5">
+    <Card className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.98)_100%)] shadow-[0_24px_64px_-36px_rgba(99,102,241,0.14)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.06),transparent_30%)]" />
+      <CardHeader className="relative pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <CardTitle className="text-xl font-bold text-slate-950">
+              {title}
+            </CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-base leading-7 text-slate-600">
               {description}
             </CardDescription>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       </CardHeader>
-      <CardContent className="pt-0">{children}</CardContent>
+      <CardContent className="relative pt-0">{children}</CardContent>
     </Card>
   );
 }
@@ -103,19 +106,20 @@ function StatCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.25)]">
-      <CardContent className="p-5">
+    <Card className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.98)_100%)] shadow-[0_22px_54px_-34px_rgba(59,130,246,0.14)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.7),transparent_36%)]" />
+      <CardContent className="relative p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            <p className="text-sm font-semibold text-slate-600">{label}</p>
+            <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
               {value}
             </p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+            <p className="mt-2 text-sm font-medium text-slate-500">{detail}</p>
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_16px_30px_-16px_rgba(15,23,42,0.28)]",
               accentClassName,
             )}
           >
@@ -250,42 +254,52 @@ export default function StudentDashboardPage() {
       loadingMessage="Loading your dashboard..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_44%,#dbeafe_120%)] p-6 shadow-[0_30px_80px_-38px_rgba(15,23,42,0.55)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_58%)]" />
-          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+        <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_24%,#f6f3ff_56%,#fff8ef_82%,#fffdf9_100%)]" />
+        <div className="fixed left-[-80px] top-[120px] -z-10 h-[260px] w-[260px] rounded-full bg-fuchsia-200/20 blur-3xl" />
+        <div className="fixed right-[-60px] top-[220px] -z-10 h-[280px] w-[280px] rounded-full bg-cyan-200/20 blur-3xl" />
+        <div className="fixed bottom-[30px] left-[30%] -z-10 h-[220px] w-[220px] rounded-full bg-amber-200/15 blur-3xl" />
+
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_30%,#ecfeff_64%,#fff8e8_108%)] p-6 shadow-[0_28px_72px_-38px_rgba(56,189,248,0.18)] sm:p-8">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.12),transparent_58%)]" />
+          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/25 blur-3xl" />
+          <div className="absolute right-10 top-4 h-32 w-32 rounded-full bg-fuchsia-200/20 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-white/20 bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+              <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-700" />
                 Student Dashboard
-              </Badge>
+              </div>
+
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   Welcome back, Nethmi
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100/85 sm:text-base">
+                <p className="mt-3 max-w-3xl text-base leading-8 text-slate-700">
                   Your study momentum looks strong today. Keep your streak alive,
                   finish the most important tasks first, and let StudyFlow AI guide
                   the next best step.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-100/90">
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+
+              <div className="flex flex-wrap gap-3 text-sm">
+                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
                   {todayLabel}
                 </span>
-                <span className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
+                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
                   Grade 12 - Advanced Level
                 </span>
               </div>
+
               <div className="flex flex-wrap gap-3">
                 <Button
-                  className="h-11 rounded-2xl bg-white px-5 text-slate-950 shadow-lg shadow-slate-950/10 hover:bg-slate-100"
+                  className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.45)] hover:brightness-110"
                   onClick={() => router.push("/student/planner")}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Task
                 </Button>
                 <Button
-                  className="h-11 rounded-2xl border border-white/15 bg-white/10 px-5 text-white hover:bg-white/15"
+                  className="h-11 rounded-2xl border border-sky-200 bg-white px-5 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
                   onClick={() => router.push("/student/pomodoro")}
                 >
                   <PlayCircle className="mr-2 h-4 w-4" />
@@ -294,27 +308,27 @@ export default function StudentDashboardPage() {
               </div>
             </div>
 
-            <div className="w-full max-w-md rounded-[28px] border border-white/15 bg-white/10 p-5 backdrop-blur">
+            <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_18px_40px_-26px_rgba(14,165,233,0.12)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-100/80">
+                  <p className="text-sm font-semibold text-slate-600">
                     Daily focus goal
                   </p>
-                  <p className="mt-2 text-3xl font-semibold text-white">
+                  <p className="mt-2 text-3xl font-bold text-slate-950">
                     {todayHours} / {dailyGoalHours} hrs
                   </p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-white">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-sm">
                   <Target className="h-5 w-5" />
                 </span>
               </div>
               <div className="mt-5">
                 <Progress
-                  className="h-3 bg-white/15"
-                  indicatorClassName="bg-white"
+                  className="h-3 bg-sky-100"
+                  indicatorClassName="bg-[linear-gradient(90deg,#0ea5e9_0%,#2563eb_60%,#7c3aed_100%)]"
                   value={goalProgress}
                 />
-                <div className="mt-3 flex items-center justify-between text-sm text-slate-100/80">
+                <div className="mt-3 flex items-center justify-between text-sm font-medium text-slate-500">
                   <span>{goalProgress}% completed</span>
                   <span>{dailyGoalHours - todayHours} hrs left today</span>
                 </div>
@@ -346,7 +360,7 @@ export default function StudentDashboardPage() {
             value={`${completedTasks}`}
           />
           <StatCard
-            accentClassName="from-slate-900 to-slate-700"
+            accentClassName="from-indigo-700 to-sky-600"
             detail="Subjects currently active"
             icon={<BookOpen className="h-5 w-5" />}
             label="Active Subjects"
@@ -358,7 +372,7 @@ export default function StudentDashboardPage() {
           <SectionCard
             action={
               <Button
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                className="h-10 rounded-2xl border border-sky-200 bg-white px-4 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
                 onClick={() => router.push("/student/planner")}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -369,20 +383,20 @@ export default function StudentDashboardPage() {
             title="Today's Tasks"
           >
             <div className="space-y-4">
-              <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+              <div className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-950">
+                    <p className="text-sm font-bold text-slate-950">
                       Daily task progress
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm font-medium text-slate-500">
                       {completedTaskCount} of {tasks.length} tasks completed today
                     </p>
                   </div>
                   <div className="w-full max-w-xs">
                     <Progress
-                      className="h-3"
-                      indicatorClassName="bg-slate-950"
+                      className="h-3 bg-slate-100"
+                      indicatorClassName="bg-[linear-gradient(90deg,#0ea5e9_0%,#2563eb_60%,#7c3aed_100%)]"
                       value={(completedTaskCount / tasks.length) * 100}
                     />
                   </div>
@@ -392,7 +406,7 @@ export default function StudentDashboardPage() {
               <div className="space-y-3">
                 {tasks.map((task) => (
                   <button
-                    className="flex w-full items-start gap-4 rounded-[24px] border border-slate-200/80 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                    className="flex w-full items-start gap-4 rounded-[24px] border border-slate-200/80 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md"
                     key={task.id}
                     onClick={() => handleToggleTask(task.id)}
                     type="button"
@@ -402,7 +416,7 @@ export default function StudentDashboardPage() {
                         "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm transition",
                         task.completed
                           ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-500",
+                          : "border-sky-100 bg-sky-50 text-sky-600",
                       )}
                     >
                       <CheckCircle2 className="h-4 w-4" />
@@ -413,7 +427,7 @@ export default function StudentDashboardPage() {
                         <div>
                           <p
                             className={cn(
-                              "text-sm font-semibold",
+                              "text-sm font-bold",
                               task.completed
                                 ? "text-slate-400 line-through"
                                 : "text-slate-950",
@@ -421,14 +435,14 @@ export default function StudentDashboardPage() {
                           >
                             {task.title}
                           </p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                            <span className="rounded-full bg-slate-100 px-3 py-1">
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
                               {task.subject}
                             </span>
-                            <span className="rounded-full bg-slate-100 px-3 py-1">
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
                               {task.time}
                             </span>
-                            <span className="rounded-full bg-slate-100 px-3 py-1">
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
                               {task.duration}
                             </span>
                           </div>
@@ -436,9 +450,9 @@ export default function StudentDashboardPage() {
 
                         <span
                           className={cn(
-                            "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
+                            "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
                             task.priority === "High"
-                              ? "bg-rose-100 text-rose-600"
+                              ? "bg-rose-100 text-rose-700"
                               : task.priority === "Medium"
                                 ? "bg-amber-100 text-amber-700"
                                 : "bg-emerald-100 text-emerald-700",
@@ -462,22 +476,22 @@ export default function StudentDashboardPage() {
               <div className="space-y-4">
                 {RECOMMENDATIONS.map((item) => (
                   <div
-                    className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                    className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]"
                     key={item.id}
                   >
                     <div className="flex items-start gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#ecfeff_0%,#eef2ff_100%)] text-sky-700 shadow-sm">
                         <Brain className="h-5 w-5" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-950">
+                        <p className="text-sm font-bold text-slate-950">
                           {item.title}
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                        <p className="mt-2 text-sm leading-7 text-slate-600">
                           {item.description}
                         </p>
                         <button
-                          className="mt-3 inline-flex items-center text-sm font-medium text-sky-700 transition hover:text-sky-800"
+                          className="mt-3 inline-flex items-center text-sm font-semibold text-sky-700 transition hover:text-sky-800"
                           onClick={() => router.push(item.href)}
                           type="button"
                         >
@@ -498,31 +512,31 @@ export default function StudentDashboardPage() {
               <div className="space-y-4">
                 {DEADLINES.map((deadline) => (
                   <div
-                    className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                    className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]"
                     key={deadline.id}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-slate-950">
+                        <p className="text-sm font-bold text-slate-950">
                           {deadline.title}
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                          <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm">
                             {deadline.subject}
                           </span>
-                          <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm">
                             {deadline.dueLabel}
                           </span>
                         </div>
                       </div>
                       <Badge
                         className={cn(
-                          "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                          "px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
                           deadline.status === "Urgent"
                             ? "border-transparent bg-rose-500 text-white"
                             : deadline.status === "Upcoming"
                               ? "border-transparent bg-amber-500 text-white"
-                              : "border-transparent bg-slate-900 text-white",
+                              : "border-transparent bg-sky-100 text-sky-700",
                         )}
                       >
                         {deadline.status}
@@ -541,40 +555,40 @@ export default function StudentDashboardPage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <button
-              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(37,99,235,0.45)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(37,99,235,0.42)]"
+              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#eef6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_18px_40px_-28px_rgba(37,99,235,0.18)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-32px_rgba(37,99,235,0.24)]"
               onClick={() => router.push("/student/planner")}
               type="button"
             >
               <div className="flex items-start justify-between gap-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-200">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] text-white shadow-lg">
                   <ListTodo className="h-5 w-5" />
                 </span>
                 <ChevronRight className="h-5 w-5 text-slate-400 transition group-hover:text-slate-700" />
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-950">
+              <h3 className="mt-5 text-lg font-bold text-slate-950">
                 Add Task
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-7 text-slate-600">
                 Capture a new study task, set the right subject, and slot it into
                 your planner in a few seconds.
               </p>
             </button>
 
             <button
-              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfeff_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_20px_50px_-40px_rgba(13,148,136,0.4)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(13,148,136,0.4)]"
+              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfeff_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_18px_40px_-28px_rgba(13,148,136,0.18)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-32px_rgba(13,148,136,0.24)]"
               onClick={() => router.push("/student/pomodoro")}
               type="button"
             >
               <div className="flex items-start justify-between gap-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#10b981_0%,#059669_100%)] text-white shadow-lg">
                   <PlayCircle className="h-5 w-5" />
                 </span>
                 <ChevronRight className="h-5 w-5 text-slate-400 transition group-hover:text-slate-700" />
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-950">
+              <h3 className="mt-5 text-lg font-bold text-slate-950">
                 Start Session
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-7 text-slate-600">
                 Launch a focused study session, keep distractions low, and turn
                 your momentum into completed work.
               </p>

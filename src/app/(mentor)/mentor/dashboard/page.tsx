@@ -165,6 +165,18 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const SURFACE_CARD_CLASS_NAME =
+  "rounded-[30px] border border-slate-200/90 bg-white/95 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
+
+const SOFT_PANEL_CLASS_NAME =
+  "rounded-[26px] border border-slate-200/90 bg-white/90 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)] transition-colors hover:border-slate-300 dark:!border-slate-200 dark:!bg-white";
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "bg-slate-900 text-white hover:bg-slate-800 dark:!bg-slate-900 dark:!text-white dark:hover:!bg-slate-800";
+
+const SECONDARY_BUTTON_CLASS_NAME =
+  "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -185,12 +197,14 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.22)]">
+    <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">
+              {title}
+            </CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -216,17 +230,26 @@ function SummaryCard({
   accentClassName: string;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.24)]">
+    <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">
+              {label}
+            </p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">
               {value}
             </p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">
+              {detail}
+            </p>
           </div>
-          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70", accentClassName)}>
+          <span
+            className={cn(
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]",
+              accentClassName,
+            )}
+          >
             {icon}
           </span>
         </div>
@@ -265,7 +288,7 @@ export default function MentorDashboardPage() {
   );
 
   const summaryCards = [
-    { label: "Total Students", value: "284", detail: "Assigned across mentor cohorts", icon: <Users className="h-5 w-5" />, accentClassName: "from-slate-900 to-slate-700" },
+    { label: "Total Students", value: "284", detail: "Assigned across mentor cohorts", icon: <Users className="h-5 w-5" />, accentClassName: "from-indigo-700 to-sky-600" },
     { label: "Active Students", value: "126", detail: "Learners active in the past 24 hours", icon: <GraduationCap className="h-5 w-5" />, accentClassName: "from-sky-600 to-cyan-500" },
     { label: "Pending Doubts", value: "18", detail: "Questions waiting for mentor response", icon: <MessageSquare className="h-5 w-5" />, accentClassName: "from-amber-500 to-orange-500" },
     { label: "Quizzes Created", value: "42", detail: "Published across all active subjects", icon: <CheckCircle2 className="h-5 w-5" />, accentClassName: "from-emerald-600 to-teal-500" },
@@ -279,28 +302,28 @@ export default function MentorDashboardPage() {
       links={mentorSidebarLinks}
       loadingMessage="Loading your mentor dashboard..."
     >
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
-        <Card className="relative overflow-hidden rounded-[34px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
           <div
             className="absolute inset-0 opacity-95"
             style={{
               backgroundImage:
-                "radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 24%), radial-gradient(circle at 85% 15%, rgba(20, 184, 166, 0.22), transparent 24%), linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 118, 110, 0.96))",
+                "radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24%), radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.18), transparent 24%), radial-gradient(circle at 70% 85%, rgba(245, 158, 11, 0.12), transparent 18%), linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98) 48%, rgba(236, 253, 245, 0.98) 100%)",
             }}
           />
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white">
+                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:!border-sky-200 dark:!bg-white dark:!text-sky-700">
                   <Sparkles className="mr-2 h-3.5 w-3.5" />
                   Mentor command center
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
                     Welcome back, {MENTOR_NAME}
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
                     Your learners are building solid momentum today. Clear the
                     highest-priority doubts, publish one high-value resource, and
                     keep the strongest students moving while supporting the ones who
@@ -308,14 +331,14 @@ export default function MentorDashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 text-sm text-slate-200">
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                <div className="flex flex-wrap gap-3 text-sm text-slate-600 dark:!text-slate-600">
+                  <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
                     {todayLabel}
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
                     {averageStudentProgress}% average progress
                   </div>
-                  <div className="rounded-full border border-white/12 bg-white/10 px-4 py-2">
+                  <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
                     {unreadDoubts} priority doubts waiting
                   </div>
                 </div>
@@ -323,7 +346,7 @@ export default function MentorDashboardPage() {
 
               <div className="flex flex-wrap gap-3 xl:justify-end">
                 <Button
-                  className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 hover:bg-slate-100"
+                  className="h-12 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-[0_18px_35px_-18px_rgba(15,23,42,0.45)] hover:bg-slate-800 dark:!bg-slate-900 dark:!text-white dark:hover:!bg-slate-800"
                   onClick={() => router.push("/mentor/content")}
                   type="button"
                 >
@@ -331,7 +354,7 @@ export default function MentorDashboardPage() {
                   Manage Content
                 </Button>
                 <Button
-                  className="h-12 rounded-2xl border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/15"
+                  className="h-12 rounded-2xl border border-slate-200 bg-white/85 px-5 text-sm font-semibold text-slate-900 hover:bg-white dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-white"
                   onClick={() => router.push("/mentor/quizzes")}
                   type="button"
                 >
@@ -339,7 +362,7 @@ export default function MentorDashboardPage() {
                   View Quizzes
                 </Button>
                 <Button
-                  className="h-12 rounded-2xl border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/15"
+                  className="h-12 rounded-2xl border border-slate-200 bg-white/85 px-5 text-sm font-semibold text-slate-900 hover:bg-white dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-white"
                   onClick={() => router.push("/mentor/students")}
                   type="button"
                 >
@@ -369,7 +392,10 @@ export default function MentorDashboardPage() {
             <SectionCard
               action={
                 <Button
-                  className="h-10 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 hover:bg-slate-50"
+                  className={cn(
+                    "h-10 rounded-2xl px-4",
+                    SECONDARY_BUTTON_CLASS_NAME,
+                  )}
                   onClick={() => router.push("/mentor/students")}
                   type="button"
                   variant="outline"
@@ -383,7 +409,7 @@ export default function MentorDashboardPage() {
               <div className="space-y-4">
                 {STUDENT_OVERVIEW.map((student) => (
                   <div
-                    className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5"
+                    className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}
                     key={student.id}
                   >
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -396,14 +422,14 @@ export default function MentorDashboardPage() {
 
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-base font-semibold text-slate-950">
+                            <p className="text-base font-semibold text-slate-950 dark:!text-slate-950">
                               {student.name}
                             </p>
-                            <Badge className="border-transparent bg-slate-100 text-slate-700">
+                            <Badge className="border-transparent bg-sky-50 text-sky-700 dark:!bg-sky-50 dark:!text-sky-700">
                               {student.level}
                             </Badge>
                           </div>
-                          <p className="mt-2 text-sm text-slate-500">
+                          <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">
                             Weak subject: {student.weakSubject}
                           </p>
                         </div>
@@ -411,20 +437,25 @@ export default function MentorDashboardPage() {
 
                       <div className="w-full max-w-[360px] space-y-3">
                         <div className="flex items-center justify-between gap-3 text-sm">
-                          <span className="font-medium text-slate-500">Progress</span>
-                          <span className="font-semibold text-slate-950">
+                          <span className="font-medium text-slate-500 dark:!text-slate-500">
+                            Progress
+                          </span>
+                          <span className="font-semibold text-slate-950 dark:!text-slate-950">
                             {student.progress}%
                           </span>
                         </div>
                         <Progress
-                          className="h-3 bg-slate-200"
-                          indicatorClassName="bg-slate-950"
+                          className="h-3 bg-slate-200 dark:!bg-slate-200"
+                          indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
                           value={student.progress}
                         />
                       </div>
 
                       <Button
-                        className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                        className={cn(
+                          "h-10 rounded-2xl px-4",
+                          PRIMARY_BUTTON_CLASS_NAME,
+                        )}
                         onClick={() => router.push("/mentor/students")}
                         type="button"
                       >
@@ -511,7 +542,7 @@ export default function MentorDashboardPage() {
               </div>
 
               <div className="mt-6 grid gap-6 xl:grid-cols-2">
-                <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/80 p-5">
+                <div className="rounded-[28px] border border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.92),rgba(255,255,255,0.98))] p-5 shadow-[0_20px_44px_-36px_rgba(5,150,105,0.32)]">
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
                       <TrendingUp className="h-5 w-5" />
@@ -553,7 +584,7 @@ export default function MentorDashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-amber-200 bg-amber-50/80 p-5">
+                <div className="rounded-[28px] border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.94),rgba(255,255,255,0.98))] p-5 shadow-[0_20px_44px_-36px_rgba(217,119,6,0.28)]">
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-white">
                       <AlertCircle className="h-5 w-5" />
@@ -609,7 +640,7 @@ export default function MentorDashboardPage() {
                 {QUICK_ACTIONS.map((action) => (
                   <button
                     className={cn(
-                      "group rounded-[28px] border border-slate-200/80 p-5 text-left transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-36px_rgba(15,23,42,0.16)]",
+                      "group rounded-[28px] border border-slate-200/90 p-5 text-left transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_24px_55px_-36px_rgba(15,23,42,0.18)] dark:!border-slate-200 dark:!text-slate-950",
                       action.surfaceClassName,
                     )}
                     key={action.title}
@@ -619,7 +650,7 @@ export default function MentorDashboardPage() {
                     <div className="flex items-start justify-between gap-4">
                       <span
                         className={cn(
-                          "flex h-12 w-12 items-center justify-center rounded-2xl",
+                          "flex h-12 w-12 items-center justify-center rounded-2xl shadow-[0_16px_28px_-18px_rgba(15,23,42,0.34)]",
                           action.accentClassName,
                         )}
                       >
@@ -650,30 +681,33 @@ export default function MentorDashboardPage() {
               <div className="space-y-4">
                 {RECENT_DOUBTS.map((doubt) => (
                   <div
-                    className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                    className={cn(SOFT_PANEL_CLASS_NAME, "p-4")}
                     key={doubt.id}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-950">
+                          <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
                             {doubt.studentName}
                           </p>
                           <Badge className={priorityBadgeClass(doubt.priority)}>
                             {doubt.priority}
                           </Badge>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
                           {doubt.title}
                         </p>
-                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
+                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
                           <Clock3 className="h-3.5 w-3.5" />
                           {doubt.time}
                         </div>
                       </div>
 
                       <Button
-                        className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                        className={cn(
+                          "h-10 rounded-2xl px-4",
+                          PRIMARY_BUTTON_CLASS_NAME,
+                        )}
                         onClick={() => router.push("/mentor/doubts")}
                         type="button"
                       >
@@ -688,7 +722,10 @@ export default function MentorDashboardPage() {
             <SectionCard
               action={
                 <Button
-                  className="h-10 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
+                  className={cn(
+                    "h-10 rounded-2xl px-4",
+                    PRIMARY_BUTTON_CLASS_NAME,
+                  )}
                   onClick={() => router.push("/mentor/announcements")}
                   type="button"
                 >
@@ -702,26 +739,26 @@ export default function MentorDashboardPage() {
               <div className="space-y-4">
                 {ANNOUNCEMENTS.map((announcement) => (
                   <div
-                    className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                    className={cn(SOFT_PANEL_CLASS_NAME, "p-4")}
                     key={announcement.id}
                   >
                     <div className="flex items-start gap-4">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
                         <Megaphone className="h-5 w-5" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-950">
+                          <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
                             {announcement.title}
                           </p>
-                          <Badge className="border-transparent bg-slate-100 text-slate-700">
+                          <Badge className="border-transparent bg-indigo-50 text-indigo-700 dark:!bg-indigo-50 dark:!text-indigo-700">
                             {announcement.audience}
                           </Badge>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
                           {announcement.summary}
                         </p>
-                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
+                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
                           <CalendarDays className="h-3.5 w-3.5" />
                           {announcement.time}
                         </div>
