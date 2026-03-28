@@ -352,58 +352,157 @@ export default function StudentProfilePage() {
         <div className="fixed right-[-60px] top-[220px] -z-10 h-[280px] w-[280px] rounded-full bg-cyan-200/20 blur-3xl" />
         <div className="fixed bottom-[40px] left-[30%] -z-10 h-[240px] w-[240px] rounded-full bg-amber-200/15 blur-3xl" />
 
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#eefaff_20%,#eef2ff_46%,#fdf2f8_72%,#fff7ed_100%)] p-6 shadow-[0_24px_70px_-38px_rgba(99,102,241,0.14)] sm:p-8">
-          <div className="absolute -left-12 top-0 h-40 w-40 rounded-full bg-cyan-200/25 blur-3xl" />
-          <div className="absolute right-8 top-8 h-36 w-36 rounded-full bg-fuchsia-200/25 blur-3xl" />
-          <div className="absolute bottom-0 right-1/3 h-40 w-40 rounded-full bg-amber-200/20 blur-3xl" />
-          <div className="absolute left-1/3 top-10 h-32 w-32 rounded-full bg-violet-200/18 blur-3xl" />
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.10),transparent_58%)]" />
+        <section className="relative overflow-hidden rounded-[40px] border border-white/85 bg-[linear-gradient(135deg,#ffffff_0%,#eefaff_18%,#eef2ff_44%,#fdf2f8_74%,#fff7ed_100%)] p-6 shadow-[0_28px_80px_-42px_rgba(99,102,241,0.18)] sm:p-8">
+          <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,rgba(37,99,235,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(37,99,235,0.12)_1px,transparent_1px)] [background-size:32px_32px]" />
+          <div className="absolute -left-14 top-0 h-44 w-44 rounded-full bg-cyan-200/30 blur-3xl" />
+          <div className="absolute right-8 top-8 h-40 w-40 rounded-full bg-fuchsia-200/25 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 h-44 w-44 rounded-full bg-amber-200/25 blur-3xl" />
+          <div className="absolute left-1/3 top-8 h-32 w-32 rounded-full bg-violet-200/20 blur-3xl" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_58%)]" />
 
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <Avatar className="h-24 w-24 rounded-[30px] border-4 border-white bg-white shadow-[0_18px_36px_-22px_rgba(14,165,233,0.22)]">
-                {profile.avatarUrl ? (
-                  <AvatarImage src={profile.avatarUrl} alt={profile.fullName} />
-                ) : null}
-                <AvatarFallback className="rounded-[26px] bg-[linear-gradient(135deg,#dbeafe_0%,#e9d5ff_100%)] text-2xl font-bold text-sky-700">
-                  {getInitials(profile.fullName)}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="space-y-3">
-                <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700 shadow-sm">
-                  <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-700" />
-                  Student Profile
+          <div className="relative">
+            <div className="space-y-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                <div className="relative shrink-0">
+                  <div className="absolute -inset-2 rounded-[36px] bg-[linear-gradient(135deg,rgba(14,165,233,0.24)_0%,rgba(99,102,241,0.18)_55%,rgba(236,72,153,0.18)_100%)] blur-lg" />
+                  <Avatar className="relative h-24 w-24 rounded-[30px] border-4 border-white bg-white shadow-[0_20px_42px_-22px_rgba(14,165,233,0.26)]">
+                    {profile.avatarUrl ? (
+                      <AvatarImage
+                        src={profile.avatarUrl}
+                        alt={profile.fullName}
+                      />
+                    ) : null}
+                    <AvatarFallback className="rounded-[26px] bg-[linear-gradient(135deg,#dbeafe_0%,#e9d5ff_100%)] text-2xl font-bold text-sky-700">
+                      {getInitials(profile.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
 
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-                    {profile.fullName}
-                  </h1>
-                  <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-700">
-                    Keep your learning identity polished with a cleaner profile,
-                    brighter study preferences, and a workspace that feels easy
-                    to manage.
-                  </p>
-                </div>
+                <div className="space-y-3">
+                  <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700 shadow-sm">
+                    <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-700" />
+                    Student Profile
+                  </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
-                    <Mail className="h-4 w-4 text-sky-600" />
-                    {profile.email}
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
-                    <GraduationCap className="h-4 w-4 text-indigo-600" />
-                    {profile.studyLevel}
-                  </span>
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+                      {profile.fullName}
+                    </h1>
+                    <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-700">
+                      Keep your learning identity polished with a cleaner
+                      profile, brighter study preferences, and a workspace that
+                      feels easy to manage.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <Button className={primaryButtonClassName} onClick={scrollToEditForm}>
-              <PencilLine className="mr-2 h-4 w-4" />
-              Edit Profile
-            </Button>
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(59,130,246,0.14)] backdrop-blur-sm">
+                  <Mail className="h-4 w-4 text-sky-600" />
+                  {profile.email}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(99,102,241,0.14)] backdrop-blur-sm">
+                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+                  {profile.studyLevel}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(14,165,233,0.16)] backdrop-blur-sm">
+                  <Clock3 className="h-4 w-4 text-cyan-600" />
+                  Best time: {profile.preferredStudyTime}
+                </span>
+              </div>
+
+              <div className="rounded-[30px] border border-white/90 bg-white/82 p-5 shadow-[0_24px_56px_-34px_rgba(99,102,241,0.18)] backdrop-blur-xl">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+                  Profile Focus
+                </p>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] text-white">
+                        <Clock3 className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                          Study Rhythm
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {profile.preferredStudyTime}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f97316_0%,#ef4444_100%)] text-white">
+                        <Flame className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                          Current Streak
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {profile.streak} days active
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#10b981_0%,#14b8a6_100%)] text-white">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                          Completed Tasks
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {profile.completedTasks} finished
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.22)]",
+                          profile.twoFactorEnabled
+                            ? "bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)]"
+                            : "bg-[linear-gradient(135deg,#f59e0b_0%,#f97316_100%)]",
+                        )}
+                      >
+                        {profile.twoFactorEnabled ? (
+                          <ShieldCheck className="h-4 w-4" />
+                        ) : (
+                          <ShieldAlert className="h-4 w-4" />
+                        )}
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                          Security
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {profile.twoFactorEnabled ? "2FA enabled" : "2FA disabled"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  className={cn(primaryButtonClassName, "mt-5 justify-center")}
+                  onClick={scrollToEditForm}
+                >
+                  <PencilLine className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 

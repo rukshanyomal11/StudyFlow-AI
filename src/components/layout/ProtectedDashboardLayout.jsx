@@ -46,8 +46,7 @@ export default function ProtectedDashboardLayout({
           <main className="flex-1 overflow-y-auto">
             <div className="p-6">
               <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                You are viewing the {roleLabels[role]} blueprint workspace for
-                StudyFlow AI.
+                You are viewing the {roleLabels[role]}  workspace 
               </div>
               {children}
             </div>

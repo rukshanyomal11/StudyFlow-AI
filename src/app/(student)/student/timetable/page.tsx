@@ -405,76 +405,123 @@ export default function StudentTimetablePage() {
       loadingMessage="Loading your timetable..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+        <section className="relative overflow-hidden rounded-[38px] border border-white/85 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_20%,#ecfeff_46%,#eef2ff_74%,#fff8e8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
+          <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,rgba(37,99,235,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(37,99,235,0.12)_1px,transparent_1px)] [background-size:34px_34px]" />
           <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-4">
-              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
-                Weekly Timetable
-              </Badge>
+          <div className="absolute -left-12 top-8 h-36 w-36 rounded-full bg-sky-200/28 blur-3xl" />
+          <div className="absolute right-10 top-4 h-36 w-36 rounded-full bg-fuchsia-200/20 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 h-40 w-40 rounded-full bg-amber-200/20 blur-3xl" />
+
+          <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_340px] xl:items-center">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/92 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-blue-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
+                <BookOpen className="h-4 w-4 text-blue-700" />
+                Weekly Revision Plan
+              </div>
+
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
                   Study timetable
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-lg sm:leading-8">
                   See your whole study week at a glance, assign subjects to each
-                  time block, and fine-tune the routine with one clean calendar-style view.
+                  time block, and fine-tune the routine with one clean
+                  calendar-style view.
                 </p>
               </div>
+
               <div className="flex flex-wrap gap-3 text-sm text-slate-600">
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="rounded-2xl border border-sky-100/80 bg-[linear-gradient(135deg,#f0f9ff_0%,#ffffff_100%)] px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.2)]">
                   Week of March 23, 2026
                 </span>
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="rounded-2xl border border-violet-100/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_100%)] px-4 py-2 shadow-[0_14px_30px_-24px_rgba(99,102,241,0.16)]">
                   {assignedSlotCount} slots assigned
                 </span>
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="rounded-2xl border border-amber-100/80 bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_100%)] px-4 py-2 shadow-[0_14px_30px_-24px_rgba(245,158,11,0.14)]">
                   {activeSubjectCount} active subjects
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
-                onClick={handleAutoGenerate}
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Auto-Generate Timetable
-              </Button>
-              <Button
-                className="h-11 rounded-2xl border border-sky-200 bg-white px-5 text-sky-700 hover:bg-sky-50"
-                onClick={handleOpenSelectedSlot}
-              >
-                <PencilLine className="mr-2 h-4 w-4" />
-                Edit Timetable
-              </Button>
+            <div className="rounded-[30px] border border-white/90 bg-white/88 p-5 shadow-[0_24px_56px_-34px_rgba(37,99,235,0.18)] backdrop-blur-xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+                Revision Snapshot
+              </p>
+
+              <div className="mt-4 space-y-3">
+                <div className="rounded-[22px] border border-sky-100/80 bg-[linear-gradient(135deg,#f0f9ff_0%,#ffffff_100%)] px-4 py-3 shadow-[0_16px_34px_-24px_rgba(37,99,235,0.14)]">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] text-white">
+                      <CalendarDays className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                        Assigned Blocks
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {assignedSlotCount} sessions planned
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[22px] border border-violet-100/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_100%)] px-4 py-3 shadow-[0_16px_34px_-24px_rgba(99,102,241,0.14)]">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#8b5cf6_0%,#2563eb_100%)] text-white">
+                      <Clock3 className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                        Open Slots
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {openSlotCount} spaces still free
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[22px] border border-emerald-100/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_100%)] px-4 py-3 shadow-[0_16px_34px_-24px_rgba(16,185,129,0.14)]">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#10b981_0%,#14b8a6_100%)] text-white">
+                      <Target className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                        Top Subject
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {subjectBreakdown[0]
+                          ? `${subjectBreakdown[0][0]} · ${subjectBreakdown[0][1]} blocks`
+                          : "No focus blocks yet"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-[22px] border border-slate-200/80 bg-white/92 px-4 py-3 text-sm leading-6 text-slate-600 shadow-sm">
+                {statusMessage}
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  className="h-11 flex-1 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_42%,#7c3aed_72%,#ec4899_100%)] px-5 text-white shadow-[0_20px_40px_-22px_rgba(99,102,241,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110"
+                  onClick={handleAutoGenerate}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Auto-Generate
+                </Button>
+                <Button
+                  className="h-11 flex-1 rounded-2xl border border-white/90 bg-white/92 px-5 text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-sky-50"
+                  onClick={handleOpenSelectedSlot}
+                >
+                  <PencilLine className="mr-2 h-4 w-4" />
+                  Edit Slot
+                </Button>
+              </div>
             </div>
           </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard
-            accentClassName="from-sky-600 to-cyan-500"
-            detail="Across this weekly calendar"
-            icon={<CalendarDays className="h-5 w-5" />}
-            label="Assigned Slots"
-            value={`${assignedSlotCount}`}
-          />
-          <SummaryCard
-            accentClassName="from-emerald-600 to-teal-500"
-            detail="Subjects currently in rotation"
-            icon={<BookOpen className="h-5 w-5" />}
-            label="Active Subjects"
-            value={`${activeSubjectCount}`}
-          />
-          <SummaryCard
-            accentClassName="from-indigo-700 to-sky-600"
-            detail="Available for rest or catch-up"
-            icon={<Target className="h-5 w-5" />}
-            label="Open Slots"
-            value={`${openSlotCount}`}
-          />
         </section>
 
         <div className="grid gap-8 xl:grid-cols-[1.22fr_0.78fr]">

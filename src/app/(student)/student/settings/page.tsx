@@ -10,6 +10,7 @@ import {
   MoonStar,
   Save,
   Shield,
+  Sparkles,
   Trash2,
   UserCog,
 } from "lucide-react";
@@ -332,14 +333,16 @@ export default function StudentSettingsPage() {
       loadingMessage="Loading your settings..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
-          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/40 blur-3xl" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-4">
-              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
-                Student Settings
-              </Badge>
+        <section className="relative overflow-hidden rounded-[36px] border border-sky-100/80 bg-[linear-gradient(135deg,#ffffff_0%,#eef6ff_22%,#eefcff_54%,#f8fbff_76%,#fff7e8_100%)] p-6 shadow-[0_40px_110px_-52px_rgba(56,189,248,0.28)] sm:p-8">
+          <div className="absolute -left-16 top-0 h-44 w-44 rounded-full bg-sky-200/35 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-56 w-56 rounded-full bg-cyan-200/35 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.16),transparent_32%)]" />
+          <div className="relative grid gap-8 xl:grid-cols-[1.06fr_0.94fr] xl:items-center">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-blue-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
+                <UserCog className="h-4 w-4 text-blue-700" />
+                <span>Student Settings</span>
+              </div>
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Personalize your StudyFlow workspace
@@ -350,18 +353,103 @@ export default function StudentSettingsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 text-sm text-slate-600">
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <Globe2 className="h-4 w-4 text-sky-600" />
                   {todayLabel}
                 </span>
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <MoonStar className="h-4 w-4 text-indigo-600" />
                   Theme: {settings.theme}
                 </span>
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <Shield className="h-4 w-4 text-emerald-600" />
+                  Privacy: {privacyStatus}
+                </span>
+              </div>
+              <div className="rounded-[28px] border border-sky-100/80 bg-white/78 p-5 shadow-[0_24px_56px_-42px_rgba(56,189,248,0.42)] backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
+                  Workspace Focus
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+                  Set up your study space so it feels calm and predictable. A clear
+                  theme, the right alerts, and comfortable privacy settings make the
+                  rest of the workflow easier to manage.
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="rounded-[30px] border border-white/90 bg-white/80 p-5 shadow-[0_28px_70px_-46px_rgba(37,99,235,0.3)] backdrop-blur sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
+                    Settings Pulse
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    Keep your workspace aligned with how you study
+                  </h2>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_55%,#22d3ee_100%)] text-white shadow-[0_20px_40px_-20px_rgba(37,99,235,0.55)]">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f5fbff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(14,165,233,0.22)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                    <MoonStar className="h-4 w-4" />
+                    Theme
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {settings.theme}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Current appearance mode for your workspace
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-blue-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#eef6ff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(37,99,235,0.2)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                    <BellRing className="h-4 w-4" />
+                    Notifications
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {enabledNotificationCount}/4
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Alert channels currently enabled for study updates
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-emerald-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#ecfdf5_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(16,185,129,0.2)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    <Shield className="h-4 w-4" />
+                    Privacy
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {privacyStatus}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Current balance between visibility and personal control
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-violet-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f5f3ff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(124,58,237,0.18)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">
+                    <Globe2 className="h-4 w-4" />
+                    Language
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {settings.language}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Selected language for your StudyFlow workspace
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 text-sm leading-7 text-slate-600 shadow-[0_18px_40px_-34px_rgba(56,189,248,0.18)]">
+                {saveMessage}
+              </div>
+
               <Button
-                className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
+                className="mt-5 h-12 w-full rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_55%,#22d3ee_100%)] px-5 text-white shadow-[0_24px_50px_-26px_rgba(37,99,235,0.55)] transition hover:brightness-105"
                 onClick={handleSaveChanges}
                 type="button"
               >
@@ -370,30 +458,6 @@ export default function StudentSettingsPage() {
               </Button>
             </div>
           </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard
-            accentClassName="from-indigo-700 to-sky-600"
-            detail="Current appearance mode"
-            icon={<MoonStar className="h-5 w-5" />}
-            label="Theme"
-            value={settings.theme}
-          />
-          <SummaryCard
-            accentClassName="from-sky-600 to-cyan-500"
-            detail="Enabled notification channels"
-            icon={<BellRing className="h-5 w-5" />}
-            label="Notifications"
-            value={`${enabledNotificationCount}/4`}
-          />
-          <SummaryCard
-            accentClassName="from-emerald-600 to-teal-500"
-            detail="Current privacy profile"
-            icon={<Shield className="h-5 w-5" />}
-            label="Privacy"
-            value={privacyStatus}
-          />
         </section>
 
         <div className="grid gap-8 xl:grid-cols-[1fr_0.95fr]">

@@ -427,13 +427,16 @@ export default function StudentGroupsPage() {
       loadingMessage="Loading your study groups..."
     >
       <div className="space-y-8 pb-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f3f8ff_36%,#ecfeff_72%,#fefce8_108%)] p-6 shadow-[0_34px_90px_-46px_rgba(56,189,248,0.24)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_58%)]" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-4">
-              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)]">
-                Study Groups
-              </Badge>
+        <section className="relative overflow-hidden rounded-[36px] border border-sky-100/80 bg-[linear-gradient(135deg,#ffffff_0%,#eef6ff_22%,#eefcff_54%,#f8fbff_76%,#fff7e8_100%)] p-6 shadow-[0_40px_110px_-52px_rgba(56,189,248,0.28)] sm:p-8">
+          <div className="absolute -left-16 top-0 h-44 w-44 rounded-full bg-sky-200/35 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-56 w-56 rounded-full bg-cyan-200/35 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.16),transparent_32%)]" />
+          <div className="relative grid gap-8 xl:grid-cols-[1.06fr_0.94fr] xl:items-center">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-blue-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
+                <Users className="h-4 w-4 text-blue-700" />
+                <span>Study Groups</span>
+              </div>
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Collaboration hub
@@ -444,56 +447,118 @@ export default function StudentGroupsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 text-sm text-slate-600">
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <Users className="h-4 w-4 text-sky-600" />
                   {groups.length} groups available
                 </span>
-                <span className="rounded-2xl border border-white/85 bg-white/92 px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.45)]">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   {joinedGroupCount} joined groups
                 </span>
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
+                  <Target className="h-4 w-4 text-amber-500" />
+                  {totalSharedTasks} shared tasks
+                </span>
+              </div>
+              <div className="rounded-[28px] border border-sky-100/80 bg-white/78 p-5 shadow-[0_24px_56px_-42px_rgba(56,189,248,0.42)] backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
+                  Collaboration Flow
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+                  Keep each group focused around one shared subject, a few clear tasks,
+                  and quick chat updates so the space feels supportive instead of noisy.
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
-                onClick={openCreateModal}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Group
-              </Button>
-              <Button
-                className="h-11 rounded-2xl border border-sky-200 bg-white px-5 text-sky-700 hover:bg-sky-50"
-                onClick={openJoinModal}
-              >
-                <BadgePlus className="mr-2 h-4 w-4" />
-                Join Group
-              </Button>
+            <div className="rounded-[30px] border border-white/90 bg-white/80 p-5 shadow-[0_28px_70px_-46px_rgba(37,99,235,0.3)] backdrop-blur sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
+                    Collaboration Pulse
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    Stay connected without losing study focus
+                  </h2>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_55%,#22d3ee_100%)] text-white shadow-[0_20px_40px_-20px_rgba(37,99,235,0.55)]">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f5fbff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(14,165,233,0.22)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                    <Users className="h-4 w-4" />
+                    Active Space
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {selectedGroup?.name ?? "Ready"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {selectedGroup?.subject ?? "Choose a group to begin collaborating"}
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-blue-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#eef6ff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(37,99,235,0.2)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                    <MessageSquare className="h-4 w-4" />
+                    Chat Pulse
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {selectedGroup?.chat.length ?? 0}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Messages currently inside the selected workspace
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-emerald-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#ecfdf5_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(16,185,129,0.2)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Members
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {selectedGroup?.members.length ?? 0}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    People currently sharing the selected study space
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-violet-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f5f3ff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(124,58,237,0.18)]">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">
+                    <Target className="h-4 w-4" />
+                    Shared Tasks
+                  </div>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">
+                    {selectedGroup?.tasks.length ?? 0}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Group actions ready for the next study session
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 text-sm leading-7 text-slate-600 shadow-[0_18px_40px_-34px_rgba(56,189,248,0.18)]">
+                {statusMessage}
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  className="h-12 flex-1 rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_55%,#22d3ee_100%)] px-5 text-white shadow-[0_24px_50px_-26px_rgba(37,99,235,0.55)] transition hover:brightness-105"
+                  onClick={openCreateModal}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Group
+                </Button>
+                <Button
+                  className="h-12 flex-1 rounded-2xl border border-sky-200 bg-white px-5 text-sky-700 shadow-[0_18px_40px_-30px_rgba(56,189,248,0.22)] hover:bg-sky-50"
+                  onClick={openJoinModal}
+                >
+                  <BadgePlus className="mr-2 h-4 w-4" />
+                  Join Group
+                </Button>
+              </div>
             </div>
           </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard
-            accentClassName="from-indigo-700 to-sky-600"
-            detail="Open collaboration spaces"
-            icon={<Users className="h-5 w-5" />}
-            label="Groups"
-            value={`${groups.length}`}
-          />
-          <SummaryCard
-            accentClassName="from-sky-600 to-cyan-500"
-            detail="Shared tasks across all groups"
-            icon={<Target className="h-5 w-5" />}
-            label="Group Tasks"
-            value={`${totalSharedTasks}`}
-          />
-          <SummaryCard
-            accentClassName="from-violet-600 to-fuchsia-500"
-            detail="Messages + mentor prompts"
-            icon={<MessageSquare className="h-5 w-5" />}
-            label="Collaboration"
-            value="Live"
-          />
         </section>
 
         <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">

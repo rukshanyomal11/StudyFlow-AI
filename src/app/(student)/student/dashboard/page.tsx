@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import {
   BookOpen,
   Brain,
-  CalendarDays,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -72,8 +71,9 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.98)_100%)] shadow-[0_24px_64px_-36px_rgba(99,102,241,0.14)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.06),transparent_30%)]" />
+    <Card className="relative overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.98)_100%)] shadow-[0_28px_72px_-40px_rgba(99,102,241,0.16)]">
+      <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/80 to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.10),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.08),transparent_30%),radial-gradient(circle_at_center,rgba(251,191,36,0.05),transparent_36%)]" />
       <CardHeader className="relative pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -98,16 +98,23 @@ function StatCard({
   detail,
   icon,
   accentClassName,
+  cardClassName,
 }: {
   label: string;
   value: string;
   detail: string;
   icon: ReactNode;
   accentClassName: string;
+  cardClassName?: string;
 }) {
   return (
-    <Card className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.98)_100%)] shadow-[0_22px_54px_-34px_rgba(59,130,246,0.14)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.7),transparent_36%)]" />
+    <Card
+      className={cn(
+        "relative overflow-hidden rounded-[30px] border border-white/80 shadow-[0_24px_56px_-34px_rgba(59,130,246,0.16)]",
+        cardClassName,
+      )}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.72),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.24),transparent_42%)]" />
       <CardContent className="relative p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -221,6 +228,66 @@ const DEADLINES: DeadlineItem[] = [
   },
 ];
 
+function getRecommendationTone(id: string) {
+  if (id === "rec-01") {
+    return {
+      cardClassName:
+        "border-sky-100/80 bg-[linear-gradient(135deg,#f0f9ff_0%,#ffffff_56%,#dbeafe_118%)] shadow-[0_18px_42px_-30px_rgba(37,99,235,0.18)]",
+      iconClassName:
+        "bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)] text-white shadow-[0_16px_34px_-18px_rgba(37,99,235,0.32)]",
+      buttonClassName: "text-sky-700 hover:text-blue-700",
+    };
+  }
+
+  if (id === "rec-02") {
+    return {
+      cardClassName:
+        "border-violet-100/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_56%,#e0f2fe_118%)] shadow-[0_18px_42px_-30px_rgba(124,58,237,0.16)]",
+      iconClassName:
+        "bg-[linear-gradient(135deg,#8b5cf6_0%,#ec4899_100%)] text-white shadow-[0_16px_34px_-18px_rgba(139,92,246,0.3)]",
+      buttonClassName: "text-violet-700 hover:text-fuchsia-700",
+    };
+  }
+
+  return {
+    cardClassName:
+      "border-emerald-100/80 bg-[linear-gradient(135deg,#ecfeff_0%,#ffffff_56%,#d1fae5_118%)] shadow-[0_18px_42px_-30px_rgba(13,148,136,0.18)]",
+    iconClassName:
+      "bg-[linear-gradient(135deg,#10b981_0%,#14b8a6_100%)] text-white shadow-[0_16px_34px_-18px_rgba(16,185,129,0.28)]",
+    buttonClassName: "text-emerald-700 hover:text-teal-700",
+  };
+}
+
+function getDeadlineTone(status: DeadlineItem["status"]) {
+  if (status === "Urgent") {
+    return {
+      cardClassName:
+        "border-rose-100/80 bg-[linear-gradient(135deg,#fff1f2_0%,#ffffff_62%,#ffe4e6_118%)] shadow-[0_18px_42px_-30px_rgba(244,63,94,0.16)]",
+      badgeClassName: "border-transparent bg-rose-500 text-white",
+      chipClassName:
+        "rounded-full border border-rose-100 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm",
+    };
+  }
+
+  if (status === "Upcoming") {
+    return {
+      cardClassName:
+        "border-amber-100/80 bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_62%,#fef3c7_118%)] shadow-[0_18px_42px_-30px_rgba(245,158,11,0.16)]",
+      badgeClassName: "border-transparent bg-amber-500 text-white",
+      chipClassName:
+        "rounded-full border border-amber-100 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm",
+    };
+  }
+
+  return {
+    cardClassName:
+      "border-sky-100/80 bg-[linear-gradient(135deg,#f0f9ff_0%,#ffffff_62%,#e0f2fe_118%)] shadow-[0_18px_42px_-30px_rgba(37,99,235,0.14)]",
+    badgeClassName: "border-transparent bg-sky-100 text-sky-700",
+    chipClassName:
+      "rounded-full border border-sky-100 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm",
+  };
+}
+
 export default function StudentDashboardPage() {
   const router = useRouter();
   const [tasks, setTasks] = useState(INITIAL_TASKS);
@@ -254,16 +321,18 @@ export default function StudentDashboardPage() {
       loadingMessage="Loading your dashboard..."
     >
       <div className="space-y-8 pb-8">
-        <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_24%,#f6f3ff_56%,#fff8ef_82%,#fffdf9_100%)]" />
+        <div className="fixed inset-0 -z-10 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_18%,#f2f7ff_34%,#f6f3ff_58%,#fff8ef_82%,#fffdf9_100%)]" />
         <div className="fixed left-[-80px] top-[120px] -z-10 h-[260px] w-[260px] rounded-full bg-fuchsia-200/20 blur-3xl" />
         <div className="fixed right-[-60px] top-[220px] -z-10 h-[280px] w-[280px] rounded-full bg-cyan-200/20 blur-3xl" />
         <div className="fixed bottom-[30px] left-[30%] -z-10 h-[220px] w-[220px] rounded-full bg-amber-200/15 blur-3xl" />
 
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_30%,#ecfeff_64%,#fff8e8_108%)] p-6 shadow-[0_28px_72px_-38px_rgba(56,189,248,0.18)] sm:p-8">
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.12),transparent_58%)]" />
-          <div className="absolute -left-10 top-8 h-32 w-32 rounded-full bg-sky-200/25 blur-3xl" />
-          <div className="absolute right-10 top-4 h-32 w-32 rounded-full bg-fuchsia-200/20 blur-3xl" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <section className="relative overflow-hidden rounded-[36px] border border-white/85 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_24%,#ecfeff_52%,#eef2ff_78%,#fff8e8_108%)] p-6 shadow-[0_32px_84px_-44px_rgba(56,189,248,0.22)] sm:p-8">
+          <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,rgba(37,99,235,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(37,99,235,0.12)_1px,transparent_1px)] [background-size:34px_34px]" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.14),transparent_58%)]" />
+          <div className="absolute -left-12 top-8 h-36 w-36 rounded-full bg-sky-200/30 blur-3xl" />
+          <div className="absolute right-10 top-4 h-36 w-36 rounded-full bg-fuchsia-200/24 blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 h-36 w-36 rounded-full bg-amber-200/20 blur-3xl" />
+          <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_340px] xl:items-center">
             <div className="space-y-4">
               <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700 shadow-sm">
                 <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-700" />
@@ -282,24 +351,27 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="flex flex-wrap gap-3 text-sm">
-                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
+                <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(59,130,246,0.14)] backdrop-blur-sm">
                   {todayLabel}
                 </span>
-                <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm">
+                <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(99,102,241,0.14)] backdrop-blur-sm">
                   Grade 12 - Advanced Level
+                </span>
+                <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(14,165,233,0.14)] backdrop-blur-sm">
+                  {tasks.length} tasks queued
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Button
-                  className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.45)] hover:brightness-110"
+                  className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_40%,#7c3aed_100%)] px-5 text-white shadow-[0_20px_40px_-22px_rgba(37,99,235,0.46)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110"
                   onClick={() => router.push("/student/planner")}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Task
                 </Button>
                 <Button
-                  className="h-11 rounded-2xl border border-sky-200 bg-white px-5 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
+                  className="h-11 rounded-2xl border border-white/90 bg-white/88 px-5 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-sky-50"
                   onClick={() => router.push("/student/pomodoro")}
                 >
                   <PlayCircle className="mr-2 h-4 w-4" />
@@ -308,17 +380,20 @@ export default function StudentDashboardPage() {
               </div>
             </div>
 
-            <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_18px_40px_-26px_rgba(14,165,233,0.12)]">
+            <div className="w-full max-w-md rounded-[30px] border border-white/90 bg-white/86 p-5 shadow-[0_24px_56px_-34px_rgba(37,99,235,0.18)] backdrop-blur-xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+                Focus Snapshot
+              </p>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-600">
+                  <p className="mt-3 text-sm font-semibold text-slate-600">
                     Daily focus goal
                   </p>
                   <p className="mt-2 text-3xl font-bold text-slate-950">
                     {todayHours} / {dailyGoalHours} hrs
                   </p>
                 </div>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-sm">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-[0_18px_34px_-20px_rgba(99,102,241,0.2)]">
                   <Target className="h-5 w-5" />
                 </span>
               </div>
@@ -333,6 +408,24 @@ export default function StudentDashboardPage() {
                   <span>{dailyGoalHours - todayHours} hrs left today</span>
                 </div>
               </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                    Current streak
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {streak} days active
+                  </p>
+                </div>
+                <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                    Tasks today
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {completedTaskCount} of {tasks.length} completed
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -340,6 +433,7 @@ export default function StudentDashboardPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             accentClassName="from-sky-600 to-cyan-500"
+            cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.84)_42%,rgba(217,249,255,0.72)_100%)]"
             detail="This week's focused study time"
             icon={<Clock3 className="h-5 w-5" />}
             label="Study Hours"
@@ -347,6 +441,7 @@ export default function StudentDashboardPage() {
           />
           <StatCard
             accentClassName="from-orange-500 to-rose-500"
+            cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(255,237,213,0.84)_42%,rgba(254,205,211,0.72)_100%)]"
             detail="Current daily streak"
             icon={<Flame className="h-5 w-5" />}
             label="Streak"
@@ -354,6 +449,7 @@ export default function StudentDashboardPage() {
           />
           <StatCard
             accentClassName="from-emerald-600 to-teal-500"
+            cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(220,252,231,0.84)_42%,rgba(204,251,241,0.72)_100%)]"
             detail="Completed this week"
             icon={<CheckCircle2 className="h-5 w-5" />}
             label="Tasks Completed"
@@ -361,6 +457,7 @@ export default function StudentDashboardPage() {
           />
           <StatCard
             accentClassName="from-indigo-700 to-sky-600"
+            cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,231,255,0.84)_42%,rgba(219,234,254,0.74)_100%)]"
             detail="Subjects currently active"
             icon={<BookOpen className="h-5 w-5" />}
             label="Active Subjects"
@@ -372,7 +469,7 @@ export default function StudentDashboardPage() {
           <SectionCard
             action={
               <Button
-                className="h-10 rounded-2xl border border-sky-200 bg-white px-4 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
+                className="h-10 rounded-2xl border border-white/90 bg-white/88 px-4 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm hover:bg-sky-50"
                 onClick={() => router.push("/student/planner")}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -383,7 +480,7 @@ export default function StudentDashboardPage() {
             title="Today's Tasks"
           >
             <div className="space-y-4">
-              <div className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]">
+              <div className="rounded-[26px] border border-sky-100/80 bg-[linear-gradient(135deg,#f8fbff_0%,#ffffff_56%,#eef2ff_118%)] p-4 shadow-[0_18px_38px_-26px_rgba(37,99,235,0.14)]">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-bold text-slate-950">
@@ -436,13 +533,13 @@ export default function StudentDashboardPage() {
                             {task.title}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
+                            <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 font-medium text-slate-600">
                               {task.subject}
                             </span>
-                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
+                            <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
                               {task.time}
                             </span>
-                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-600">
+                            <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
                               {task.duration}
                             </span>
                           </div>
@@ -474,13 +571,24 @@ export default function StudentDashboardPage() {
               title="AI Recommendations"
             >
               <div className="space-y-4">
-                {RECOMMENDATIONS.map((item) => (
-                  <div
-                    className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]"
-                    key={item.id}
-                  >
+                {RECOMMENDATIONS.map((item) => {
+                  const tone = getRecommendationTone(item.id);
+
+                  return (
+                    <div
+                      className={cn(
+                        "rounded-[26px] p-4",
+                        tone.cardClassName,
+                      )}
+                      key={item.id}
+                    >
                     <div className="flex items-start gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#ecfeff_0%,#eef2ff_100%)] text-sky-700 shadow-sm">
+                      <span
+                        className={cn(
+                          "flex h-11 w-11 items-center justify-center rounded-2xl",
+                          tone.iconClassName,
+                        )}
+                      >
                         <Brain className="h-5 w-5" />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -491,7 +599,10 @@ export default function StudentDashboardPage() {
                           {item.description}
                         </p>
                         <button
-                          className="mt-3 inline-flex items-center text-sm font-semibold text-sky-700 transition hover:text-sky-800"
+                          className={cn(
+                            "mt-3 inline-flex items-center text-sm font-semibold transition",
+                            tone.buttonClassName,
+                          )}
                           onClick={() => router.push(item.href)}
                           type="button"
                         >
@@ -500,8 +611,9 @@ export default function StudentDashboardPage() {
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </SectionCard>
 
@@ -510,21 +622,24 @@ export default function StudentDashboardPage() {
               title="Upcoming Deadlines"
             >
               <div className="space-y-4">
-                {DEADLINES.map((deadline) => (
-                  <div
-                    className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 shadow-[0_14px_30px_-24px_rgba(14,165,233,0.12)]"
-                    key={deadline.id}
-                  >
+                {DEADLINES.map((deadline) => {
+                  const tone = getDeadlineTone(deadline.status);
+
+                  return (
+                    <div
+                      className={cn("rounded-[26px] p-4", tone.cardClassName)}
+                      key={deadline.id}
+                    >
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-bold text-slate-950">
                           {deadline.title}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm">
+                          <span className={tone.chipClassName}>
                             {deadline.subject}
                           </span>
-                          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm">
+                          <span className={tone.chipClassName}>
                             {deadline.dueLabel}
                           </span>
                         </div>
@@ -532,18 +647,15 @@ export default function StudentDashboardPage() {
                       <Badge
                         className={cn(
                           "px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
-                          deadline.status === "Urgent"
-                            ? "border-transparent bg-rose-500 text-white"
-                            : deadline.status === "Upcoming"
-                              ? "border-transparent bg-amber-500 text-white"
-                              : "border-transparent bg-sky-100 text-sky-700",
+                          tone.badgeClassName,
                         )}
                       >
                         {deadline.status}
                       </Badge>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </SectionCard>
           </div>
@@ -555,7 +667,7 @@ export default function StudentDashboardPage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <button
-              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#eef6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_18px_40px_-28px_rgba(37,99,235,0.18)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-32px_rgba(37,99,235,0.24)]"
+              className="group rounded-[30px] border border-white/85 bg-[linear-gradient(135deg,#eef6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_20px_46px_-30px_rgba(37,99,235,0.2)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-32px_rgba(37,99,235,0.24)]"
               onClick={() => router.push("/student/planner")}
               type="button"
             >
@@ -575,7 +687,7 @@ export default function StudentDashboardPage() {
             </button>
 
             <button
-              className="group rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfeff_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_18px_40px_-28px_rgba(13,148,136,0.18)] transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-32px_rgba(13,148,136,0.24)]"
+              className="group rounded-[30px] border border-white/85 bg-[linear-gradient(135deg,#ecfeff_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_20px_46px_-30px_rgba(13,148,136,0.2)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-32px_rgba(13,148,136,0.24)]"
               onClick={() => router.push("/student/pomodoro")}
               type="button"
             >
