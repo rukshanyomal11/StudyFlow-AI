@@ -113,14 +113,14 @@ function formatUpdatedAt(value: string) {
 
 function getRatingClasses(rating: ReviewRating) {
   if (rating === "Easy") {
-    return "border-transparent bg-emerald-500 text-white";
+    return "!border-emerald-300 !bg-emerald-100 !text-emerald-900";
   }
 
   if (rating === "Medium") {
-    return "border-transparent bg-amber-500 text-white";
+    return "!border-amber-300 !bg-amber-100 !text-amber-900";
   }
 
-  return "border-transparent bg-rose-500 text-white";
+  return "!border-rose-300 !bg-rose-100 !text-rose-900";
 }
 
 function buildDraft(card: FlashcardItem): FlashcardDraft {
@@ -176,7 +176,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -186,7 +186,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-8",
               accentClassName,
             )}
           >
@@ -533,7 +533,7 @@ export default function StudentFlashcardsPage() {
                             </p>
                             <Badge
                               className={cn(
-                                "px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                                "px-3 py-1 text-[11px] uppercase tracking-[0.18em] !border-[1px]",
                                 getRatingClasses(card.lastRating),
                               )}
                             >
@@ -613,7 +613,7 @@ export default function StudentFlashcardsPage() {
                     <span>
                       Card {reviewIndex + 1} of {flashcards.length}
                     </span>
-                    <Badge className="border-transparent bg-sky-100 px-3 py-1 text-sky-700">
+                    <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border px-3 py-1">
                       {selectedCard.subject}
                     </Badge>
                   </div>
@@ -630,7 +630,7 @@ export default function StudentFlashcardsPage() {
                     >
                       <div className="absolute inset-0 rounded-[32px] border border-sky-100/80 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_55%,#e0e7ff_120%)] p-8 shadow-[0_30px_70px_-42px_rgba(15,23,42,0.3)] [backface-visibility:hidden]">
                         <div className="flex h-full flex-col">
-                          <Badge className="w-fit border-transparent bg-violet-100 px-3 py-1 text-violet-700">
+                          <Badge className="!border-violet-300 !bg-violet-100 !text-violet-900 w-fit border px-3 py-1">
                             Prompt
                           </Badge>
                           <div className="flex flex-1 items-center justify-center">
@@ -646,7 +646,7 @@ export default function StudentFlashcardsPage() {
 
                       <div className="absolute inset-0 rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f5f3ff_55%,#e0e7ff_120%)] p-8 text-slate-950 shadow-[0_30px_70px_-42px_rgba(99,102,241,0.18)] [backface-visibility:hidden] [transform:rotateY(180deg)]">
                         <div className="flex h-full flex-col">
-                          <Badge className="w-fit border-transparent bg-violet-100 px-3 py-1 text-violet-700">
+                          <Badge className="!border-violet-300 !bg-violet-100 !text-violet-900 w-fit border px-3 py-1">
                             Answer
                           </Badge>
                           <div className="flex flex-1 items-center justify-center">
@@ -690,7 +690,7 @@ export default function StudentFlashcardsPage() {
               action={
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="h-10 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-rose-700 hover:bg-rose-100"
+                    className="!border-rose-300 !bg-white h-10 rounded-2xl px-4 font-semibold !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
                     onClick={handleDeleteCard}
                     variant="outline"
                   >

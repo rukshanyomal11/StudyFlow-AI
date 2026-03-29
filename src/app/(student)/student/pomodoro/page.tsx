@@ -80,7 +80,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -90,7 +90,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
               accentClassName,
             )}
           >
@@ -169,13 +169,13 @@ export default function StudentPomodoroPage() {
       ? {
           ringFrom: "#0f172a",
           ringTo: "#2563eb",
-          badgeClassName: "border-transparent bg-sky-100 text-sky-700",
+          badgeClassName: "!border-sky-300 !bg-sky-100 !text-sky-900 border",
           accentClassName: "from-indigo-700 to-sky-600",
         }
       : {
           ringFrom: "#0f766e",
           ringTo: "#14b8a6",
-          badgeClassName: "border-transparent bg-emerald-500 text-white",
+          badgeClassName: "!border-emerald-300 !bg-emerald-100 !text-emerald-900 border",
           accentClassName: "from-emerald-600 to-teal-500",
         };
 
@@ -354,7 +354,7 @@ export default function StudentPomodoroPage() {
                   )}
                 </Button>
                 <Button
-                  className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-sm hover:bg-sky-50"
+                  className="!border-sky-300 !bg-white h-11 rounded-2xl px-5 font-semibold !text-sky-700 hover:!bg-sky-50 dark:!border-sky-300 dark:!bg-white dark:!text-sky-700"
                   onClick={handleReset}
                   variant="outline"
                 >

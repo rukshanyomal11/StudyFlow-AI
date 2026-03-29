@@ -171,7 +171,7 @@ const SURFACE_CARD_CLASS_NAME =
   "rounded-[30px] border border-slate-200/90 bg-white/95 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:!border-slate-200 dark:!bg-white dark:!text-slate-950";
 
 const PRIMARY_BUTTON_CLASS_NAME =
-  "bg-sky-600 text-white hover:bg-sky-700 dark:!bg-sky-600 dark:!text-white dark:hover:!bg-sky-700";
+  "bg-blue-700 text-white shadow-[0_16px_32px_-20px_rgba(29,78,216,0.62)] hover:bg-blue-800 dark:!bg-blue-700 dark:!text-white dark:hover:!bg-blue-800";
 
 const SECONDARY_BUTTON_CLASS_NAME =
   "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
@@ -221,7 +221,7 @@ function SummaryCard({
   return (
     <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">
@@ -231,7 +231,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
               accentClassName,
             )}
           >
@@ -271,15 +271,15 @@ function InsightMetric({
 }
 
 function priorityBadgeClass(priority: DoubtPriority) {
-  if (priority === "Urgent") return "border-transparent bg-rose-100 text-rose-700";
-  if (priority === "High") return "border-transparent bg-amber-100 text-amber-700";
-  return "border-transparent bg-slate-200 text-slate-700";
+  if (priority === "Urgent") return "border-rose-200 bg-rose-50 text-rose-800";
+  if (priority === "High") return "border-amber-200 bg-amber-50 text-amber-800";
+  return "border-slate-300 bg-slate-100 text-slate-800";
 }
 
 function statusBadgeClass(status: DoubtStatus) {
-  if (status === "Answered") return "border-transparent bg-emerald-100 text-emerald-700";
-  if (status === "Reviewing") return "border-transparent bg-sky-100 text-sky-700";
-  return "border-transparent bg-amber-100 text-amber-700";
+  if (status === "Answered") return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (status === "Reviewing") return "border-cyan-200 bg-cyan-50 text-cyan-800";
+  return "border-blue-200 bg-blue-50 text-blue-800";
 }
 
 export default function MentorDoubtsPage() {
@@ -603,7 +603,7 @@ export default function MentorDoubtsPage() {
         <div className="grid gap-8 xl:grid-cols-[1.14fr_0.86fr]">
           <SectionCard
             action={
-              <Badge className="border-transparent bg-sky-100 text-sky-700">
+              <Badge className="border-blue-200 bg-blue-50 text-blue-800">
                 {filteredDoubts.length} visible
               </Badge>
             }
@@ -611,7 +611,7 @@ export default function MentorDoubtsPage() {
             title="Doubt Queue"
           >
             <div className="hidden xl:block">
-              <div className="grid grid-cols-[1.18fr_0.8fr_1.08fr_1.5fr_0.72fr_0.78fr_0.88fr_0.92fr] gap-4 border-b border-slate-200 px-2 pb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <div className="grid grid-cols-[1.18fr_0.8fr_1.08fr_1.5fr_0.72fr_0.78fr_0.88fr_0.92fr] gap-4 border-b border-blue-100 px-2 pb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
                 <span>Student</span>
                 <span>Subject</span>
                 <span>Question</span>
@@ -628,14 +628,14 @@ export default function MentorDoubtsPage() {
                     className={cn(
                       "grid grid-cols-[1.18fr_0.8fr_1.08fr_1.5fr_0.72fr_0.78fr_0.88fr_0.92fr] items-start gap-4 rounded-[24px] border p-4 transition",
                       selectedDoubt?.id === item.id
-                        ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                        : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                        ? "border-blue-300 bg-[linear-gradient(180deg,#eff6ff_0%,#eef8ff_100%)] ring-4 ring-blue-100"
+                        : "border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] hover:border-blue-200 hover:shadow-[0_18px_36px_-28px_rgba(37,99,235,0.34)]",
                     )}
                     key={item.id}
                   >
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-11 w-11 border border-slate-200/80 bg-white">
-                        <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
+                      <Avatar className="h-11 w-11 border border-blue-100 bg-white">
+                        <AvatarFallback className="bg-blue-50 text-xs font-semibold text-blue-800">
                           {getInitials(item.studentName)}
                         </AvatarFallback>
                       </Avatar>
@@ -666,7 +666,7 @@ export default function MentorDoubtsPage() {
                     <Badge className={statusBadgeClass(item.status)}>
                       {item.status}
                     </Badge>
-                    <p className="text-sm text-slate-600">{item.createdTime}</p>
+                    <p className="text-sm text-slate-700">{item.createdTime}</p>
                     <Button
                       className={cn("h-9 rounded-2xl px-3", PRIMARY_BUTTON_CLASS_NAME)}
                       onClick={() => openDoubt(item.id)}
@@ -685,15 +685,15 @@ export default function MentorDoubtsPage() {
                   className={cn(
                     "rounded-[26px] border p-5 transition",
                     selectedDoubt?.id === item.id
-                      ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                      : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
+                      ? "border-blue-300 bg-[linear-gradient(180deg,#eff6ff_0%,#eef8ff_100%)] ring-4 ring-blue-100"
+                      : "border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] hover:border-blue-200 hover:shadow-[0_18px_36px_-28px_rgba(37,99,235,0.34)]",
                   )}
                   key={item.id}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-11 w-11 border border-slate-200/80 bg-white">
-                        <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
+                      <Avatar className="h-11 w-11 border border-blue-100 bg-white">
+                        <AvatarFallback className="bg-blue-50 text-xs font-semibold text-blue-800">
                           {getInitials(item.studentName)}
                         </AvatarFallback>
                       </Avatar>

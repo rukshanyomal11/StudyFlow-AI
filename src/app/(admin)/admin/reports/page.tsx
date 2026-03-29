@@ -324,7 +324,7 @@ function SummaryCard({
   return (
     <Card className="card-surface rounded-[28px] border border-white/45 shadow-[0_18px_55px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{title}</p>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
@@ -335,7 +335,7 @@ function SummaryCard({
 
           <div
             className={cn(
-              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg",
+              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg -mt-8",
               accentClassName,
             )}
           >
@@ -363,7 +363,7 @@ function SectionShell({
   return (
     <Card
       className={cn(
-        "card-surface rounded-[32px] border border-white/45 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
+        "rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-white via-sky-50/25 to-cyan-50/35 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
         className,
       )}
     >
@@ -373,7 +373,7 @@ function SectionShell({
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
               {title}
             </CardTitle>
-            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-500">
+            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -417,12 +417,12 @@ function FilterSelect({
 function StatusBadge({ status }: { status: ReportStatus }) {
   const statusClassName =
     status === "Resolved"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
       : status === "Dismissed"
-        ? "border-slate-200 bg-slate-100 text-slate-700"
+        ? "!border-slate-300 !bg-slate-200 !text-slate-900"
         : status === "Investigating"
-          ? "border-sky-200 bg-sky-50 text-sky-700"
-          : "border-amber-200 bg-amber-50 text-amber-700";
+          ? "!border-sky-300 !bg-sky-100 !text-sky-900"
+          : "!border-amber-300 !bg-amber-100 !text-amber-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", statusClassName)}>
@@ -434,12 +434,12 @@ function StatusBadge({ status }: { status: ReportStatus }) {
 function PriorityBadge({ priority }: { priority: ReportPriority }) {
   const priorityClassName =
     priority === "Critical"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
+      ? "!border-rose-300 !bg-rose-100 !text-rose-900"
       : priority === "High"
-        ? "border-orange-200 bg-orange-50 text-orange-700"
+        ? "!border-orange-300 !bg-orange-100 !text-orange-900"
         : priority === "Medium"
-          ? "border-amber-200 bg-amber-50 text-amber-700"
-          : "border-slate-200 bg-slate-100 text-slate-700";
+          ? "!border-amber-300 !bg-amber-100 !text-amber-900"
+          : "!border-slate-300 !bg-slate-200 !text-slate-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", priorityClassName)}>
@@ -451,14 +451,14 @@ function PriorityBadge({ priority }: { priority: ReportPriority }) {
 function TypeBadge({ type }: { type: ReportType }) {
   const typeClassName =
     type === "Safety"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
+      ? "!border-rose-300 !bg-rose-100 !text-rose-900"
       : type === "Content"
-        ? "border-violet-200 bg-violet-50 text-violet-700"
+        ? "!border-violet-300 !bg-violet-100 !text-violet-900"
         : type === "Community"
-          ? "border-sky-200 bg-sky-50 text-sky-700"
+          ? "!border-sky-300 !bg-sky-100 !text-sky-900"
           : type === "Billing"
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : "border-slate-200 bg-slate-100 text-slate-700";
+            ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
+            : "!border-slate-300 !bg-slate-200 !text-slate-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", typeClassName)}>
@@ -665,10 +665,10 @@ export default function AdminReportsPage() {
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                   <ShieldAlert className="mr-2 h-3.5 w-3.5" />
                   Admin moderation center
-                </Badge>
+                </div>
 
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
@@ -781,7 +781,7 @@ export default function AdminReportsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-separate border-spacing-y-3">
                       <thead>
-                        <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                           <th className="pb-2 pl-3">Report title</th>
                           <th className="pb-2">Reported by</th>
                           <th className="pb-2">Type</th>
@@ -795,49 +795,49 @@ export default function AdminReportsPage() {
                       <tbody>
                         {filteredReports.map((report) => (
                           <tr key={report.id}>
-                            <td className="rounded-l-[24px] border border-r-0 border-white/55 bg-white/70 py-4 pl-3 align-top">
+                            <td className="rounded-l-[24px] border border-r-0 border-slate-200/80 bg-white py-4 pl-3 align-top">
                               <div className="max-w-[320px]">
                                 <p className="font-semibold text-slate-900">
                                   {report.title}
                                 </p>
-                                <p className="mt-1 text-sm leading-6 text-slate-500">
+                                <p className="mt-1 text-sm leading-6 text-slate-600">
                                   {report.description}
                                 </p>
                               </div>
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                               <div className="text-sm font-semibold text-slate-900">
                                 {report.reportedBy.name}
                               </div>
-                              <div className="mt-1 text-sm text-slate-500">
+                              <div className="mt-1 text-sm text-slate-600">
                                 {report.reportedBy.email}
                               </div>
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                               <TypeBadge type={report.type} />
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm text-slate-600">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm text-slate-700">
                               {report.reportedItem}
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                               <PriorityBadge priority={report.priority} />
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                               <StatusBadge status={report.status} />
                             </td>
-                            <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm text-slate-600">
+                            <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm text-slate-700">
                               {new Intl.DateTimeFormat("en-US", {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
                               }).format(new Date(report.createdAt))}
                             </td>
-                            <td className="rounded-r-[24px] border border-l-0 border-white/55 bg-white/70 py-4 pr-3 align-top">
+                            <td className="rounded-r-[24px] border border-l-0 border-slate-200/80 bg-white py-4 pr-3 align-top">
                               <div className="flex justify-end">
                                 <Button
                                   type="button"
                                   variant="outline"
-                                  className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                                  className="rounded-2xl !border-sky-300 !bg-white px-4 !text-sky-800 hover:!bg-sky-50 dark:!border-sky-300 dark:!bg-white dark:!text-sky-800"
                                   onClick={() => openReview(report)}
                                 >
                                   Review
@@ -855,14 +855,14 @@ export default function AdminReportsPage() {
                   {filteredReports.map((report) => (
                     <div
                       key={report.id}
-                      className="rounded-[28px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                      className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-2">
                           <p className="text-lg font-semibold tracking-tight text-slate-900">
                             {report.title}
                           </p>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-slate-600">
                             Reported by {report.reportedBy.name}
                           </p>
                         </div>
@@ -870,14 +870,14 @@ export default function AdminReportsPage() {
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                          className="rounded-2xl !border-sky-300 !bg-white px-4 !text-sky-800 hover:!bg-sky-50 dark:!border-sky-300 dark:!bg-white dark:!text-sky-800"
                           onClick={() => openReview(report)}
                         >
                           Review
                         </Button>
                       </div>
 
-                      <p className="mt-4 text-sm leading-6 text-slate-500">
+                      <p className="mt-4 text-sm leading-6 text-slate-600">
                         {report.description}
                       </p>
 
@@ -887,7 +887,7 @@ export default function AdminReportsPage() {
                         <StatusBadge status={report.status} />
                       </div>
 
-                      <div className="mt-4 text-sm text-slate-500">
+                      <div className="mt-4 text-sm text-slate-600">
                         <span className="font-medium text-slate-700">Item:</span>{" "}
                         {report.reportedItem}
                       </div>

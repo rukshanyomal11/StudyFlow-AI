@@ -650,12 +650,12 @@ export default function StudentPlannerPage() {
                     <div>
                       <Badge
                         className={cn(
-                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em]",
+                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em] !border-[1px]",
                           task.priority === "High"
-                            ? "border-transparent bg-rose-500 text-white"
+                            ? "!border-rose-300 !bg-rose-100 !text-rose-900"
                             : task.priority === "Medium"
-                              ? "border-transparent bg-slate-900 text-white"
-                              : "border-transparent bg-slate-900 text-white",
+                              ? "!border-amber-300 !bg-amber-100 !text-amber-900"
+                              : "!border-slate-300 !bg-slate-100 !text-slate-900",
                         )}
                       >
                         {task.priority}
@@ -665,12 +665,12 @@ export default function StudentPlannerPage() {
                     <div>
                       <Badge
                         className={cn(
-                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em]",
+                          "px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.18em] !border-[1px]",
                           task.status === "Done"
-                            ? "border-transparent bg-emerald-600 text-white"
+                            ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
                             : task.status === "In Progress"
-                              ? "border-transparent bg-sky-200 text-sky-900"
-                              : "border-transparent bg-slate-200 text-slate-700",
+                              ? "!border-sky-300 !bg-sky-100 !text-sky-900"
+                              : "!border-amber-300 !bg-amber-100 !text-amber-900",
                         )}
                       >
                         {task.status}
@@ -687,7 +687,7 @@ export default function StudentPlannerPage() {
                         Edit
                       </Button>
                       <Button
-                        className="h-10 rounded-2xl border border-rose-200 bg-rose-50 px-4 font-semibold text-rose-700 hover:bg-rose-100"
+                        className="!border-rose-300 !bg-white h-10 rounded-2xl px-4 font-semibold !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
                         onClick={() => handleDeleteTask(task.id)}
                         size="sm"
                         variant="outline"

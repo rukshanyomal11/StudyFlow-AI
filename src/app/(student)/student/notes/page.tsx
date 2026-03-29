@@ -114,6 +114,32 @@ function buildDraft(note: NoteItem): NoteDraft {
   };
 }
 
+function getSubjectBadgeClass(subject: string) {
+  const normalized = subject.toLowerCase();
+
+  if (normalized.includes("math")) {
+    return "!border-sky-300 !bg-sky-100 !text-sky-900";
+  }
+
+  if (normalized.includes("physics")) {
+    return "!border-emerald-300 !bg-emerald-100 !text-emerald-900";
+  }
+
+  if (normalized.includes("chem")) {
+    return "!border-amber-300 !bg-amber-100 !text-amber-900";
+  }
+
+  if (normalized.includes("history")) {
+    return "!border-violet-300 !bg-violet-100 !text-violet-900";
+  }
+
+  if (normalized.includes("english")) {
+    return "!border-rose-300 !bg-rose-100 !text-rose-900";
+  }
+
+  return "!border-sky-300 !bg-sky-100 !text-sky-900";
+}
+
 function SectionCard({
   title,
   description,
@@ -159,7 +185,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -169,7 +195,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-8",
               accentClassName,
             )}
           >
@@ -542,7 +568,7 @@ export default function StudentNotesPage() {
                       </div>
 
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                        <Badge className="border-transparent bg-sky-100 px-3 py-1 text-sky-700">
+                        <Badge className={cn("px-3 py-1 border", getSubjectBadgeClass(note.subject))}>
                           {note.subject}
                         </Badge>
                         <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
@@ -580,7 +606,7 @@ export default function StudentNotesPage() {
             action={
               <div className="flex flex-wrap gap-3">
                 <Button
-                  className="h-10 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-rose-700 hover:bg-rose-100"
+                  className="!border-rose-300 !bg-white h-10 rounded-2xl px-4 font-semibold !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
                   onClick={handleDeleteNote}
                   variant="outline"
                 >

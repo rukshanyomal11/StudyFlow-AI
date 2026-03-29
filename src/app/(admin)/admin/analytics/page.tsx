@@ -445,7 +445,7 @@ function SummaryCard({
   return (
     <Card className="card-surface rounded-[28px] border border-white/45 shadow-[0_18px_55px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{title}</p>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
@@ -456,7 +456,7 @@ function SummaryCard({
 
           <div
             className={cn(
-              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg",
+              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg -mt-8",
               accentClassName,
             )}
           >
@@ -678,10 +678,10 @@ export default function AdminAnalyticsPage() {
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                   <TrendingUp className="mr-2 h-3.5 w-3.5" />
                   Admin analytics
-                </Badge>
+                </div>
 
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
@@ -737,8 +737,8 @@ export default function AdminAnalyticsPage() {
                   className={cn(
                     "rounded-2xl px-5",
                     activeRange === range
-                      ? "bg-sky-600 text-white hover:bg-sky-700"
-                      : "border-slate-200 bg-white hover:bg-slate-50",
+                      ? "!border-sky-600 !bg-sky-600 !text-white hover:!bg-sky-700 dark:!border-sky-600 dark:!bg-sky-600 dark:!text-white"
+                      : "!border-slate-300 !bg-white !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900",
                   )}
                   onClick={() => setActiveRange(range)}
                 >

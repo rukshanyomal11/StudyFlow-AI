@@ -275,7 +275,7 @@ function StatCard({
 }) {
   return (
     <Card className={cn(SURFACE_CARD_CLASS_NAME, "shadow-[0_20px_55px_-38px_rgba(15,23,42,0.18)]")}>
-      <CardContent className="p-5">
+      <CardContent className="pt-2 pb-5 px-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
@@ -285,7 +285,7 @@ function StatCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-4",
               accentClassName,
             )}
           >
@@ -468,9 +468,9 @@ export default function MentorProfilePage() {
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                     {profile.fullName}
                   </h1>
-                  <Badge className="border-sky-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
+                  <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                     {profile.role}
-                  </Badge>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
@@ -484,14 +484,14 @@ export default function MentorProfilePage() {
                   </span>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {profile.subjectExpertise.map((subject) => (
-                    <Badge
-                      className="border-sky-200 bg-white px-3 py-1 text-sky-700"
+                    <div
+                      className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-sm font-semibold text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]"
                       key={subject}
                     >
                       {subject}
-                    </Badge>
+                    </div>
                   ))}
                 </div>
               </div>

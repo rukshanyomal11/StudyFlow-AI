@@ -126,13 +126,13 @@ function SummaryCard({ label, value, detail, icon, accentClassName }: { label: s
   return (
     <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">{value}</p>
             <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
           </div>
-          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)]", accentClassName)}>{icon}</span>
+          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8", accentClassName)}>{icon}</span>
         </div>
       </CardContent>
     </Card>

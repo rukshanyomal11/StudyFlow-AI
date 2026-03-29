@@ -220,7 +220,7 @@ function SectionCard({
   return (
     <Card
       className={cn(
-        "rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.26)]",
+        "rounded-[28px] border-sky-200/80 bg-gradient-to-br from-white via-sky-50/20 to-cyan-50/25 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.26)]",
         className,
       )}
     >
@@ -254,7 +254,7 @@ function InfoTile({
   return (
     <div
       className={cn(
-        "rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4",
+        "rounded-[24px] border border-sky-100/80 bg-gradient-to-br from-white to-sky-50/40 p-4",
         className,
       )}
     >
@@ -284,7 +284,7 @@ function OverviewCard({
 }) {
   return (
     <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.28)]">
-      <CardContent className="p-5">
+      <CardContent className="pt-2 pb-5 px-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
@@ -294,7 +294,7 @@ function OverviewCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-4",
               accentClassName,
             )}
           >
@@ -490,9 +490,9 @@ export default function AdminProfilePage() {
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                     {profile.fullName}
                   </h1>
-                  <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
+                  <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                     {profile.role}
-                  </Badge>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
@@ -665,7 +665,7 @@ export default function AdminProfilePage() {
                           onChange={handleAvatarUpload}
                           type="file"
                         />
-                        <span className="flex h-11 w-full cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50">
+                        <span className="flex h-11 w-full cursor-pointer items-center justify-center rounded-2xl border border-sky-300 bg-white px-4 text-sm font-medium text-sky-800 shadow-sm transition hover:bg-sky-50">
                           <Camera className="mr-2 h-4 w-4" />
                           Upload Image
                         </span>

@@ -86,7 +86,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -96,7 +96,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
               accentClassName,
             )}
           >
@@ -181,7 +181,7 @@ function getNotificationStyles(type: NotificationType) {
   if (type === "Deadline") {
     return {
       accentClassName: "from-rose-500 to-orange-500",
-      badgeClassName: "border-transparent bg-rose-100 text-rose-700",
+      badgeClassName: "!border-rose-300 !bg-rose-100 !text-rose-900 border",
       icon: <CalendarClock className="h-5 w-5" />,
     };
   }
@@ -189,16 +189,29 @@ function getNotificationStyles(type: NotificationType) {
   if (type === "Mentor Message") {
     return {
       accentClassName: "from-violet-600 to-fuchsia-500",
-      badgeClassName: "border-transparent bg-violet-100 text-violet-700",
+      badgeClassName: "!border-violet-300 !bg-violet-100 !text-violet-900 border",
       icon: <MessageSquareMore className="h-5 w-5" />,
     };
   }
 
   return {
     accentClassName: "from-sky-600 to-cyan-500",
-    badgeClassName: "border-transparent bg-sky-100 text-sky-700",
+    badgeClassName: "!border-sky-300 !bg-sky-100 !text-sky-900 border",
     icon: <BellRing className="h-5 w-5" />,
   };
+}
+
+function getPriorityBadgeClass(priority: "High" | "Medium" | "Low") {
+  if (priority === "High") {
+    return "!border-rose-300 !bg-rose-100 !text-rose-900";
+  }
+
+  if (priority === "Medium") {
+    return "!border-amber-300 !bg-amber-100 !text-amber-900";
+  }
+
+  return "!border-slate-300 !bg-slate-100 !text-slate-900";
+
 }
 
 export default function StudentNotificationsPage() {
@@ -408,10 +421,10 @@ export default function StudentNotificationsPage() {
           <SectionCard
             action={
               <div className="flex flex-wrap gap-2">
-                <Badge className="border-transparent bg-sky-100 text-sky-700">
+                 <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border">
                   {showUnreadOnly ? "Unread only" : "All notifications"}
                 </Badge>
-                <Badge className="border-transparent bg-sky-100 text-sky-700">
+                 <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border">
                   {visibleNotifications.length} visible
                 </Badge>
               </div>
@@ -456,11 +469,11 @@ export default function StudentNotificationsPage() {
                                 <Badge className={styles.badgeClassName}>
                                   {notification.type}
                                 </Badge>
-                                <Badge className="border-transparent bg-sky-100 text-sky-700">
+                                 <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border">
                                   {notification.subject}
                                 </Badge>
                                 {!notification.read ? (
-                                  <Badge className="border-transparent bg-emerald-100 text-emerald-700">
+                                   <Badge className="!border-emerald-300 !bg-emerald-100 !text-emerald-900 border">
                                     Unread
                                   </Badge>
                                 ) : null}
@@ -475,7 +488,7 @@ export default function StudentNotificationsPage() {
                                 <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
                                   {notification.timeLabel}
                                 </span>
-                                <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
+                                 <span className={cn("rounded-full border px-3 py-1 text-xs font-medium", getPriorityBadgeClass(notification.priority))}>
                                   {notification.priority} priority
                                 </span>
                               </div>

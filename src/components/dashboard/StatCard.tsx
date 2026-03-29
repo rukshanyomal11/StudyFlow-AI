@@ -77,7 +77,7 @@ export default function StatCard({
           </div>
 
           <div
-            className={`inline-flex rounded-2xl p-3 text-white shadow-lg ${
+            className={`inline-flex rounded-2xl p-3 text-white shadow-lg mt-4 ${
               accentClassName ??
               "bg-gradient-to-br from-slate-900 via-slate-800 to-teal-700"
             }`}

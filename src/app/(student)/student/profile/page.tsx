@@ -164,7 +164,7 @@ function StatCard({
       )}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.58),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.20),transparent_42%)]" />
-      <CardContent className="relative p-5">
+      <CardContent className="relative pt-2 pb-5 px-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-base font-semibold text-slate-600">{label}</p>
@@ -174,7 +174,7 @@ function StatCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_18px_34px_-18px_rgba(15,23,42,0.25)]",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_18px_34px_-18px_rgba(15,23,42,0.25)] -mt-4",
               accentClassName,
             )}
           >

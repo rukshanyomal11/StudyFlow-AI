@@ -375,10 +375,10 @@ function SummaryCard({
 function StatusBadge({ status }: { status: SubjectStatus }) {
   const statusClassName =
     status === "Active"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
       : status === "Archived"
-        ? "border-slate-200 bg-slate-100 text-slate-700"
-        : "border-amber-200 bg-amber-50 text-amber-700";
+        ? "!border-slate-300 !bg-slate-200 !text-slate-900"
+        : "!border-amber-300 !bg-amber-100 !text-amber-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", statusClassName)}>
@@ -390,10 +390,10 @@ function StatusBadge({ status }: { status: SubjectStatus }) {
 function DifficultyBadge({ difficulty }: { difficulty: DifficultyLevel }) {
   const difficultyClassName =
     difficulty === "Advanced"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
+      ? "!border-rose-300 !bg-rose-100 !text-rose-900"
       : difficulty === "Intermediate"
-        ? "border-violet-200 bg-violet-50 text-violet-700"
-        : "border-sky-200 bg-sky-50 text-sky-700";
+        ? "!border-violet-300 !bg-violet-100 !text-violet-900"
+        : "!border-sky-300 !bg-sky-100 !text-sky-900";
 
   return (
     <Badge
@@ -413,7 +413,7 @@ function CategoryBadge({
   category: CategoryRecord;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[0.72rem] font-semibold text-slate-700">
+    <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-[0.72rem] font-semibold text-slate-800">
       <span
         className={cn(
           "h-2.5 w-2.5 rounded-full bg-gradient-to-br",
@@ -441,7 +441,7 @@ function SectionShell({
   return (
     <Card
       className={cn(
-        "card-surface rounded-[32px] border border-white/45 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
+        "rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-white via-sky-50/25 to-cyan-50/35 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
         className,
       )}
     >
@@ -451,7 +451,7 @@ function SectionShell({
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
               {title}
             </CardTitle>
-            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-500">
+            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -987,10 +987,10 @@ export default function AdminSubjectsManagementPage() {
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                   <BookOpenText className="mr-2 h-3.5 w-3.5" />
                   Admin subject management
-                </Badge>
+                </div>
 
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
@@ -1053,7 +1053,7 @@ export default function AdminSubjectsManagementPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-separate border-spacing-y-3">
                   <thead>
-                    <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                       <th className="pb-2 pl-3">Subject name</th>
                       <th className="pb-2">Category</th>
                       <th className="pb-2">Students</th>
@@ -1071,7 +1071,7 @@ export default function AdminSubjectsManagementPage() {
 
                       return (
                         <tr key={subject.id}>
-                          <td className="rounded-l-[24px] border border-r-0 border-white/55 bg-white/70 py-4 pl-3 align-top">
+                          <td className="rounded-l-[24px] border border-r-0 border-slate-200/80 bg-white py-4 pl-3 align-top">
                             <button
                               type="button"
                               className="text-left"
@@ -1080,43 +1080,43 @@ export default function AdminSubjectsManagementPage() {
                               <div className="font-semibold text-slate-900 transition hover:text-[color:var(--accent)]">
                                 {subject.name}
                               </div>
-                              <div className="mt-1 max-w-[280px] text-sm leading-6 text-slate-500">
+                              <div className="mt-1 max-w-[280px] text-sm leading-6 text-slate-600">
                                 {subject.description}
                               </div>
                             </button>
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                             <CategoryBadge category={category} />
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm font-semibold text-slate-900">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm font-semibold text-slate-900">
                             {subject.enrolledStudents.toLocaleString()}
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                             <div className="flex flex-wrap gap-2">
                               {subject.mentors.length > 0 ? (
                                 subject.mentors.map((mentor) => (
                                   <Badge
                                     key={mentor}
-                                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[0.72rem] font-semibold text-slate-700"
+                                    className="rounded-full !border-slate-300 !bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold !text-slate-800"
                                   >
                                     {mentor}
                                   </Badge>
                                 ))
                               ) : (
-                                <span className="text-sm text-slate-400">No mentors</span>
+                                <span className="text-sm text-slate-500">No mentors</span>
                               )}
                             </div>
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm font-semibold text-slate-900">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm font-semibold text-slate-900">
                             {subject.quizzes}
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                             <StatusBadge status={subject.status} />
                           </td>
-                          <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                          <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                             <DifficultyBadge difficulty={subject.difficulty} />
                           </td>
-                          <td className="rounded-r-[24px] border border-l-0 border-white/55 bg-white/70 py-4 pr-3 align-top">
+                          <td className="rounded-r-[24px] border border-l-0 border-slate-200/80 bg-white py-4 pr-3 align-top">
                             <div className="flex justify-end">
                               <SubjectActionsMenu
                                 subject={subject}
@@ -1145,7 +1145,7 @@ export default function AdminSubjectsManagementPage() {
                 return (
                   <div
                     key={subject.id}
-                    className="rounded-[28px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                    className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2">
@@ -1171,7 +1171,7 @@ export default function AdminSubjectsManagementPage() {
                       />
                     </div>
 
-                    <p className="mt-4 text-sm leading-6 text-slate-500">
+                    <p className="mt-4 text-sm leading-6 text-slate-600">
                       {subject.description}
                     </p>
 
@@ -1302,7 +1302,7 @@ export default function AdminSubjectsManagementPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                  className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
                   onClick={openCreateCategoryModal}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1340,7 +1340,7 @@ export default function AdminSubjectsManagementPage() {
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl border-slate-200 bg-white px-3 hover:bg-slate-50"
+                          className="rounded-2xl !border-slate-300 !bg-white px-3 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
                           onClick={() => openEditCategoryModal(category)}
                         >
                           <PencilLine className="h-4 w-4" />
@@ -1348,7 +1348,7 @@ export default function AdminSubjectsManagementPage() {
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl border-slate-200 bg-white px-3 hover:bg-slate-50"
+                          className="rounded-2xl !border-rose-300 !bg-white px-3 !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
                           onClick={() => handleDeleteCategory(category.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1357,11 +1357,11 @@ export default function AdminSubjectsManagementPage() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[0.72rem] font-semibold text-slate-700">
+                      <Badge className="rounded-full !border-slate-300 !bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold !text-slate-800 dark:!border-slate-300 dark:!bg-slate-100 dark:!text-slate-800">
                         {categorySubjectCounts[category.id] ?? 0} subjects
                       </Badge>
                       {category.id === "general" ? (
-                        <Badge className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.72rem] font-semibold text-amber-700">
+                        <Badge className="rounded-full !border-amber-300 !bg-amber-100 px-3 py-1 text-[0.72rem] font-semibold !text-amber-900 dark:!border-amber-300 dark:!bg-amber-100 dark:!text-amber-900">
                           Protected fallback
                         </Badge>
                       ) : null}

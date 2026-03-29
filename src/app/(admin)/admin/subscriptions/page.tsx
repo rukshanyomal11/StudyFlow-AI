@@ -308,7 +308,7 @@ function SummaryCard({
   return (
     <Card className="card-surface rounded-[28px] border border-white/45 shadow-[0_18px_55px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{title}</p>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
@@ -319,7 +319,7 @@ function SummaryCard({
 
           <div
             className={cn(
-              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg",
+              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg -mt-8",
               accentClassName,
             )}
           >
@@ -343,14 +343,14 @@ function SectionShell({
   children: ReactNode;
 }) {
   return (
-    <Card className="card-surface rounded-[32px] border border-white/45 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <Card className="rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-white via-sky-50/25 to-cyan-50/35 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
       <CardHeader className="gap-4 pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1.5">
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
               {title}
             </CardTitle>
-            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-500">
+            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -365,10 +365,10 @@ function SectionShell({
 function PlanBadge({ plan }: { plan: PlanName }) {
   const badgeClassName =
     plan === "Mentor Pro"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
       : plan === "Pro"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
-        : "border-slate-200 bg-slate-100 text-slate-700";
+        ? "!border-amber-300 !bg-amber-100 !text-amber-900"
+        : "!border-slate-300 !bg-slate-200 !text-slate-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", badgeClassName)}>
@@ -380,12 +380,12 @@ function PlanBadge({ plan }: { plan: PlanName }) {
 function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
   const badgeClassName =
     status === "Paid"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
       : status === "Trialing"
-        ? "border-sky-200 bg-sky-50 text-sky-700"
+        ? "!border-sky-300 !bg-sky-100 !text-sky-900"
         : status === "Overdue"
-          ? "border-amber-200 bg-amber-50 text-amber-700"
-          : "border-rose-200 bg-rose-50 text-rose-700";
+          ? "!border-amber-300 !bg-amber-100 !text-amber-900"
+          : "!border-rose-300 !bg-rose-100 !text-rose-900";
 
   return (
     <Badge className={cn("rounded-full px-3 py-1 text-[0.72rem] font-semibold", badgeClassName)}>
@@ -721,10 +721,10 @@ export default function AdminSubscriptionsPage() {
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                   <Wallet className="mr-2 h-3.5 w-3.5" />
-                  Billing command center
-                </Badge>
+                  Subscription summary
+                </div>
 
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
@@ -795,7 +795,7 @@ export default function AdminSubscriptionsPage() {
               return (
                 <Card
                   key={plan.id}
-                  className="rounded-[30px] border border-white/55 bg-white/70 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                  className="rounded-[30px] border border-slate-200/80 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between gap-4">
@@ -817,7 +817,7 @@ export default function AdminSubscriptionsPage() {
                         <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">
                           {plan.name}
                         </h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
                           {plan.description}
                         </p>
                       </div>
@@ -857,7 +857,7 @@ export default function AdminSubscriptionsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="mt-6 w-full rounded-2xl border-slate-200 bg-white hover:bg-slate-50"
+                      className="mt-6 w-full rounded-2xl !border-slate-300 !bg-white !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
                       onClick={() => openPlanEditor(plan.id)}
                     >
                       Edit Plan
@@ -877,7 +877,7 @@ export default function AdminSubscriptionsPage() {
             <div className="overflow-x-auto">
               <table className="w-full border-separate border-spacing-y-3">
                 <thead>
-                  <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                     <th className="pb-2 pl-3">User name</th>
                     <th className="pb-2">Email</th>
                     <th className="pb-2">Plan</th>
@@ -891,7 +891,7 @@ export default function AdminSubscriptionsPage() {
                 <tbody>
                   {subscribers.map((subscriber) => (
                     <tr key={subscriber.id}>
-                      <td className="rounded-l-[24px] border border-r-0 border-white/55 bg-white/70 py-4 pl-3 align-top">
+                      <td className="rounded-l-[24px] border border-r-0 border-slate-200/80 bg-white py-4 pl-3 align-top">
                         <div className="flex items-center gap-4">
                           <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
                             <AvatarFallback className="bg-sky-600 text-white">
@@ -902,28 +902,28 @@ export default function AdminSubscriptionsPage() {
                             <p className="font-semibold text-slate-900">
                               {subscriber.name}
                             </p>
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 text-sm text-slate-600">
                               Subscriber account
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm text-slate-600">
+                      <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm text-slate-700">
                         {subscriber.email}
                       </td>
-                      <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                      <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                         <PlanBadge plan={subscriber.plan} />
                       </td>
-                      <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm font-medium text-slate-700">
+                      <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm font-medium text-slate-800">
                         {subscriber.billingCycle}
                       </td>
-                      <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top">
+                      <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                         <PaymentStatusBadge status={subscriber.paymentStatus} />
                       </td>
-                      <td className="border border-l-0 border-r-0 border-white/55 bg-white/70 py-4 align-top text-sm text-slate-600">
+                      <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top text-sm text-slate-700">
                         {subscriber.renewalDate}
                       </td>
-                      <td className="rounded-r-[24px] border border-l-0 border-white/55 bg-white/70 py-4 pr-3 align-top">
+                      <td className="rounded-r-[24px] border border-l-0 border-slate-200/80 bg-white py-4 pr-3 align-top">
                         <div className="flex justify-end">
                           <SubscriberActionsMenu
                             subscriber={subscriber}
@@ -946,7 +946,7 @@ export default function AdminSubscriptionsPage() {
             {subscribers.map((subscriber) => (
               <div
                 key={subscriber.id}
-                className="rounded-[28px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -959,7 +959,7 @@ export default function AdminSubscriptionsPage() {
                       <p className="text-base font-semibold text-slate-900">
                         {subscriber.name}
                       </p>
-                      <p className="text-sm text-slate-500">{subscriber.email}</p>
+                      <p className="text-sm text-slate-600">{subscriber.email}</p>
                     </div>
                   </div>
 
@@ -975,13 +975,13 @@ export default function AdminSubscriptionsPage() {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                       Plan
                     </p>
                     <PlanBadge plan={subscriber.plan} />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                       Billing cycle
                     </p>
                     <p className="text-sm font-medium text-slate-700">
@@ -989,13 +989,13 @@ export default function AdminSubscriptionsPage() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                       Payment status
                     </p>
                     <PaymentStatusBadge status={subscriber.paymentStatus} />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                       Renewal date
                     </p>
                     <p className="text-sm font-medium text-slate-700">

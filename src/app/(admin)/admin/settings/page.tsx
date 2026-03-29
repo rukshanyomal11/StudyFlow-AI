@@ -162,7 +162,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.24)]">
+    <Card className="rounded-[28px] border-sky-200/80 bg-gradient-to-br from-white via-sky-50/20 to-cyan-50/25 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.24)]">
       <CardHeader className="pb-5">
         <div className="flex items-start gap-4">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-lg shadow-sky-100">
@@ -221,7 +221,7 @@ function ToggleRow({
         : "bg-sky-600";
 
   return (
-    <div className="flex items-start justify-between gap-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4">
+    <div className="flex items-start justify-between gap-4 rounded-[24px] border border-sky-100/80 bg-white/95 p-4">
       <div>
         <p className="text-sm font-semibold text-slate-950">{label}</p>
         <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
@@ -437,9 +437,9 @@ export default function AdminSettingsPage() {
           <div className="absolute -left-12 top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-3xl" />
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-4">
-              <Badge className="border-sky-100 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 shadow-sm">
+              <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                 Admin Settings Panel
-              </Badge>
+              </div>
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   Settings
@@ -554,7 +554,7 @@ export default function AdminSettingsPage() {
 
                   return (
                     <div
-                      className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5"
+                      className="rounded-[26px] border border-sky-100/80 bg-white/95 p-5"
                       key={group.title}
                     >
                       <div className="flex items-start gap-3">

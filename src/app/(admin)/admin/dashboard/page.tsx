@@ -397,7 +397,7 @@ function SectionShell({
 }) {
   return (
     <Card
-      className={`card-surface rounded-[32px] border border-white/45 shadow-[0_24px_80px_rgba(15,23,42,0.08)] ${className}`}
+      className={`rounded-[32px] border border-slate-200/90 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.08)] ${className}`}
     >
       <CardHeader className="gap-4 pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -405,7 +405,7 @@ function SectionShell({
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
               {title}
             </CardTitle>
-            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-500">
+            <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600">
               {description}
             </CardDescription>
           </div>
@@ -420,10 +420,10 @@ function SectionShell({
 function RoleBadge({ role }: { role: RecentUser["role"] }) {
   const className =
     role === "Admin"
-      ? "border-sky-200 bg-sky-50 text-sky-700"
+      ? "!border-violet-300 !bg-violet-100 !text-violet-900"
       : role === "Mentor"
-        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-        : "border-sky-200 bg-sky-50 text-sky-700";
+        ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
+        : "!border-sky-300 !bg-sky-100 !text-sky-900";
 
   return (
     <Badge className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold ${className}`}>
@@ -439,16 +439,32 @@ function StatusBadge({
 }) {
   const className =
     status === "Active" || status === "Resolved"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
       : status === "Pending" || status === "Investigating"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
-        : "border-rose-200 bg-rose-50 text-rose-700";
+        ? "!border-amber-300 !bg-amber-100 !text-amber-900"
+        : "!border-rose-300 !bg-rose-100 !text-rose-900";
 
   return (
     <Badge className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold ${className}`}>
       {status}
     </Badge>
   );
+}
+
+function reportTypeClass(type: ReportItem["type"]) {
+  if (type === "Community") {
+    return "!border-fuchsia-200 !bg-fuchsia-50 !text-fuchsia-800";
+  }
+
+  if (type === "Content") {
+    return "!border-indigo-200 !bg-indigo-50 !text-indigo-800";
+  }
+
+  if (type === "Billing") {
+    return "!border-amber-200 !bg-amber-50 !text-amber-800";
+  }
+
+  return "!border-rose-200 !bg-rose-50 !text-rose-800";
 }
 
 export default function AdminDashboardPage() {
@@ -488,10 +504,10 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl space-y-6">
                 <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                  <Badge className="rounded-full border border-sky-100 bg-white px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                  <div className="inline-flex items-center rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.24em] text-sky-700 shadow-[0_14px_30px_-22px_rgba(37,99,235,0.18)]">
                     <Sparkles className="mr-2 h-3.5 w-3.5" />
                     Admin command center
-                  </Badge>
+                  </div>
 
                   <div className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
                     <CalendarDays className="h-4 w-4" />
@@ -594,14 +610,14 @@ export default function AdminDashboardPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                  className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
                   onClick={() => router.push("/admin/users")}
                 >
                   Open user hub
                 </Button>
               }
             >
-              <div className="hidden grid-cols-[minmax(0,2fr)_1fr_1fr_auto] gap-4 px-2 pb-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400 md:grid">
+              <div className="hidden grid-cols-[minmax(0,2fr)_1fr_1fr_auto] gap-4 px-2 pb-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 md:grid">
                 <span>User</span>
                 <span>Role</span>
                 <span>Status</span>
@@ -612,7 +628,7 @@ export default function AdminDashboardPage() {
                 {recentUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="grid gap-4 rounded-[26px] border border-white/55 bg-white/70 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] md:grid-cols-[minmax(0,2fr)_1fr_1fr_auto] md:items-center"
+                    className="grid gap-4 rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] md:grid-cols-[minmax(0,2fr)_1fr_1fr_auto] md:items-center"
                   >
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
@@ -625,10 +641,10 @@ export default function AdminDashboardPage() {
                         <p className="truncate text-base font-semibold text-slate-900">
                           {user.name}
                         </p>
-                        <p className="truncate text-sm text-slate-500">
+                        <p className="truncate text-sm text-slate-600">
                           {user.email}
                         </p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-400 md:hidden">
+                        <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-500 md:hidden">
                           Last seen {user.lastSeen}
                         </p>
                       </div>
@@ -640,7 +656,7 @@ export default function AdminDashboardPage() {
 
                     <div className="flex items-center justify-between gap-3 md:justify-start">
                       <StatusBadge status={user.status} />
-                      <span className="hidden text-sm text-slate-400 xl:inline">
+                      <span className="hidden text-sm text-slate-500 xl:inline">
                         {user.lastSeen}
                       </span>
                     </div>
@@ -649,7 +665,7 @@ export default function AdminDashboardPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                        className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
                         onClick={() => router.push(user.manageHref)}
                       >
                         Manage
@@ -764,11 +780,11 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={item.label}
-                      className="rounded-[26px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                      className="rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-2">
-                          <p className="text-sm font-medium text-slate-500">
+                          <p className="text-sm font-medium text-slate-600">
                             {item.label}
                           </p>
                           <p className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -782,7 +798,7 @@ export default function AdminDashboardPage() {
                           <Icon className="h-5 w-5" />
                         </div>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-500">
+                      <p className="mt-3 text-sm leading-6 text-slate-600">
                         {item.description}
                       </p>
                     </div>
@@ -795,11 +811,12 @@ export default function AdminDashboardPage() {
             <SectionShell
               title="Reports Preview"
               description="Recent moderation and platform health reports that need visibility from the admin team."
+              className="border-sky-200/80 bg-gradient-to-br from-white via-sky-50/35 to-cyan-50/45"
               action={
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                  className="rounded-2xl !border-sky-300 !bg-sky-600 px-4 !text-white hover:!bg-sky-700 dark:!border-sky-300 dark:!bg-sky-600 dark:!text-white"
                   onClick={() => router.push("/admin/reports")}
                 >
                   View all reports
@@ -810,7 +827,7 @@ export default function AdminDashboardPage() {
                 {reports.map((report) => (
                   <div
                     key={report.id}
-                    className="rounded-[26px] border border-white/55 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                    className="rounded-[26px] border border-sky-100 bg-gradient-to-br from-white to-sky-50/45 p-5 shadow-[0_12px_30px_rgba(14,165,233,0.08)]"
                   >
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -819,7 +836,11 @@ export default function AdminDashboardPage() {
                             {report.title}
                           </p>
                           <div className="flex flex-wrap items-center gap-2">
-                            <Badge className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[0.7rem] font-semibold text-slate-700">
+                            <Badge
+                              className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold ${reportTypeClass(
+                                report.type,
+                              )}`}
+                            >
                               {report.type}
                             </Badge>
                             <StatusBadge status={report.status} />
@@ -829,14 +850,14 @@ export default function AdminDashboardPage() {
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl border-slate-200 bg-white px-4 hover:bg-slate-50"
+                          className="rounded-2xl !border-sky-300 !bg-white px-4 !text-sky-800 hover:!bg-sky-50 dark:!border-sky-300 dark:!bg-white dark:!text-sky-800"
                           onClick={() => router.push(report.reviewHref)}
                         >
                           Review
                         </Button>
                       </div>
 
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
                         <CalendarDays className="h-4 w-4" />
                         <span>{report.submittedAt}</span>
                       </div>
@@ -940,7 +961,7 @@ export default function AdminDashboardPage() {
                     <button
                       key={item.title}
                       type="button"
-                      className="group rounded-[28px] border border-white/55 bg-white/70 p-5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.1)]"
+                      className="group rounded-[28px] border border-slate-200/80 bg-white p-5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.1)]"
                       onClick={() => router.push(item.href)}
                     >
                       <div className="flex h-full flex-col">
@@ -951,13 +972,13 @@ export default function AdminDashboardPage() {
                             <Icon className="h-5 w-5" />
                           </div>
 
-                          <ArrowRight className="h-5 w-5 text-slate-400 transition duration-300 group-hover:translate-x-1 group-hover:text-slate-700" />
+                          <ArrowRight className="h-5 w-5 text-slate-500 transition duration-300 group-hover:translate-x-1 group-hover:text-slate-800" />
                         </div>
 
                         <p className="text-lg font-semibold tracking-tight text-slate-900">
                           {item.title}
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
                           {item.description}
                         </p>
                       </div>

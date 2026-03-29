@@ -240,7 +240,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -250,7 +250,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-8",
               accentClassName,
             )}
           >
@@ -264,14 +264,14 @@ function SummaryCard({
 
 function getDifficultyClassName(difficulty: QuizDifficulty) {
   if (difficulty === "Easy") {
-    return "border-transparent bg-emerald-500 text-white";
+    return "!border-emerald-300 !bg-emerald-100 !text-emerald-900";
   }
 
   if (difficulty === "Medium") {
-    return "border-transparent bg-amber-500 text-white";
+    return "!border-amber-300 !bg-amber-100 !text-amber-900";
   }
 
-  return "border-transparent bg-rose-500 text-white";
+  return "!border-rose-300 !bg-rose-100 !text-rose-900";
 }
 
 function calculateResult(
@@ -547,7 +547,7 @@ export default function StudentQuizzesPage() {
                     </div>
 
                     <div className="mt-6 flex flex-wrap gap-2">
-                      <Badge className={cn("px-3 py-1", getDifficultyClassName(quiz.difficulty))}>
+                      <Badge className={cn("px-3 py-1 !border-[1px]", getDifficultyClassName(quiz.difficulty))}>
                         {quiz.difficulty}
                       </Badge>
                       <Badge className="border-transparent bg-sky-100 text-sky-700">
@@ -699,7 +699,7 @@ export default function StudentQuizzesPage() {
               <div className="space-y-5">
                 <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-5">
                   <p className="text-sm font-medium text-slate-500">Difficulty</p>
-                  <Badge className={cn("mt-3 px-3 py-1", getDifficultyClassName(activeQuiz.difficulty))}>
+                  <Badge className={cn("mt-3 px-3 py-1 !border-[1px]", getDifficultyClassName(activeQuiz.difficulty))}>
                     {activeQuiz.difficulty}
                   </Badge>
                 </div>

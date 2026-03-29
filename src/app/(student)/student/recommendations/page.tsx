@@ -363,8 +363,8 @@ export default function StudentRecommendationsPage() {
                     className={cn(
                       "w-full rounded-[28px] border p-5 transition",
                       isSelected
-                        ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                        : "border-sky-100/80 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md",
+                        ? "border-blue-300 bg-[linear-gradient(180deg,#eff6ff_0%,#eef8ff_100%)] ring-4 ring-blue-100"
+                        : "border-slate-200/90 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_36px_-28px_rgba(37,99,235,0.35)]",
                     )}
                     key={recommendation.id}
                   >
@@ -378,10 +378,10 @@ export default function StudentRecommendationsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <Badge className="border-transparent bg-sky-100 text-sky-700">
+                            <Badge className="border-blue-200/80 bg-blue-50 text-blue-800">
                               {recommendation.typeLabel}
                             </Badge>
-                            <Badge className="border-transparent bg-sky-100 text-sky-700">
+                            <Badge className="border-cyan-200/80 bg-cyan-50 text-cyan-800">
                               {recommendation.subject}
                             </Badge>
                           </div>
@@ -403,10 +403,10 @@ export default function StudentRecommendationsPage() {
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-                        <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
+                        <span className="rounded-full border border-blue-200/80 bg-blue-50 px-3 py-1 text-blue-900">
                           Confidence {recommendation.confidence}
                         </span>
-                        <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-slate-600">
+                        <span className="rounded-full border border-teal-200/80 bg-teal-50 px-3 py-1 text-teal-900">
                           {recommendation.effort}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ export default function StudentRecommendationsPage() {
 
                     <div className="mt-5 flex flex-wrap gap-3">
                       <Button
-                        className="h-10 rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
+                        className="h-10 rounded-2xl bg-blue-700 px-4 text-white shadow-[0_16px_32px_-20px_rgba(29,78,216,0.65)] hover:bg-blue-800"
                         onClick={() =>
                           router.push(recommendation.primaryAction.href)
                         }
@@ -424,7 +424,7 @@ export default function StudentRecommendationsPage() {
                       </Button>
                       {recommendation.secondaryAction ? (
                         <Button
-                          className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
+                          className="h-10 rounded-2xl border border-blue-200 bg-blue-50/70 px-4 text-blue-800 shadow-[0_14px_30px_-22px_rgba(59,130,246,0.28)] hover:bg-blue-100"
                           onClick={() =>
                             router.push(recommendation.secondaryAction!.href)
                           }

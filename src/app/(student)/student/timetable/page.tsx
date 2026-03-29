@@ -154,47 +154,47 @@ function getSubjectPalette(subject: string) {
 
   if (normalized.includes("math")) {
     return {
-      badge: "bg-sky-100 text-sky-700",
-      card: "border-sky-200 bg-sky-50/80",
+      badge: "!border-sky-300 !bg-sky-100 !text-sky-900",
+      card: "border-sky-300 bg-gradient-to-br from-sky-50 to-sky-100/50",
       dot: "bg-sky-600",
     };
   }
 
   if (normalized.includes("physics")) {
     return {
-      badge: "bg-emerald-100 text-emerald-700",
-      card: "border-emerald-200 bg-emerald-50/80",
+      badge: "!border-emerald-300 !bg-emerald-100 !text-emerald-900",
+      card: "border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100/50",
       dot: "bg-emerald-600",
     };
   }
 
   if (normalized.includes("chem")) {
     return {
-      badge: "bg-amber-100 text-amber-700",
-      card: "border-amber-200 bg-amber-50/80",
+      badge: "!border-amber-300 !bg-amber-100 !text-amber-900",
+      card: "border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100/50",
       dot: "bg-amber-500",
     };
   }
 
   if (normalized.includes("history")) {
     return {
-      badge: "bg-violet-100 text-violet-700",
-      card: "border-violet-200 bg-violet-50/80",
+      badge: "!border-violet-300 !bg-violet-100 !text-violet-900",
+      card: "border-violet-300 bg-gradient-to-br from-violet-50 to-violet-100/50",
       dot: "bg-violet-600",
     };
   }
 
   if (normalized.includes("english")) {
     return {
-      badge: "bg-rose-100 text-rose-700",
-      card: "border-rose-200 bg-rose-50/80",
+      badge: "!border-rose-300 !bg-rose-100 !text-rose-900",
+      card: "border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100/50",
       dot: "bg-rose-500",
     };
   }
 
   return {
-    badge: "bg-sky-50 text-sky-700",
-    card: "border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)]",
+    badge: "!border-sky-300 !bg-sky-100 !text-sky-900",
+    card: "border-sky-300 bg-gradient-to-br from-white to-sky-50/40",
     dot: "bg-slate-600",
   };
 }
@@ -261,7 +261,7 @@ function SummaryCard({
   return (
     <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-slate-500">{label}</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -271,7 +271,7 @@ function SummaryCard({
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-8",
               accentClassName,
             )}
           >
@@ -599,7 +599,7 @@ export default function StudentTimetablePage() {
                                 </span>
                                 <Badge
                                   className={cn(
-                                    "border-transparent px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                                    "border px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
                                     palette?.badge,
                                   )}
                                 >
@@ -650,7 +650,7 @@ export default function StudentTimetablePage() {
                       </p>
                       <p className="text-sm text-slate-500">{dayMeta.dateLabel}</p>
                     </div>
-                    <Badge className="border-transparent bg-sky-100 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-700">
+                    <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
                       Day View
                     </Badge>
                   </div>
