@@ -5,29 +5,22 @@ const subjectSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'User ID is required'],
     },
     name: {
       type: String,
       required: [true, 'Subject name is required'],
       trim: true,
     },
-    description: {
-      type: String,
-      default: '',
-    },
     priority: {
       type: String,
       enum: ['low', 'medium', 'high'],
       default: 'medium',
-    },
-    color: {
-      type: String,
-      default: '#3B82F6',
+      required: true,
     },
     examDate: {
       type: Date,
-      default: null,
+      required: [true, 'Exam date is required'],
     },
     progress: {
       type: Number,
@@ -35,22 +28,13 @@ const subjectSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
-    totalHours: {
-      type: Number,
-      default: 0,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// Index for faster queries
-subjectSchema.index({ userId: 1, isActive: 1 });
+subjectSchema.index({ userId: 1, createdAt: -1 });
 
 const Subject = mongoose.models.Subject || mongoose.model('Subject', subjectSchema);
 

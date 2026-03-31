@@ -5,12 +5,12 @@ const studySessionSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'User ID is required'],
     },
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subject',
-      required: true,
+      required: [true, 'Subject ID is required'],
     },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,38 +19,32 @@ const studySessionSchema = new mongoose.Schema(
     },
     startTime: {
       type: Date,
-      required: true,
+      required: [true, 'Start time is required'],
     },
     endTime: {
       type: Date,
       default: null,
     },
     duration: {
-      type: Number, // in minutes
+      type: Number,
       default: 0,
-    },
-    status: {
-      type: String,
-      enum: ['active', 'paused', 'completed'],
-      default: 'active',
+      min: [0, 'Duration cannot be negative'],
     },
     focusScore: {
       type: Number,
-      default: 100,
+      default: 0,
       min: 0,
       max: 100,
     },
     distractions: {
       type: Number,
       default: 0,
+      min: [0, 'Distractions cannot be negative'],
     },
     notes: {
       type: String,
+      trim: true,
       default: '',
-    },
-    pausedDuration: {
-      type: Number, // in minutes
-      default: 0,
     },
   },
   {
@@ -58,9 +52,9 @@ const studySessionSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster queries
 studySessionSchema.index({ userId: 1, createdAt: -1 });
 studySessionSchema.index({ subjectId: 1 });
+studySessionSchema.index({ taskId: 1 });
 
 const StudySession = mongoose.models.StudySession || mongoose.model('StudySession', studySessionSchema);
 

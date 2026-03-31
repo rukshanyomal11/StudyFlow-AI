@@ -5,62 +5,48 @@ const quizResultSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'User ID is required'],
     },
     quizId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Quiz',
-      required: true,
-    },
-    subjectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subject',
-      required: true,
+      required: [true, 'Quiz ID is required'],
     },
     score: {
       type: Number,
-      required: true,
+      required: [true, 'Score is required'],
       min: 0,
       max: 100,
     },
     correctAnswers: {
       type: Number,
       default: 0,
+      min: 0,
     },
     wrongAnswers: {
       type: Number,
       default: 0,
+      min: 0,
     },
-    totalQuestions: {
-      type: Number,
-      required: true,
-    },
-    timeTaken: {
-      type: Number, // in seconds
-      default: null,
-    },
-    answers: [
-      {
-        questionIndex: Number,
-        selectedAnswer: Number,
-        isCorrect: Boolean,
-      },
-    ],
     weakTopics: [
       {
         type: String,
+        trim: true,
       },
     ],
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+      required: [true, 'Submitted date is required'],
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Index for faster queries
 quizResultSchema.index({ userId: 1, createdAt: -1 });
 quizResultSchema.index({ quizId: 1 });
-quizResultSchema.index({ subjectId: 1 });
 
 const QuizResult = mongoose.models.QuizResult || mongoose.model('QuizResult', quizResultSchema);
 

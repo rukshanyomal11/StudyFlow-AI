@@ -30,6 +30,37 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    phone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    qualification: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    jobTitle: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    specialization: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    bio: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    subjectExpertise: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     level: {
       type: String,
       default: null,
@@ -51,6 +82,65 @@ const userSchema = new mongoose.Schema(
       reminderEnabled: {
         type: Boolean,
         default: true,
+      },
+      timezone: {
+        type: String,
+        default: 'Asia/Colombo (GMT+5:30)',
+      },
+      language: {
+        type: String,
+        enum: ['English', 'Sinhala', 'Tamil'],
+        default: 'English',
+      },
+      themeMode: {
+        type: String,
+        enum: ['Light', 'Dark', 'System'],
+        default: 'System',
+      },
+      dashboardDensity: {
+        type: String,
+        enum: ['Comfortable', 'Compact', 'Spacious'],
+        default: 'Comfortable',
+      },
+      defaultTeachingSubject: {
+        type: String,
+        default: '',
+      },
+      studentMessageAlerts: {
+        type: Boolean,
+        default: true,
+      },
+      doubtAlerts: {
+        type: Boolean,
+        default: true,
+      },
+      quizSubmissionAlerts: {
+        type: Boolean,
+        default: true,
+      },
+      announcementReminders: {
+        type: Boolean,
+        default: false,
+      },
+      allowStudentMessages: {
+        type: Boolean,
+        default: true,
+      },
+      autoAssignMaterials: {
+        type: Boolean,
+        default: false,
+      },
+      visibleOfficeHours: {
+        type: Boolean,
+        default: true,
+      },
+      feedbackReminders: {
+        type: Boolean,
+        default: true,
+      },
+      twoFactorAuth: {
+        type: Boolean,
+        default: false,
       },
     },
     plan: {
