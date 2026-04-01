@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -283,20 +284,46 @@ function statusBadgeClass(status: DoubtStatus) {
 }
 
 export default function MentorDoubtsPage() {
-  const [doubts, setDoubts] = useState(INITIAL_DOUBTS);
+  const [doubts, setDoubts] = useState<DoubtItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [filtersExpanded, setFiltersExpanded] = useState(true);
-  const [selectedDoubtId, setSelectedDoubtId] = useState(
-    INITIAL_DOUBTS[0]?.id ?? "",
-  );
-  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>(() =>
-    Object.fromEntries(INITIAL_DOUBTS.map((item) => [item.id, item.reply])),
-  );
+  const [selectedDoubtId, setSelectedDoubtId] = useState("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [actionMessage, setActionMessage] = useState(
-    "Select a question to review the full doubt and send a mentor reply.",
+    "Loading doubts...",
   );
+
+  // Fetch doubts on mount
+  useEffect(() => {
+    const fetchDoubts = async () => {
+      try {
+        setLoading(true);
+        const data = await mentorService.getDoubts();
+        setDoubts(data || []);
+        if (data && data.length > 0) {
+          setSelectedDoubtId(data[0].id);
+          setReplyDrafts(Object.fromEntries(data.map((item) => [item.id, item.reply || ""])));
+          setActionMessage("Select a question to review the full doubt and send a mentor reply.");
+        } else {
+          setActionMessage("No doubts to address.");
+        }
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch doubts";
+        setError(errorMsg);
+        setActionMessage(`Error: ${errorMsg}`);
+        console.error("Error fetching doubts:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoubts();
+  }, []);
 
   const subjectOptions = useMemo(
     () => Array.from(new Set(doubts.map((item) => item.subject))).sort(),

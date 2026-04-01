@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import mentorService from "@/services/mentor.service";
 import type { ReactNode } from "react";
 import {
   Bell,

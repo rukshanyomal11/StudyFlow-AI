@@ -16,6 +16,23 @@ const allowedVisibility = new Set([
 function createErrorResponse(error) {
   console.error('Mentor content API error:', error);
 
+  const errorMessage = error instanceof Error ? error.message : '';
+
+  if (
+    errorMessage.includes('querySrv') ||
+    errorMessage.includes('ENOTFOUND') ||
+    errorMessage.includes('ECONNREFUSED') ||
+    errorMessage.includes('Mongo')
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          'Database is unavailable. Check your internet connection and MongoDB Atlas network access.',
+      },
+      { status: 503 },
+    );
+  }
+
   if (error instanceof Error) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -55,8 +72,11 @@ function createErrorResponse(error) {
     }
   }
 
+  const fallbackMessage =
+    error instanceof Error ? error.message : 'Internal server error';
+
   return NextResponse.json(
-    { error: 'Internal server error' },
+    { error: fallbackMessage || 'Internal server error' },
     { status: 500 },
   );
 }
@@ -230,18 +250,33 @@ export async function GET(request) {
     const mentorId = await resolveFilterMentorId(request, currentUser);
     const filter = mentorId ? { mentorId } : {};
     const materials = await Material.find(filter)
-      .populate({
-        path: 'mentorId',
-        select: 'name email role',
-      })
-      .populate({
-        path: 'subjectId',
-        select: 'name',
-      })
       .sort({ createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ materials }, { status: 200 });
+    const subjectIds = Array.from(
+      new Set(
+        materials
+          .map((item) => item.subjectId?.toString?.() || '')
+          .filter((id) => isValidObjectId(id)),
+      ),
+    );
+
+    const subjects = subjectIds.length
+      ? await Subject.find({ _id: { $in: subjectIds } })
+          .select('_id name')
+          .lean()
+      : [];
+
+    const subjectNameById = new Map(
+      subjects.map((subject) => [subject._id.toString(), subject.name]),
+    );
+
+    const normalizedMaterials = materials.map((item) => ({
+      ...item,
+      subjectName: subjectNameById.get(item.subjectId?.toString?.() || '') || '',
+    }));
+
+    return NextResponse.json({ materials: normalizedMaterials }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }

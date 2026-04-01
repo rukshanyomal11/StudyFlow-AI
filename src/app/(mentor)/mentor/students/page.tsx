@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import {
   BookOpen,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -152,15 +153,41 @@ function taskBadgeClass(status: TaskStatus) {
 }
 
 export default function MentorStudentsPage() {
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [students, setStudents] = useState<StudentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
-  const [selectedStudentId, setSelectedStudentId] = useState(INITIAL_STUDENTS[0]?.id ?? "");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [assignForm, setAssignForm] = useState<AssignStudentForm>(EMPTY_ASSIGN_FORM);
   const [actionMessage, setActionMessage] = useState("Select a student to review quizzes, tasks, and mentor notes.");
+
+  // Fetch students on mount
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const data = await mentorService.getStudents();
+        setStudents(data || []);
+        if (data && data.length > 0) {
+          setSelectedStudentId(data[0].id);
+        }
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch students";
+        setError(errorMsg);
+        console.error("Error fetching students:", err);
+        setActionMessage(`Error: ${errorMsg}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
 
   const weakSubjectOptions = useMemo(() => Array.from(new Set(students.map((student) => student.weakSubject))).sort(), [students]);
 
@@ -186,7 +213,7 @@ export default function MentorStudentsPage() {
   const studentsNeedingAttention = students.filter((student) => student.activityStatus !== "Active Today" || student.progress < 70).length;
   const topPerformers = students.filter((student) => student.progress >= 85).length;
 
-  const handleAssignStudent = () => {
+  const handleAssignStudent = async () => {
     const fullName = assignForm.fullName.trim();
     const email = assignForm.email.trim();
     const weakSubject = assignForm.weakSubject.trim();
@@ -197,40 +224,30 @@ export default function MentorStudentsPage() {
       return;
     }
 
-    const boundedProgress = Math.max(0, Math.min(parsedProgress, 100));
-    const newStudent: StudentItem = {
-      id: `student-${Date.now()}`,
-      fullName,
-      email,
-      level: assignForm.level,
-      progress: boundedProgress,
-      weakSubject,
-      activityStatus: assignForm.activityStatus,
-      mentorNotes:
-        "Newly assigned student. Add onboarding notes, a first checkpoint, and next-step coaching guidance.",
-      recentQuizzes: [
-        {
-          id: `quiz-${Date.now()}`,
-          title: "Initial Diagnostic Quiz",
-          score: `${boundedProgress}%`,
-          date: "Just assigned",
-        },
-      ],
-      assignedTasks: [
-        {
-          id: `task-${Date.now()}`,
-          title: "Complete onboarding study plan",
-          dueLabel: "Due this week",
-          status: "Assigned",
-        },
-      ],
-    };
+    try {
+      const studentData = {
+        fullName,
+        email,
+        level: assignForm.level,
+        weakSubject,
+        progress: Math.max(0, Math.min(parsedProgress, 100)),
+        activityStatus: assignForm.activityStatus,
+      };
 
-    setStudents((current) => [newStudent, ...current]);
-    setSelectedStudentId(newStudent.id);
-    setAssignForm(EMPTY_ASSIGN_FORM);
-    setAssignModalOpen(false);
-    setActionMessage(`Assigned ${newStudent.fullName} to your student roster.`);
+      await mentorService.assignStudent(studentData);
+      
+      // Refresh the students list
+      const updatedStudents = await mentorService.getStudents();
+      setStudents(updatedStudents || []);
+      
+      setAssignForm(EMPTY_ASSIGN_FORM);
+      setAssignModalOpen(false);
+      setActionMessage(`Successfully assigned ${fullName} to your student roster.`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to assign student";
+      setActionMessage(`Error: ${errorMsg}`);
+      console.error("Error assigning student:", err);
+    }
   };
 
   const handleMentorNoteChange = (value: string) => {

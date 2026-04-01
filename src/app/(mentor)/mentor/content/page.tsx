@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Archive,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,62 @@ interface ContentDraft {
   description: string;
   visibility: ContentVisibility;
   fileName: string;
+}
+
+function formatRelativeDate(value?: string | Date) {
+  if (!value) {
+    return "Recently";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Recently";
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  return `${Math.floor(diffDays / 7)} weeks ago`;
+}
+
+function toContentItem(item: any): ContentItem {
+  const title = typeof item?.title === "string" ? item.title : "Untitled";
+  const type: ContentType = ["Notes", "PDFs", "Videos", "Assignments"].includes(item?.type)
+    ? item.type
+    : "Notes";
+  const subjectName =
+    typeof item?.subjectName === "string"
+      ? item.subjectName
+      : typeof item?.subjectId?.name === "string"
+        ? item.subjectId.name
+        : "General";
+  const fileUrl = typeof item?.fileUrl === "string" ? item.fileUrl : "";
+  const fileName = fileUrl ? fileUrl.split("/").pop() || `${title}.pdf` : `${title}.pdf`;
+  const visibility: ContentVisibility = [
+    "Assigned Students",
+    "All Assigned Cohorts",
+    "Private Draft",
+  ].includes(item?.visibility)
+    ? item.visibility
+    : "Assigned Students";
+
+  return {
+    id: item?._id || item?.id || `content-${Date.now()}`,
+    title,
+    type,
+    subject: subjectName,
+    uploadDate: formatRelativeDate(item?.createdAt),
+    assignedTo: visibility === "Private Draft" ? "Private" : "Assigned cohort",
+    status: visibility === "Private Draft" ? "Draft" : "Published",
+    description: typeof item?.description === "string" ? item.description : "",
+    visibility,
+    fileName,
+    isRecent: Boolean(item?.createdAt) && Date.now() - new Date(item.createdAt).getTime() < 1000 * 60 * 60 * 24 * 7,
+  };
 }
 
 const CONTENT_TABS: TabType[] = ["All", "Notes", "PDFs", "Videos", "Assignments"];
@@ -181,15 +238,51 @@ function statusBadgeClass(status: ContentStatus) {
 }
 
 export default function MentorContentPage() {
-  const [materials, setMaterials] = useState(INITIAL_CONTENT);
+  const [materials, setMaterials] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("All");
-  const [selectedMaterialId, setSelectedMaterialId] = useState(INITIAL_CONTENT[0]?.id ?? "");
+  const [selectedMaterialId, setSelectedMaterialId] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ContentDraft>(EMPTY_DRAFT);
   const [statusMessage, setStatusMessage] = useState(
-    "Select a material to review status, visibility, and assignment coverage.",
+    "Loading content...",
   );
+
+  // Fetch content on mount
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setLoading(true);
+        const data = await mentorService.getContent();
+        const mappedMaterials = Array.isArray(data) ? data.map(toContentItem) : [];
+        setMaterials(mappedMaterials);
+        if (mappedMaterials.length > 0) {
+          setSelectedMaterialId(mappedMaterials[0].id);
+          setStatusMessage("Select a material to review status, visibility, and assignment coverage.");
+        } else {
+          setStatusMessage("No content uploaded yet.");
+        }
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch content";
+        if (errorMsg.includes("503") || errorMsg.toLowerCase().includes("database is unavailable")) {
+          setMaterials(INITIAL_CONTENT);
+          setSelectedMaterialId(INITIAL_CONTENT[0]?.id ?? "");
+          setError(null);
+          setStatusMessage("Database is currently unavailable. Showing sample content until connection is restored.");
+        } else {
+          setError(errorMsg);
+          setStatusMessage(`Error: ${errorMsg}`);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
 
   const filteredMaterials = useMemo(
     () =>

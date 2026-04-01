@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import {
   CheckCircle2,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -144,14 +145,43 @@ function statusBadgeClass(status: QuizStatus) {
 }
 
 export default function MentorQuizzesPage() {
-  const [quizzes, setQuizzes] = useState(INITIAL_QUIZZES);
-  const [selectedQuizId, setSelectedQuizId] = useState(INITIAL_QUIZZES[0]?.id ?? "");
+  const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedQuizId, setSelectedQuizId] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<QuizDraft>(EMPTY_DRAFT);
   const [statusMessage, setStatusMessage] = useState(
-    "Select a quiz to review performance, question setup, and assignment coverage.",
+    "Loading quizzes...",
   );
+
+  // Fetch quizzes on mount
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        setLoading(true);
+        const data = await mentorService.getQuizzes();
+        setQuizzes(data || []);
+        if (data && data.length > 0) {
+          setSelectedQuizId(data[0].id);
+          setStatusMessage("Select a quiz to review performance, question setup, and assignment coverage.");
+        } else {
+          setStatusMessage("No quizzes created yet.");
+        }
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch quizzes";
+        setError(errorMsg);
+        setStatusMessage(`Error: ${errorMsg}`);
+        console.error("Error fetching quizzes:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
 
   const selectedQuiz =
     quizzes.find((quiz) => quiz.id === selectedQuizId) ?? quizzes[0] ?? null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -340,16 +341,43 @@ function formatScheduleLabel(value: string) {
 }
 
 export default function MentorAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
-  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState(
-    INITIAL_ANNOUNCEMENTS[0]?.id ?? "",
-  );
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AnnouncementDraft>(EMPTY_DRAFT);
   const [statusMessage, setStatusMessage] = useState(
-    "Select an announcement to review delivery status, audience reach, and engagement.",
+    "Loading announcements...",
   );
+
+  // Fetch announcements on mount
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        setLoading(true);
+        const data = await mentorService.getAnnouncements();
+        setAnnouncements(data || []);
+        if (data && data.length > 0) {
+          setSelectedAnnouncementId(data[0].id);
+          setStatusMessage("Select an announcement to review delivery status, audience reach, and engagement.");
+        } else {
+          setStatusMessage("No announcements created yet.");
+        }
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch announcements";
+        setError(errorMsg);
+        setStatusMessage(`Error: ${errorMsg}`);
+        console.error("Error fetching announcements:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
 
   const selectedAnnouncement =
     announcements.find((item) => item.id === selectedAnnouncementId) ??
