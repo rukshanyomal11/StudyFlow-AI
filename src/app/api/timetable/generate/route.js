@@ -7,6 +7,7 @@ const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const SLOT_TEMPLATES = [
   { startTime: '07:30', endTime: '09:00' },
   { startTime: '09:30', endTime: '11:00' },
+  { startTime: '12:00', endTime: '13:30' },
   { startTime: '15:00', endTime: '16:30' },
   { startTime: '18:00', endTime: '19:30' },
 ];
@@ -222,6 +223,7 @@ export async function POST() {
 
         return {
           subjectId: plannedSubject.subject._id,
+          subjectName: plannedSubject.subject.name,
           title: buildSessionTitle(
             plannedSubject.subject,
             plannedSubject.daysUntilExam,

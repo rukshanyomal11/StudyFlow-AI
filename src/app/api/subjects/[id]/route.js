@@ -80,6 +80,11 @@ function buildUpdatePayload(body) {
     updates.name = name;
   }
 
+  if ('description' in body) {
+    updates.description =
+      typeof body.description === 'string' ? body.description.trim() : '';
+  }
+
   if ('priority' in body) {
     const priority = normalizePriority(body.priority);
 

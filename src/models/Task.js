@@ -10,7 +10,12 @@ const taskSchema = new mongoose.Schema(
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subject',
-      required: [true, 'Subject ID is required'],
+      default: null,
+    },
+    subjectName: {
+      type: String,
+      trim: true,
+      default: '',
     },
     title: {
       type: String,
@@ -43,6 +48,18 @@ const taskSchema = new mongoose.Schema(
       default: 'pending',
       required: true,
     },
+    creationEmailSentAt: {
+      type: Date,
+      default: null,
+    },
+    reminderEmailSentAt: {
+      type: Date,
+      default: null,
+    },
+    reminderSentFor: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -53,6 +70,7 @@ const taskSchema = new mongoose.Schema(
 taskSchema.index({ userId: 1, date: 1 });
 taskSchema.index({ userId: 1, status: 1 });
 taskSchema.index({ userId: 1, subjectId: 1 });
+taskSchema.index({ status: 1, date: 1, reminderSentFor: 1 });
 
 const Task = mongoose.models.Task || mongoose.model('Task', taskSchema);
 

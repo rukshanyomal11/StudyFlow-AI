@@ -5,7 +5,12 @@ const timetableSlotSchema = new mongoose.Schema(
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subject',
-      required: [true, 'Subject ID is required'],
+      default: null,
+    },
+    subjectName: {
+      type: String,
+      trim: true,
+      default: '',
     },
     title: {
       type: String,

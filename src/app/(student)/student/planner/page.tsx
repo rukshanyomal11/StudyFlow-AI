@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DragEvent, ReactNode } from "react";
 import {
   CalendarDays,
@@ -27,9 +27,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  getTaskPriorityLabel,
+  getTaskPriorityValue,
+  getTaskStatusLabel,
+  getTaskStatusValue,
+} from "@/lib/task-utils";
 
 type TaskPriority = "High" | "Medium" | "Low";
-type TaskStatus = "To Do" | "In Progress" | "Done";
+type TaskStatus = "To Do" | "In Progress" | "Done" | "Missed";
 
 interface PlannerTask {
   id: string;
@@ -39,6 +45,7 @@ interface PlannerTask {
   time: string;
   priority: TaskPriority;
   status: TaskStatus;
+  duration: number;
 }
 
 interface PlannerFormState {
@@ -50,53 +57,16 @@ interface PlannerFormState {
   status: TaskStatus;
 }
 
-const INITIAL_TASKS: PlannerTask[] = [
-  {
-    id: "task-01",
-    title: "Finish mechanics revision notes",
-    subject: "Physics",
-    date: "2026-03-24",
-    time: "16:30",
-    priority: "High",
-    status: "In Progress",
-  },
-  {
-    id: "task-02",
-    title: "Complete derivatives problem set",
-    subject: "Mathematics",
-    date: "2026-03-24",
-    time: "18:00",
-    priority: "High",
-    status: "To Do",
-  },
-  {
-    id: "task-03",
-    title: "Review bonding flashcards",
-    subject: "Chemistry",
-    date: "2026-03-25",
-    time: "17:15",
-    priority: "Medium",
-    status: "To Do",
-  },
-  {
-    id: "task-04",
-    title: "Write history chapter summary",
-    subject: "History",
-    date: "2026-03-25",
-    time: "19:00",
-    priority: "Low",
-    status: "Done",
-  },
-  {
-    id: "task-05",
-    title: "Practice essay structure outline",
-    subject: "English",
-    date: "2026-03-26",
-    time: "15:45",
-    priority: "Medium",
-    status: "To Do",
-  },
-];
+interface ApiTask {
+  _id: string;
+  title: string;
+  subjectId?: string | null;
+  subjectName?: string;
+  date: string;
+  duration?: number;
+  priority?: string;
+  status?: string;
+}
 
 const EMPTY_FORM: PlannerFormState = {
   title: "",
@@ -115,6 +85,56 @@ const selectClassName =
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function getDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getTimeInputValue(date: Date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
+function mapApiTaskToPlannerTask(task: ApiTask): PlannerTask {
+  const parsedDate = new Date(task.date);
+
+  return {
+    id: task._id,
+    title: task.title,
+    subject: task.subjectName?.trim() || "General",
+    date: getDateInputValue(parsedDate),
+    time: getTimeInputValue(parsedDate),
+    priority: getTaskPriorityLabel(task.priority) as TaskPriority,
+    status: getTaskStatusLabel(task.status) as TaskStatus,
+    duration:
+      typeof task.duration === "number" && Number.isFinite(task.duration)
+        ? task.duration
+        : 60,
+  };
+}
+
+async function readApiError(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string };
+
+    if (typeof data.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
 }
 
 function formatTaskDate(date: string, time: string) {
@@ -186,17 +206,77 @@ function Field({
 }
 
 export default function StudentPlannerPage() {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<PlannerTask[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<PlannerFormState>(EMPTY_FORM);
   const [subjectFilter, setSubjectFilter] = useState("All Subjects");
   const [dateFilter, setDateFilter] = useState("");
   const [statusMessage, setStatusMessage] = useState(
-    "Drag task cards to reorder your study flow.",
+    "Loading your saved planner tasks...",
   );
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
+  const [isSavingTask, setIsSavingTask] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadTasks = async () => {
+      setIsLoadingTasks(true);
+
+      try {
+        const response = await fetch("/api/tasks", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(
+            await readApiError(
+              response,
+              "Unable to load your planner tasks right now.",
+            ),
+          );
+        }
+
+        const data = (await response.json()) as { tasks?: ApiTask[] };
+        const nextTasks = Array.isArray(data.tasks)
+          ? data.tasks.map(mapApiTaskToPlannerTask)
+          : [];
+
+        if (!isActive) {
+          return;
+        }
+
+        setTasks(nextTasks);
+        setStatusMessage(
+          nextTasks.length
+            ? "Planner synced with your saved tasks."
+            : "No saved tasks yet. Add your first planner item.",
+        );
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setStatusMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to load your planner tasks right now.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingTasks(false);
+        }
+      }
+    };
+
+    void loadTasks();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const subjectOptions = useMemo(
     () => ["All Subjects", ...new Set(tasks.map((task) => task.subject))],
@@ -255,7 +335,7 @@ export default function StudentPlannerPage() {
     setForm(EMPTY_FORM);
   };
 
-  const handleSaveTask = () => {
+  const handleSaveTask = async () => {
     const title = form.title.trim();
     const subject = form.subject.trim();
 
@@ -264,54 +344,114 @@ export default function StudentPlannerPage() {
       return;
     }
 
-    if (editingTaskId) {
-      setTasks((current) =>
-        current.map((task) =>
-          task.id === editingTaskId
-            ? {
-                ...task,
-                title,
-                subject,
-                date: form.date,
-                time: form.time,
-                priority: form.priority,
-                status: form.status,
-              }
-            : task,
-        ),
-      );
-      setStatusMessage("Task updated successfully.");
-    } else {
-      setTasks((current) => [
-        {
-          id: `task-${Date.now()}`,
-          title,
-          subject,
-          date: form.date,
-          time: form.time,
-          priority: form.priority,
-          status: form.status,
-        },
-        ...current,
-      ]);
-      setStatusMessage("Task added to your planner.");
+    const taskDate = new Date(`${form.date}T${form.time}`);
+
+    if (Number.isNaN(taskDate.getTime())) {
+      setStatusMessage("Choose a valid date and time before saving.");
+      return;
     }
 
-    closeModal();
+    setIsSavingTask(true);
+    setStatusMessage(
+      editingTaskId ? "Saving task changes..." : "Saving new task...",
+    );
+
+    try {
+      const response = await fetch(
+        editingTaskId ? `/api/tasks/${editingTaskId}` : "/api/tasks",
+        {
+          method: editingTaskId ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            subject,
+            date: taskDate.toISOString(),
+            priority: getTaskPriorityValue(form.priority),
+            status: getTaskStatusValue(form.status),
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to save your task right now."),
+        );
+      }
+
+      const data = (await response.json()) as {
+        task?: ApiTask;
+        emailSent?: boolean;
+      };
+
+      if (!data.task) {
+        throw new Error("Task save succeeded but no task was returned.");
+      }
+
+      const nextTask = mapApiTaskToPlannerTask(data.task);
+
+      if (editingTaskId) {
+        setTasks((current) =>
+          current.map((task) => (task.id === editingTaskId ? nextTask : task)),
+        );
+        setStatusMessage("Task updated and saved to your planner.");
+      } else {
+        setTasks((current) => [nextTask, ...current]);
+        setStatusMessage(
+          data.emailSent
+            ? "Task added, saved, and emailed successfully."
+            : "Task added and saved to your planner.",
+        );
+      }
+
+      closeModal();
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to save your task right now.",
+      );
+    } finally {
+      setIsSavingTask(false);
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks((current) => current.filter((task) => task.id !== taskId));
-    setStatusMessage("Task removed from your planner.");
+  const handleDeleteTask = async (taskId: string) => {
+    setActiveTaskId(taskId);
+    setStatusMessage("Removing task from your planner...");
 
-    if (editingTaskId === taskId) {
-      closeModal();
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to delete this task right now."),
+        );
+      }
+
+      setTasks((current) => current.filter((task) => task.id !== taskId));
+      setStatusMessage("Task removed from your planner.");
+
+      if (editingTaskId === taskId) {
+        closeModal();
+      }
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to delete this task right now.",
+      );
+    } finally {
+      setActiveTaskId(null);
     }
   };
 
   const handleDragStart = (taskId: string) => {
     setDraggedTaskId(taskId);
-    setStatusMessage("Move the task over another card to reorder.");
+    setStatusMessage("Move the task over another card to reorder this view.");
   };
 
   const handleDragOver = (
@@ -345,7 +485,7 @@ export default function StudentPlannerPage() {
 
     setDraggedTaskId(null);
     setDragOverTaskId(null);
-    setStatusMessage("Task order updated.");
+    setStatusMessage("Task order updated for the current view.");
   };
 
   const handleDragEnd = () => {
@@ -606,7 +746,19 @@ export default function StudentPlannerPage() {
           </div>
 
           <div className="mt-4 space-y-4">
-            {filteredTasks.length ? (
+            {isLoadingTasks ? (
+              <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.22)]">
+                  <ListTodo className="h-6 w-6" />
+                </div>
+                <h3 className="mt-5 text-xl font-bold text-slate-950">
+                  Loading saved tasks
+                </h3>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
+                  Pulling your planner data from MongoDB now.
+                </p>
+              </div>
+            ) : filteredTasks.length ? (
               filteredTasks.map((task) => (
                 <div
                   className={cn(
@@ -670,7 +822,9 @@ export default function StudentPlannerPage() {
                             ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
                             : task.status === "In Progress"
                               ? "!border-sky-300 !bg-sky-100 !text-sky-900"
-                              : "!border-amber-300 !bg-amber-100 !text-amber-900",
+                              : task.status === "Missed"
+                                ? "!border-rose-300 !bg-rose-100 !text-rose-900"
+                                : "!border-amber-300 !bg-amber-100 !text-amber-900",
                         )}
                       >
                         {task.status}
@@ -680,6 +834,7 @@ export default function StudentPlannerPage() {
                     <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
                       <Button
                         className="h-10 rounded-2xl bg-slate-950 px-4 font-semibold text-white hover:bg-slate-800"
+                        disabled={activeTaskId === task.id}
                         onClick={() => openEditModal(task)}
                         size="sm"
                       >
@@ -688,18 +843,19 @@ export default function StudentPlannerPage() {
                       </Button>
                       <Button
                         className="!border-rose-300 !bg-white h-10 rounded-2xl px-4 font-semibold !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
-                        onClick={() => handleDeleteTask(task.id)}
+                        disabled={activeTaskId === task.id}
+                        onClick={() => void handleDeleteTask(task.id)}
                         size="sm"
                         variant="outline"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        {activeTaskId === task.id ? "Deleting..." : "Delete"}
                       </Button>
                     </div>
                   </div>
                 </div>
               ))
-            ) : (
+            ) : tasks.length ? (
               <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.22)]">
                   <ListTodo className="h-6 w-6" />
@@ -710,6 +866,26 @@ export default function StudentPlannerPage() {
                 <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
                   Adjust the selected subject or date filter, or add a fresh task
                   to keep your planner moving.
+                </p>
+                <Button
+                  className="mt-6 h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
+                  onClick={openCreateModal}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Task
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-[28px] border border-dashed border-sky-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] p-12 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#e0f2fe_0%,#ede9fe_100%)] text-sky-700 shadow-[0_12px_28px_-18px_rgba(14,165,233,0.22)]">
+                  <ListTodo className="h-6 w-6" />
+                </div>
+                <h3 className="mt-5 text-xl font-bold text-slate-950">
+                  No saved planner tasks yet
+                </h3>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
+                  Add your first task and it will be saved to MongoDB instead of
+                  staying as temporary dummy data.
                 </p>
                 <Button
                   className="mt-6 h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
@@ -737,6 +913,7 @@ export default function StudentPlannerPage() {
                 </div>
                 <button
                   className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-sky-50 hover:text-sky-700"
+                  disabled={isSavingTask}
                   onClick={closeModal}
                   type="button"
                 >
@@ -839,6 +1016,7 @@ export default function StudentPlannerPage() {
                       <option value="To Do">To Do</option>
                       <option value="In Progress">In Progress</option>
                       <option value="Done">Done</option>
+                      <option value="Missed">Missed</option>
                     </select>
                   </Field>
                 </div>
@@ -846,11 +1024,12 @@ export default function StudentPlannerPage() {
 
               <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-medium text-slate-500">
-                  Planner tasks stay local for now and are ready to connect to MongoDB later.
+                  Tasks are saved to your planner and synced with MongoDB.
                 </p>
                 <div className="flex gap-3">
                   <Button
                     className="h-11 rounded-2xl border border-sky-200 bg-white px-5 font-semibold text-sky-700 shadow-sm hover:bg-sky-50"
+                    disabled={isSavingTask}
                     onClick={closeModal}
                     variant="outline"
                   >
@@ -858,10 +1037,15 @@ export default function StudentPlannerPage() {
                   </Button>
                   <Button
                     className="h-11 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_45%,#7c3aed_100%)] px-5 text-white shadow-[0_18px_34px_-20px_rgba(37,99,235,0.42)] hover:brightness-110"
-                    onClick={handleSaveTask}
+                    disabled={isSavingTask}
+                    onClick={() => void handleSaveTask()}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    {editingTaskId ? "Save Changes" : "Add Task"}
+                    {isSavingTask
+                      ? "Saving..."
+                      : editingTaskId
+                        ? "Save Changes"
+                        : "Add Task"}
                   </Button>
                 </div>
               </div>

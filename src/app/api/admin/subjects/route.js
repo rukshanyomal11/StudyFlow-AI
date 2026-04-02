@@ -102,6 +102,11 @@ function buildCreatePayload(body, userId) {
     examDate,
   };
 
+  if (body.description !== undefined) {
+    subjectData.description =
+      typeof body.description === 'string' ? body.description.trim() : '';
+  }
+
   if (body.priority !== undefined) {
     const priority = normalizePriority(body.priority);
 

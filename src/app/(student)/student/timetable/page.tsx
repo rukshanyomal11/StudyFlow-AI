@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   BookOpen,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { studentSidebarLinks } from "@/data/sidebarLinks";
+import Alert from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,10 +36,12 @@ interface DayMeta {
 
 interface TimeSlot {
   time: string;
+  endTime: string;
   label: string;
 }
 
 interface SlotAssignment {
+  subjectId: string | null;
   subject: string;
   focus: string;
 }
@@ -53,82 +56,37 @@ interface ActiveSlot {
   time: string;
 }
 
+interface ApiTimetableSlot {
+  subjectId?: string | null;
+  subjectName?: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface ApiTimetableEntry {
+  day: string;
+  slots: ApiTimetableSlot[];
+}
+
+type StatusTone = "info" | "success" | "warning" | "error";
 type TimetableMap = Partial<Record<string, SlotAssignment>>;
 
-const DAY_META: DayMeta[] = [
-  { day: "Monday", dateLabel: "Mar 23" },
-  { day: "Tuesday", dateLabel: "Mar 24" },
-  { day: "Wednesday", dateLabel: "Mar 25" },
-  { day: "Thursday", dateLabel: "Mar 26" },
-  { day: "Friday", dateLabel: "Mar 27" },
+const WEEK_DAYS: DayName[] = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
 ];
 
 const TIME_SLOTS: TimeSlot[] = [
-  { time: "07:30", label: "7:30 AM" },
-  { time: "09:30", label: "9:30 AM" },
-  { time: "12:00", label: "12:00 PM" },
-  { time: "15:00", label: "3:00 PM" },
-  { time: "18:00", label: "6:00 PM" },
+  { time: "07:30", endTime: "09:00", label: "7:30 AM" },
+  { time: "09:30", endTime: "11:00", label: "9:30 AM" },
+  { time: "12:00", endTime: "13:30", label: "12:00 PM" },
+  { time: "15:00", endTime: "16:30", label: "3:00 PM" },
+  { time: "18:00", endTime: "19:30", label: "6:00 PM" },
 ];
-
-const AUTO_TIMETABLE: TimetableMap = {
-  "Monday-07:30": {
-    subject: "Mathematics",
-    focus: "Calculus revision and timed problem solving",
-  },
-  "Monday-15:00": {
-    subject: "Physics",
-    focus: "Mechanics practice and formula review",
-  },
-  "Monday-18:00": {
-    subject: "Chemistry",
-    focus: "Reaction pathways and flashcard recall",
-  },
-  "Tuesday-09:30": {
-    subject: "English",
-    focus: "Essay planning and reading comprehension",
-  },
-  "Tuesday-15:00": {
-    subject: "Mathematics",
-    focus: "Differentiation drills and mistake review",
-  },
-  "Tuesday-18:00": {
-    subject: "Physics",
-    focus: "Lab preparation and concept reinforcement",
-  },
-  "Wednesday-07:30": {
-    subject: "History",
-    focus: "Timeline recall and summary writing",
-  },
-  "Wednesday-12:00": {
-    subject: "Chemistry",
-    focus: "Organic chemistry chapter review",
-  },
-  "Wednesday-18:00": {
-    subject: "Mathematics",
-    focus: "Past paper practice set",
-  },
-  "Thursday-09:30": {
-    subject: "Physics",
-    focus: "Checkpoint quiz and error analysis",
-  },
-  "Thursday-15:00": {
-    subject: "English",
-    focus: "Revision notes and vocabulary review",
-  },
-  "Friday-07:30": {
-    subject: "Biology",
-    focus: "Diagram labeling and quick concept review",
-  },
-  "Friday-12:00": {
-    subject: "History",
-    focus: "Essay structure outline and evidence recall",
-  },
-  "Friday-18:00": {
-    subject: "Mathematics",
-    focus: "Weekly review and weak topic clean-up",
-  },
-};
 
 const EMPTY_EDITOR: SlotEditorState = {
   subject: "",
@@ -145,8 +103,114 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function getMondayOfCurrentWeek(date = new Date()) {
+  const nextDate = new Date(date);
+  const dayNumber = nextDate.getDay();
+  const diff = dayNumber === 0 ? -6 : 1 - dayNumber;
+
+  nextDate.setDate(nextDate.getDate() + diff);
+  nextDate.setHours(0, 0, 0, 0);
+
+  return nextDate;
+}
+
+function buildDayMeta(date = new Date()): DayMeta[] {
+  const monday = getMondayOfCurrentWeek(date);
+
+  return WEEK_DAYS.map((day, index) => {
+    const nextDate = new Date(monday);
+    nextDate.setDate(monday.getDate() + index);
+
+    return {
+      day,
+      dateLabel: new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(nextDate),
+    };
+  });
+}
+
+function formatWeekLabel(dayMeta: DayMeta[]) {
+  if (!dayMeta.length) {
+    return "";
+  }
+
+  const monday = getMondayOfCurrentWeek(new Date());
+
+  return `Week of ${new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(monday)}`;
+}
+
 function getSlotKey(day: DayName, time: string) {
   return `${day}-${time}`;
+}
+
+function mapApiTimetableToTimetableMap(entries: ApiTimetableEntry[]) {
+  return entries.reduce<TimetableMap>((result, entry) => {
+    if (!WEEK_DAYS.includes(entry.day as DayName) || !Array.isArray(entry.slots)) {
+      return result;
+    }
+
+    entry.slots.forEach((slot) => {
+      if (!TIME_SLOTS.some((timeSlot) => timeSlot.time === slot.startTime)) {
+        return;
+      }
+
+      result[getSlotKey(entry.day as DayName, slot.startTime)] = {
+        subjectId: slot.subjectId ?? null,
+        subject: slot.subjectName?.trim() || "General",
+        focus: slot.title,
+      };
+    });
+
+    return result;
+  }, {});
+}
+
+function buildTimetablePayload(timetable: TimetableMap) {
+  return {
+    timetable: WEEK_DAYS.map((day) => ({
+      day,
+      slots: TIME_SLOTS.flatMap((slot) => {
+        const assignment = timetable[getSlotKey(day, slot.time)];
+
+        if (!assignment) {
+          return [];
+        }
+
+        return [
+          {
+            subjectId: assignment.subjectId,
+            subject: assignment.subject,
+            title: assignment.focus,
+            startTime: slot.time,
+            endTime: slot.endTime,
+          },
+        ];
+      }),
+    })).filter((entry) => entry.slots.length),
+  };
+}
+
+async function readApiError(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string };
+
+    if (typeof data.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
 }
 
 function getSubjectPalette(subject: string) {
@@ -245,55 +309,132 @@ function Field({
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  detail,
-  icon,
-  accentClassName,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: ReactNode;
-  accentClassName: string;
-}) {
-  return (
-    <Card className="rounded-[30px] border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] shadow-[0_28px_64px_-42px_rgba(59,130,246,0.2)]">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-              {value}
-            </p>
-            <p className="mt-2 text-sm text-slate-500">{detail}</p>
-          </div>
-          <span
-            className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg shadow-slate-200/70 -mt-8",
-              accentClassName,
-            )}
-          >
-            {icon}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
+function getStatusDetails(
+  message: string,
+  defaultTone: StatusTone = "info",
+): {
+  tone: StatusTone;
+  message: string;
+  hint?: string;
+} {
+  if (message === "No subjects found to generate timetable") {
+    return {
+      tone: "warning",
+      message: "Auto-generate needs at least one saved subject.",
+      hint:
+        "Add subjects with an exam date, priority, and progress first, then try again.",
+    };
+  }
+
+  if (message === "Unauthorized" || message === "Forbidden") {
+    return {
+      tone: "error",
+      message: "You need to be signed in as a student to manage this timetable.",
+      hint: "Refresh the page and sign in again if needed.",
+    };
+  }
+
+  if (message === "Subject not found") {
+    return {
+      tone: "warning",
+      message: "One of your saved subjects could not be found.",
+      hint: "Refresh the page, then reselect the subject and try again.",
+    };
+  }
+
+  return {
+    tone: defaultTone,
+    message,
+  };
 }
 
 export default function StudentTimetablePage() {
-  const [timetable, setTimetable] = useState<TimetableMap>(AUTO_TIMETABLE);
+  const [timetable, setTimetable] = useState<TimetableMap>({});
   const [activeSlot, setActiveSlot] = useState<ActiveSlot | null>({
-    day: "Tuesday",
-    time: "15:00",
+    day: "Monday",
+    time: "07:30",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editor, setEditor] = useState<SlotEditorState>(EMPTY_EDITOR);
+  const [statusTone, setStatusTone] = useState<StatusTone>("info");
   const [statusMessage, setStatusMessage] = useState(
-    "Click any slot to edit your weekly study plan.",
+    "Loading your saved timetable...",
   );
+  const [statusHint, setStatusHint] = useState<string | null>(null);
+  const [isLoadingTimetable, setIsLoadingTimetable] = useState(true);
+  const [isSavingTimetable, setIsSavingTimetable] = useState(false);
+  const [isGeneratingTimetable, setIsGeneratingTimetable] = useState(false);
+
+  const dayMeta = useMemo(() => buildDayMeta(), []);
+  const weekLabel = useMemo(() => formatWeekLabel(dayMeta), [dayMeta]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadTimetable = async () => {
+      setIsLoadingTimetable(true);
+
+      try {
+        const response = await fetch("/api/timetable", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(
+            await readApiError(
+              response,
+              "Unable to load your timetable right now.",
+            ),
+          );
+        }
+
+        const data = (await response.json()) as {
+          timetable?: ApiTimetableEntry[];
+        };
+        const nextTimetable = Array.isArray(data.timetable)
+          ? mapApiTimetableToTimetableMap(data.timetable)
+          : {};
+
+        if (!isActive) {
+          return;
+        }
+
+        setTimetable(nextTimetable);
+        updateStatus(
+          Object.keys(nextTimetable).length
+            ? "success"
+            : "info",
+          Object.keys(nextTimetable).length
+            ? "Your saved timetable is ready."
+            : "Your timetable is empty. Click any slot to plan your week.",
+          Object.keys(nextTimetable).length
+            ? "You can still fine-tune any slot or auto-generate a fresh plan."
+            : "You can click any slot manually or use Auto-Generate once your subjects are ready.",
+        );
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        const status = getStatusDetails(
+          error instanceof Error
+            ? error.message
+            : "Unable to load your timetable right now.",
+          "error",
+        );
+
+        updateStatus(status.tone, status.message, status.hint);
+      } finally {
+        if (isActive) {
+          setIsLoadingTimetable(false);
+        }
+      }
+    };
+
+    void loadTimetable();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const assignedEntries = useMemo(
     () => Object.entries(timetable).filter(([, value]) => Boolean(value)),
@@ -304,7 +445,8 @@ export default function StudentTimetablePage() {
   const activeSubjectCount = new Set(
     assignedEntries.map(([, value]) => value?.subject ?? ""),
   ).size;
-  const openSlotCount = DAY_META.length * TIME_SLOTS.length - assignedSlotCount;
+  const openSlotCount = WEEK_DAYS.length * TIME_SLOTS.length - assignedSlotCount;
+  const isBusy = isSavingTimetable || isGeneratingTimetable;
 
   const subjectBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
@@ -324,8 +466,71 @@ export default function StudentTimetablePage() {
     ? timetable[getSlotKey(activeSlot.day, activeSlot.time)]
     : undefined;
 
+  const updateStatus = (
+    tone: StatusTone,
+    message: string,
+    hint?: string,
+  ) => {
+    setStatusTone(tone);
+    setStatusMessage(message);
+    setStatusHint(hint ?? null);
+  };
+
+  const persistTimetable = async (
+    nextTimetable: TimetableMap,
+    successMessage: string,
+  ) => {
+    setIsSavingTimetable(true);
+
+    try {
+      const response = await fetch("/api/timetable", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(buildTimetablePayload(nextTimetable)),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(
+            response,
+            "Unable to save your timetable right now.",
+          ),
+        );
+      }
+
+      const data = (await response.json()) as {
+        message?: string;
+        timetable?: ApiTimetableEntry[];
+      };
+      const savedTimetable = Array.isArray(data.timetable)
+        ? mapApiTimetableToTimetableMap(data.timetable)
+        : nextTimetable;
+
+      setTimetable(savedTimetable);
+      updateStatus("success", successMessage);
+
+      return true;
+    } catch (error) {
+      const status = getStatusDetails(
+        error instanceof Error
+          ? error.message
+          : "Unable to save your timetable right now.",
+        "error",
+      );
+
+      updateStatus(status.tone, status.message, status.hint);
+
+      return false;
+    } finally {
+      setIsSavingTimetable(false);
+    }
+  };
+
   const openEditor = (day: DayName, time: string) => {
     const existing = timetable[getSlotKey(day, time)];
+    const selectedSlot = TIME_SLOTS.find((slot) => slot.time === time);
 
     setActiveSlot({ day, time });
     setEditor({
@@ -333,7 +538,10 @@ export default function StudentTimetablePage() {
       focus: existing?.focus ?? "",
     });
     setIsModalOpen(true);
-    setStatusMessage(`Editing ${day} at ${TIME_SLOTS.find((slot) => slot.time === time)?.label ?? time}.`);
+    updateStatus(
+      "info",
+      `Editing ${day} at ${selectedSlot?.label ?? time}.`,
+    );
   };
 
   const closeEditor = () => {
@@ -341,7 +549,7 @@ export default function StudentTimetablePage() {
     setEditor(EMPTY_EDITOR);
   };
 
-  const handleSaveSlot = () => {
+  const handleSaveSlot = async () => {
     if (!activeSlot) {
       return;
     }
@@ -350,44 +558,109 @@ export default function StudentTimetablePage() {
     const focus = editor.focus.trim();
 
     if (!subject || !focus) {
-      setStatusMessage("Add both a subject and focus note before saving.");
+      updateStatus(
+        "warning",
+        "Add both a subject and focus note before saving.",
+      );
       return;
     }
 
     const key = getSlotKey(activeSlot.day, activeSlot.time);
-
-    setTimetable((current) => ({
-      ...current,
+    const previousAssignment = timetable[key];
+    const subjectId =
+      previousAssignment?.subject &&
+      previousAssignment.subject.trim().toLowerCase() === subject.toLowerCase()
+        ? previousAssignment.subjectId
+        : null;
+    const nextTimetable = {
+      ...timetable,
       [key]: {
+        subjectId,
         subject,
         focus,
       },
-    }));
+    };
+    const selectedSlot = TIME_SLOTS.find(
+      (slot) => slot.time === activeSlot.time,
+    );
+    const didSave = await persistTimetable(
+      nextTimetable,
+      `Saved ${subject} for ${activeSlot.day} at ${selectedSlot?.label ?? activeSlot.time}.`,
+    );
 
-    setStatusMessage(`Saved ${subject} for ${activeSlot.day} at ${TIME_SLOTS.find((slot) => slot.time === activeSlot.time)?.label ?? activeSlot.time}.`);
-    closeEditor();
+    if (didSave) {
+      closeEditor();
+    }
   };
 
-  const handleClearSlot = () => {
+  const handleClearSlot = async () => {
     if (!activeSlot) {
       return;
     }
 
     const key = getSlotKey(activeSlot.day, activeSlot.time);
+    const nextTimetable = { ...timetable };
+    const selectedSlot = TIME_SLOTS.find(
+      (slot) => slot.time === activeSlot.time,
+    );
 
-    setTimetable((current) => {
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
+    delete nextTimetable[key];
 
-    setStatusMessage(`Cleared ${activeSlot.day} at ${TIME_SLOTS.find((slot) => slot.time === activeSlot.time)?.label ?? activeSlot.time}.`);
-    closeEditor();
+    const didSave = await persistTimetable(
+      nextTimetable,
+      `Cleared ${activeSlot.day} at ${selectedSlot?.label ?? activeSlot.time}.`,
+    );
+
+    if (didSave) {
+      closeEditor();
+    }
   };
 
-  const handleAutoGenerate = () => {
-    setTimetable(AUTO_TIMETABLE);
-    setStatusMessage("Timetable auto-generated from your active study subjects.");
+  const handleAutoGenerate = async () => {
+    setIsGeneratingTimetable(true);
+    updateStatus(
+      "info",
+      "Generating your timetable...",
+      "We are building a study plan from your saved subjects.",
+    );
+
+    try {
+      const response = await fetch("/api/timetable/generate", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(
+            response,
+            "Unable to auto-generate your timetable right now.",
+          ),
+        );
+      }
+
+      const data = (await response.json()) as {
+        timetable?: ApiTimetableEntry[];
+      };
+      const generatedTimetable = Array.isArray(data.timetable)
+        ? mapApiTimetableToTimetableMap(data.timetable)
+        : {};
+
+      await persistTimetable(
+        generatedTimetable,
+        "Timetable auto-generated and saved.",
+      );
+    } catch (error) {
+      const status = getStatusDetails(
+        error instanceof Error
+          ? error.message
+          : "Unable to auto-generate your timetable right now.",
+        "error",
+      );
+
+      updateStatus(status.tone, status.message, status.hint);
+    } finally {
+      setIsGeneratingTimetable(false);
+    }
   };
 
   const handleOpenSelectedSlot = () => {
@@ -432,7 +705,7 @@ export default function StudentTimetablePage() {
 
               <div className="flex flex-wrap gap-3 text-sm text-slate-600">
                 <span className="rounded-2xl border border-sky-100/80 bg-[linear-gradient(135deg,#f0f9ff_0%,#ffffff_100%)] px-4 py-2 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.2)]">
-                  Week of March 23, 2026
+                  {weekLabel}
                 </span>
                 <span className="rounded-2xl border border-violet-100/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_100%)] px-4 py-2 shadow-[0_14px_30px_-24px_rgba(99,102,241,0.16)]">
                   {assignedSlotCount} slots assigned
@@ -500,20 +773,25 @@ export default function StudentTimetablePage() {
                 </div>
               </div>
 
-              <div className="mt-4 rounded-[22px] border border-slate-200/80 bg-white/92 px-4 py-3 text-sm leading-6 text-slate-600 shadow-sm">
-                {statusMessage}
-              </div>
+              <Alert className="mt-4 rounded-[22px] border px-4 py-3 shadow-sm" type={statusTone}>
+                <div className="space-y-1">
+                  <p className="font-medium">{statusMessage}</p>
+                  {statusHint ? <p>{statusHint}</p> : null}
+                </div>
+              </Alert>
 
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <Button
                   className="h-11 flex-1 rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_42%,#7c3aed_72%,#ec4899_100%)] px-5 text-white shadow-[0_20px_40px_-22px_rgba(99,102,241,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110"
+                  disabled={isBusy || isLoadingTimetable}
                   onClick={handleAutoGenerate}
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Auto-Generate
+                  {isGeneratingTimetable ? "Generating..." : "Auto-Generate"}
                 </Button>
                 <Button
                   className="h-11 flex-1 rounded-2xl border border-white/90 bg-white/92 px-5 text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-sky-50"
+                  disabled={isBusy || isLoadingTimetable}
                   onClick={handleOpenSelectedSlot}
                 >
                   <PencilLine className="mr-2 h-4 w-4" />
@@ -533,16 +811,16 @@ export default function StudentTimetablePage() {
               <div className="min-w-[920px] space-y-3">
                 <div className="grid grid-cols-[110px_repeat(5,minmax(0,1fr))] gap-3">
                   <div />
-                  {DAY_META.map((dayMeta) => (
+                  {dayMeta.map((dayMetaItem) => (
                     <div
                       className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
-                      key={dayMeta.day}
+                      key={dayMetaItem.day}
                     >
                       <p className="text-sm font-semibold text-slate-950">
-                        {dayMeta.day}
+                        {dayMetaItem.day}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {dayMeta.dateLabel}
+                        {dayMetaItem.dateLabel}
                       </p>
                     </div>
                   ))}
@@ -562,14 +840,14 @@ export default function StudentTimetablePage() {
                       </p>
                     </div>
 
-                    {DAY_META.map((dayMeta) => {
+                    {dayMeta.map((dayMetaItem) => {
                       const assignment =
-                        timetable[getSlotKey(dayMeta.day, slot.time)];
+                        timetable[getSlotKey(dayMetaItem.day, slot.time)];
                       const palette = assignment
                         ? getSubjectPalette(assignment.subject)
                         : null;
                       const isSelected =
-                        activeSlot?.day === dayMeta.day &&
+                        activeSlot?.day === dayMetaItem.day &&
                         activeSlot?.time === slot.time;
 
                       return (
@@ -582,8 +860,8 @@ export default function StudentTimetablePage() {
                             isSelected &&
                               "ring-4 ring-sky-100 ring-offset-0",
                           )}
-                          key={dayMeta.day}
-                          onClick={() => openEditor(dayMeta.day, slot.time)}
+                          key={dayMetaItem.day}
+                          onClick={() => openEditor(dayMetaItem.day, slot.time)}
                           type="button"
                         >
                           {assignment ? (
@@ -638,17 +916,19 @@ export default function StudentTimetablePage() {
             </div>
 
             <div className="space-y-4 lg:hidden">
-              {DAY_META.map((dayMeta) => (
+              {dayMeta.map((dayMetaItem) => (
                 <div
                   className="rounded-[26px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
-                  key={dayMeta.day}
+                  key={dayMetaItem.day}
                 >
                   <div className="mb-4 flex items-center justify-between">
                     <div>
                       <p className="text-base font-semibold text-slate-950">
-                        {dayMeta.day}
+                        {dayMetaItem.day}
                       </p>
-                      <p className="text-sm text-slate-500">{dayMeta.dateLabel}</p>
+                      <p className="text-sm text-slate-500">
+                        {dayMetaItem.dateLabel}
+                      </p>
                     </div>
                     <Badge className="!border-sky-300 !bg-sky-100 !text-sky-900 border px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
                       Day View
@@ -658,7 +938,7 @@ export default function StudentTimetablePage() {
                   <div className="space-y-3">
                     {TIME_SLOTS.map((slot) => {
                       const assignment =
-                        timetable[getSlotKey(dayMeta.day, slot.time)];
+                        timetable[getSlotKey(dayMetaItem.day, slot.time)];
                       const palette = assignment
                         ? getSubjectPalette(assignment.subject)
                         : null;
@@ -670,9 +950,9 @@ export default function StudentTimetablePage() {
                             assignment
                               ? palette?.card
                               : "border-dashed border-slate-200 bg-white hover:border-sky-200",
-                          )}
+                          )} 
                           key={slot.time}
-                          onClick={() => openEditor(dayMeta.day, slot.time)}
+                          onClick={() => openEditor(dayMetaItem.day, slot.time)}
                           type="button"
                         >
                           <div className="w-20 shrink-0">
@@ -729,6 +1009,7 @@ export default function StudentTimetablePage() {
                       </div>
                       <Button
                         className="h-10 rounded-2xl border border-sky-100 bg-white px-4 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
+                        disabled={isBusy || isLoadingTimetable}
                         onClick={handleOpenSelectedSlot}
                         variant="outline"
                       >
@@ -758,9 +1039,15 @@ export default function StudentTimetablePage() {
                     )}
                   </div>
 
-                  <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4 text-sm text-slate-600">
-                    {statusMessage}
-                  </div>
+                  <Alert
+                    className="rounded-[24px] border p-4 shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)]"
+                    type={statusTone}
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium">{statusMessage}</p>
+                      {statusHint ? <p>{statusHint}</p> : null}
+                    </div>
+                  </Alert>
                 </div>
               ) : null}
             </SectionCard>
@@ -770,41 +1057,48 @@ export default function StudentTimetablePage() {
               title="Subject Balance"
             >
               <div className="space-y-4">
-                {subjectBreakdown.map(([subject, count]) => {
-                  const palette = getSubjectPalette(subject);
+                {subjectBreakdown.length ? (
+                  subjectBreakdown.map(([subject, count]) => {
+                    const palette = getSubjectPalette(subject);
 
-                  return (
-                    <div
-                      className="flex items-center justify-between rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
-                      key={subject}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={cn(
-                            "h-3.5 w-3.5 rounded-full",
-                            palette.dot,
-                          )}
-                        />
-                        <div>
-                          <p className="text-sm font-semibold text-slate-950">
-                            {subject}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {count} weekly block{count > 1 ? "s" : ""}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        className={cn(
-                          "border-transparent px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
-                          palette.badge,
-                        )}
+                    return (
+                      <div
+                        className="flex items-center justify-between rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)] p-4"
+                        key={subject}
                       >
-                        {Math.round((count / assignedSlotCount) * 100)}%
-                      </Badge>
-                    </div>
-                  );
-                })}
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              "h-3.5 w-3.5 rounded-full",
+                              palette.dot,
+                            )}
+                          />
+                          <div>
+                            <p className="text-sm font-semibold text-slate-950">
+                              {subject}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {count} weekly block{count > 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          className={cn(
+                            "border-transparent px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
+                            palette.badge,
+                          )}
+                        >
+                          {Math.round((count / assignedSlotCount) * 100)}%
+                        </Badge>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">
+                    No subjects are assigned yet. Add a few blocks to see your
+                    weekly balance.
+                  </div>
+                )}
               </div>
             </SectionCard>
           </div>
@@ -872,6 +1166,7 @@ export default function StudentTimetablePage() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     className="h-11 rounded-2xl border border-rose-200 bg-rose-50 px-5 text-rose-700 hover:bg-rose-100"
+                    disabled={isBusy}
                     onClick={handleClearSlot}
                     variant="outline"
                   >
@@ -880,6 +1175,7 @@ export default function StudentTimetablePage() {
                   </Button>
                   <Button
                     className="h-11 rounded-2xl border border-sky-100 bg-white px-5 text-sky-700 shadow-[0_14px_30px_-22px_rgba(56,189,248,0.18)] hover:bg-sky-50"
+                    disabled={isBusy}
                     onClick={closeEditor}
                     variant="outline"
                   >
@@ -887,10 +1183,11 @@ export default function StudentTimetablePage() {
                   </Button>
                   <Button
                     className="h-11 rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
+                    disabled={isBusy}
                     onClick={handleSaveSlot}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    Save Slot
+                    {isSavingTimetable ? "Saving..." : "Save Slot"}
                   </Button>
                 </div>
               </div>

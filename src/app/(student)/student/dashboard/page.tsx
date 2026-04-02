@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import {
@@ -28,15 +28,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { getTaskPriorityLabel } from "@/lib/task-utils";
 
 interface TaskItem {
   id: string;
   title: string;
   subject: string;
+  date: string;
   time: string;
   duration: string;
   priority: "High" | "Medium" | "Low";
   completed: boolean;
+}
+
+interface ApiTask {
+  _id: string;
+  title: string;
+  subjectName?: string;
+  date: string;
+  duration?: number;
+  priority?: string;
+  status?: string;
 }
 
 interface RecommendationItem {
@@ -137,45 +149,6 @@ function StatCard({
     </Card>
   );
 }
-
-const INITIAL_TASKS: TaskItem[] = [
-  {
-    id: "task-01",
-    title: "Complete Physics motion revision",
-    subject: "Physics",
-    time: "4:30 PM",
-    duration: "45 min",
-    priority: "High",
-    completed: false,
-  },
-  {
-    id: "task-02",
-    title: "Solve 20 calculus practice questions",
-    subject: "Mathematics",
-    time: "6:00 PM",
-    duration: "60 min",
-    priority: "High",
-    completed: true,
-  },
-  {
-    id: "task-03",
-    title: "Review chemistry flashcards",
-    subject: "Chemistry",
-    time: "7:45 PM",
-    duration: "30 min",
-    priority: "Medium",
-    completed: false,
-  },
-  {
-    id: "task-04",
-    title: "Write history summary notes",
-    subject: "History",
-    time: "8:30 PM",
-    duration: "35 min",
-    priority: "Low",
-    completed: false,
-  },
-];
 
 const RECOMMENDATIONS: RecommendationItem[] = [
   {
@@ -288,15 +261,125 @@ function getDeadlineTone(status: DeadlineItem["status"]) {
   };
 }
 
+function getDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function mapApiTaskToDashboardTask(task: ApiTask): TaskItem {
+  const parsedDate = new Date(task.date);
+
+  return {
+    id: task._id,
+    title: task.title,
+    subject: task.subjectName?.trim() || "General",
+    date: getDateInputValue(parsedDate),
+    time: new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(parsedDate),
+    duration: `${typeof task.duration === "number" ? task.duration : 60} min`,
+    priority: getTaskPriorityLabel(task.priority) as TaskItem["priority"],
+    completed: task.status === "completed",
+  };
+}
+
+async function readApiError(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string };
+
+    if (typeof data.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
+}
+
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [allTasks, setAllTasks] = useState<TaskItem[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const [taskStatusMessage, setTaskStatusMessage] = useState(
+    "Loading your saved tasks...",
+  );
 
+  useEffect(() => {
+    let isActive = true;
+
+    const loadTasks = async () => {
+      setIsLoadingTasks(true);
+
+      try {
+        const response = await fetch("/api/tasks", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(
+            await readApiError(
+              response,
+              "Unable to load your planner tasks right now.",
+            ),
+          );
+        }
+
+        const data = (await response.json()) as { tasks?: ApiTask[] };
+        const nextTasks = Array.isArray(data.tasks)
+          ? data.tasks.map(mapApiTaskToDashboardTask)
+          : [];
+
+        if (!isActive) {
+          return;
+        }
+
+        setAllTasks(nextTasks);
+        setTaskStatusMessage(
+          nextTasks.length
+            ? "Today's task widget is synced with your planner."
+            : "No saved tasks yet. Add one from the planner.",
+        );
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setTaskStatusMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to load your planner tasks right now.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingTasks(false);
+        }
+      }
+    };
+
+    void loadTasks();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const todayDate = getDateInputValue(new Date());
+  const tasks = useMemo(
+    () => allTasks.filter((task) => task.date === todayDate),
+    [allTasks, todayDate],
+  );
   const completedTaskCount = tasks.filter((task) => task.completed).length;
+  const completedTasks = allTasks.filter((task) => task.completed).length;
+  const activeSubjects = new Set(allTasks.map((task) => task.subject)).size;
   const studyHours = 28.5;
   const streak = 18;
-  const completedTasks = 36;
-  const activeSubjects = 6;
   const dailyGoalHours = 4;
   const todayHours = 2.8;
   const goalProgress = Math.round((todayHours / dailyGoalHours) * 100);
@@ -306,12 +389,54 @@ export default function StudentDashboardPage() {
     day: "numeric",
   }).format(new Date());
 
-  const handleToggleTask = (taskId: string) => {
-    setTasks((current) =>
-      current.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task,
-      ),
+  const handleToggleTask = async (taskId: string, completed: boolean) => {
+    setPendingTaskId(taskId);
+    setTaskStatusMessage(
+      completed ? "Marking task as to do..." : "Marking task as done...",
     );
+
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: completed ? "pending" : "completed",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to update this task right now."),
+        );
+      }
+
+      const data = (await response.json()) as { task?: ApiTask };
+
+      if (!data.task) {
+        throw new Error("Task update succeeded but no task was returned.");
+      }
+
+      const nextTask = mapApiTaskToDashboardTask(data.task);
+
+      setAllTasks((current) =>
+        current.map((task) => (task.id === taskId ? nextTask : task)),
+      );
+      setTaskStatusMessage(
+        completed
+          ? "Task moved back into your queue."
+          : "Task marked as completed.",
+      );
+    } catch (error) {
+      setTaskStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update this task right now.",
+      );
+    } finally {
+      setPendingTaskId(null);
+    }
   };
 
   return (
@@ -358,7 +483,7 @@ export default function StudentDashboardPage() {
                   Grade 12 - Advanced Level
                 </span>
                 <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(14,165,233,0.14)] backdrop-blur-sm">
-                  {tasks.length} tasks queued
+                  {allTasks.length} tasks queued
                 </span>
               </div>
 
@@ -450,7 +575,7 @@ export default function StudentDashboardPage() {
           <StatCard
             accentClassName="from-emerald-600 to-teal-500"
             cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(220,252,231,0.84)_42%,rgba(204,251,241,0.72)_100%)]"
-            detail="Completed this week"
+            detail="Saved tasks marked complete"
             icon={<CheckCircle2 className="h-5 w-5" />}
             label="Tasks Completed"
             value={`${completedTasks}`}
@@ -458,7 +583,7 @@ export default function StudentDashboardPage() {
           <StatCard
             accentClassName="from-indigo-700 to-sky-600"
             cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,231,255,0.84)_42%,rgba(219,234,254,0.74)_100%)]"
-            detail="Subjects currently active"
+            detail="Subjects across your saved planner"
             icon={<BookOpen className="h-5 w-5" />}
             label="Active Subjects"
             value={`${activeSubjects}`}
@@ -494,73 +619,97 @@ export default function StudentDashboardPage() {
                     <Progress
                       className="h-3 bg-slate-100"
                       indicatorClassName="bg-[linear-gradient(90deg,#0ea5e9_0%,#2563eb_60%,#7c3aed_100%)]"
-                      value={(completedTaskCount / tasks.length) * 100}
+                      value={
+                        tasks.length
+                          ? (completedTaskCount / tasks.length) * 100
+                          : 0
+                      }
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                {tasks.map((task) => (
-                  <button
-                    className="flex w-full items-start gap-4 rounded-[24px] border border-slate-200/80 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md"
-                    key={task.id}
-                    onClick={() => handleToggleTask(task.id)}
-                    type="button"
-                  >
-                    <span
-                      className={cn(
-                        "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm transition",
-                        task.completed
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-sky-100 bg-sky-50 text-sky-600",
-                      )}
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
+                <div className="rounded-[22px] border border-slate-200/80 bg-white/90 px-4 py-3 text-sm font-medium text-slate-600 shadow-sm">
+                  {taskStatusMessage}
+                </div>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p
+                {isLoadingTasks ? (
+                  <div className="rounded-[24px] border border-dashed border-sky-200/80 bg-white/80 p-6 text-center text-sm font-medium text-slate-600 shadow-sm">
+                    Loading your task list...
+                  </div>
+                ) : tasks.length ? (
+                  tasks.map((task) => (
+                    <button
+                      className="flex w-full items-start gap-4 rounded-[24px] border border-slate-200/80 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md"
+                      disabled={pendingTaskId === task.id}
+                      key={task.id}
+                      onClick={() => void handleToggleTask(task.id, task.completed)}
+                      type="button"
+                    >
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-sm transition",
+                          task.completed
+                            ? "border-emerald-500 bg-emerald-500 text-white"
+                            : "border-sky-100 bg-sky-50 text-sky-600",
+                        )}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p
+                              className={cn(
+                                "text-sm font-bold",
+                                task.completed
+                                  ? "text-slate-400 line-through"
+                                  : "text-slate-950",
+                              )}
+                            >
+                              {task.title}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                              <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 font-medium text-slate-600">
+                                {task.subject}
+                              </span>
+                              <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
+                                {task.time}
+                              </span>
+                              <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
+                                {task.duration}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span
                             className={cn(
-                              "text-sm font-bold",
-                              task.completed
-                                ? "text-slate-400 line-through"
-                                : "text-slate-950",
+                              "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
+                              task.priority === "High"
+                                ? "bg-rose-100 text-rose-700"
+                                : task.priority === "Medium"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-emerald-100 text-emerald-700",
                             )}
                           >
-                            {task.title}
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                            <span className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 font-medium text-slate-600">
-                              {task.subject}
-                            </span>
-                            <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
-                              {task.time}
-                            </span>
-                            <span className="rounded-full border border-white bg-white/90 px-3 py-1 font-medium text-slate-600 shadow-sm">
-                              {task.duration}
-                            </span>
-                          </div>
+                            {task.priority}
+                          </span>
                         </div>
-
-                        <span
-                          className={cn(
-                            "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
-                            task.priority === "High"
-                              ? "bg-rose-100 text-rose-700"
-                              : task.priority === "Medium"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-emerald-100 text-emerald-700",
-                          )}
-                        >
-                          {task.priority}
-                        </span>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-sky-200/80 bg-white/80 p-6 text-center shadow-sm">
+                    <p className="text-sm font-semibold text-slate-900">
+                      No tasks scheduled for today yet
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Add one in your planner and it will appear here automatically.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </SectionCard>

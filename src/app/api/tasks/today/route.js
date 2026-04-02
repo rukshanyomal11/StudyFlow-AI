@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Task from '@/models/Task';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeTasks } from '@/lib/task-utils';
 
 function createErrorResponse(error) {
   console.error('Today tasks API error:', error);
@@ -35,10 +36,11 @@ export async function GET() {
         $lte: endOfDay,
       },
     })
+      .populate({ path: 'subjectId', select: 'name' })
       .sort({ date: 1, createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ tasks }, { status: 200 });
+    return NextResponse.json({ tasks: serializeTasks(tasks) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }

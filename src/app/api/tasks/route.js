@@ -4,6 +4,10 @@ import Task from '@/models/Task';
 import Subject from '@/models/Subject';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeTask, serializeTasks } from '@/lib/task-utils';
+import { sendTaskCreatedEmail } from '@/lib/task-email';
+
+export const runtime = 'nodejs';
 
 const allowedPriorities = new Set(['low', 'medium', 'high']);
 const statusAliases = new Map([
@@ -36,7 +40,7 @@ function createErrorResponse(error) {
     if (
       error.message === 'Invalid JSON body' ||
       error.message === 'Request body must be a JSON object' ||
-      error.message === 'Subject ID is required' ||
+      error.message === 'Subject name is required' ||
       error.message === 'Subject ID is invalid' ||
       error.message === 'Task title is required' ||
       error.message === 'Task date is required' ||
@@ -98,11 +102,11 @@ function normalizeDuration(value) {
   return Number.NaN;
 }
 
-async function ensureOwnedSubject(subjectId, userId) {
-  if (!subjectId) {
-    throw new Error('Subject ID is required');
-  }
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
+async function ensureOwnedSubject(subjectId, userId) {
   if (!isValidObjectId(subjectId)) {
     throw new Error('Subject ID is invalid');
   }
@@ -112,6 +116,44 @@ async function ensureOwnedSubject(subjectId, userId) {
   if (!subject) {
     throw new Error('Subject not found');
   }
+
+  return subject;
+}
+
+async function resolveSubjectInput(body, userId) {
+  const subjectId =
+    typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
+  const subjectNameInput =
+    typeof body.subjectName === 'string'
+      ? body.subjectName.trim()
+      : typeof body.subject === 'string'
+        ? body.subject.trim()
+        : '';
+
+  if (subjectId) {
+    const subject = await ensureOwnedSubject(subjectId, userId);
+
+    return {
+      subjectId,
+      subjectName: subject.name,
+    };
+  }
+
+  if (!subjectNameInput) {
+    throw new Error('Subject name is required');
+  }
+
+  const existingSubject = await Subject.findOne({
+    userId,
+    name: { $regex: new RegExp(`^${escapeRegExp(subjectNameInput)}$`, 'i') },
+  })
+    .select('_id name')
+    .lean();
+
+  return {
+    subjectId: existingSubject?._id || null,
+    subjectName: existingSubject?.name || subjectNameInput,
+  };
 }
 
 async function buildCreatePayload(body, userId) {
@@ -119,8 +161,7 @@ async function buildCreatePayload(body, userId) {
     throw new Error('Request body must be a JSON object');
   }
 
-  const subjectId =
-    typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
+  const { subjectId, subjectName } = await resolveSubjectInput(body, userId);
   const title = typeof body.title === 'string' ? body.title.trim() : '';
   const topic = typeof body.topic === 'string' ? body.topic.trim() : '';
 
@@ -138,11 +179,10 @@ async function buildCreatePayload(body, userId) {
     throw new Error('Task date must be a valid date');
   }
 
-  await ensureOwnedSubject(subjectId, userId);
-
   const taskData = {
     userId,
     subjectId,
+    subjectName,
     title,
     topic,
     date,
@@ -190,10 +230,11 @@ export async function GET() {
     await connectDB();
 
     const tasks = await Task.find({ userId: currentUser.id })
+      .populate({ path: 'subjectId', select: 'name' })
       .sort({ date: 1, createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ tasks }, { status: 200 });
+    return NextResponse.json({ tasks: serializeTasks(tasks) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -207,12 +248,38 @@ export async function POST(request) {
 
     const body = await readJsonBody(request);
     const taskData = await buildCreatePayload(body, currentUser.id);
-    const task = await Task.create(taskData);
+    const createdTask = await Task.create(taskData);
+    let emailSent = false;
+
+    try {
+      const emailResult = await sendTaskCreatedEmail({
+        to: currentUser.email,
+        userName: currentUser.name,
+        task: createdTask.toObject(),
+      });
+
+      emailSent = Boolean(emailResult.sent);
+
+      if (emailSent) {
+        await Task.findByIdAndUpdate(createdTask._id, {
+          $set: {
+            creationEmailSentAt: new Date(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Task creation email failed:', error);
+    }
+
+    const task = await Task.findById(createdTask._id)
+      .populate({ path: 'subjectId', select: 'name' })
+      .lean();
 
     return NextResponse.json(
       {
         message: 'Task created successfully',
-        task: task.toObject(),
+        task: serializeTask(task),
+        emailSent,
       },
       { status: 201 },
     );

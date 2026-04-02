@@ -4,6 +4,7 @@ import Task from '@/models/Task';
 import Subject from '@/models/Subject';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeTask } from '@/lib/task-utils';
 
 const allowedPriorities = new Set(['low', 'medium', 'high']);
 const statusAliases = new Map([
@@ -38,6 +39,7 @@ function createErrorResponse(error) {
       error.message === 'Invalid JSON body' ||
       error.message === 'Request body must be a JSON object' ||
       error.message === 'At least one task field is required' ||
+      error.message === 'Subject name is required' ||
       error.message === 'Subject ID is invalid' ||
       error.message === 'Task title is required' ||
       error.message === 'Task date must be a valid date' ||
@@ -98,6 +100,10 @@ function normalizeDuration(value) {
   return Number.NaN;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function ensureOwnedSubject(subjectId, userId) {
   if (!isValidObjectId(subjectId)) {
     throw new Error('Subject ID is invalid');
@@ -108,6 +114,44 @@ async function ensureOwnedSubject(subjectId, userId) {
   if (!subject) {
     throw new Error('Subject not found');
   }
+
+  return subject;
+}
+
+async function resolveSubjectInput(body, userId) {
+  const subjectId =
+    typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
+  const subjectNameInput =
+    typeof body.subjectName === 'string'
+      ? body.subjectName.trim()
+      : typeof body.subject === 'string'
+        ? body.subject.trim()
+        : '';
+
+  if (subjectId) {
+    const subject = await ensureOwnedSubject(subjectId, userId);
+
+    return {
+      subjectId,
+      subjectName: subject.name,
+    };
+  }
+
+  if (!subjectNameInput) {
+    throw new Error('Subject name is required');
+  }
+
+  const existingSubject = await Subject.findOne({
+    userId,
+    name: { $regex: new RegExp(`^${escapeRegExp(subjectNameInput)}$`, 'i') },
+  })
+    .select('_id name')
+    .lean();
+
+  return {
+    subjectId: existingSubject?._id || null,
+    subjectName: existingSubject?.name || subjectNameInput,
+  };
 }
 
 async function getTaskId(context) {
@@ -128,12 +172,10 @@ async function buildUpdatePayload(body, userId) {
 
   const updates = {};
 
-  if ('subjectId' in body) {
-    const subjectId =
-      typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
-
-    await ensureOwnedSubject(subjectId, userId);
-    updates.subjectId = subjectId;
+  if ('subjectId' in body || 'subject' in body || 'subjectName' in body) {
+    const subject = await resolveSubjectInput(body, userId);
+    updates.subjectId = subject.subjectId;
+    updates.subjectName = subject.subjectName;
   }
 
   if ('title' in body) {
@@ -158,6 +200,8 @@ async function buildUpdatePayload(body, userId) {
     }
 
     updates.date = date;
+    updates.reminderEmailSentAt = null;
+    updates.reminderSentFor = null;
   }
 
   if ('duration' in body) {
@@ -209,13 +253,15 @@ export async function GET(_request, context) {
     const task = await Task.findOne({
       _id: taskId,
       userId: currentUser.id,
-    }).lean();
+    })
+      .populate({ path: 'subjectId', select: 'name' })
+      .lean();
 
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ task }, { status: 200 });
+    return NextResponse.json({ task: serializeTask(task) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -237,7 +283,9 @@ export async function PUT(request, context) {
       },
       { $set: updates },
       { new: true, runValidators: true },
-    ).lean();
+    )
+      .populate({ path: 'subjectId', select: 'name' })
+      .lean();
 
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
@@ -246,7 +294,7 @@ export async function PUT(request, context) {
     return NextResponse.json(
       {
         message: 'Task updated successfully',
-        task,
+        task: serializeTask(task),
       },
       { status: 200 },
     );

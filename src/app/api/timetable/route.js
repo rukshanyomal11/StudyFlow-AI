@@ -4,6 +4,7 @@ import Subject from '@/models/Subject';
 import Timetable from '@/models/Timetable';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeTimetableEntries } from '@/lib/timetable-utils';
 
 const DAY_ORDER = [
   'Monday',
@@ -41,6 +42,7 @@ function createErrorResponse(error) {
       error.message === 'Timetable day is invalid' ||
       error.message === 'Duplicate days are not allowed in timetable payload' ||
       error.message === 'Slots must be an array' ||
+      error.message === 'Subject is required' ||
       error.message === 'Subject ID is required' ||
       error.message === 'Subject ID is invalid' ||
       error.message === 'Slot title is required' ||
@@ -119,16 +121,22 @@ function normalizeSlot(slot) {
 
   const subjectId =
     typeof slot.subjectId === 'string' ? slot.subjectId.trim() : '';
+  const subjectName =
+    typeof slot.subjectName === 'string'
+      ? slot.subjectName.trim()
+      : typeof slot.subject === 'string'
+        ? slot.subject.trim()
+        : '';
   const title = typeof slot.title === 'string' ? slot.title.trim() : '';
   const startTime =
     typeof slot.startTime === 'string' ? slot.startTime.trim() : '';
   const endTime = typeof slot.endTime === 'string' ? slot.endTime.trim() : '';
 
-  if (!subjectId) {
-    throw new Error('Subject ID is required');
+  if (!subjectId && !subjectName) {
+    throw new Error('Subject is required');
   }
 
-  if (!isValidObjectId(subjectId)) {
+  if (subjectId && !isValidObjectId(subjectId)) {
     throw new Error('Subject ID is invalid');
   }
 
@@ -157,7 +165,8 @@ function normalizeSlot(slot) {
   }
 
   return {
-    subjectId,
+    subjectId: subjectId || null,
+    subjectName,
     title,
     startTime,
     endTime,
@@ -217,24 +226,83 @@ function normalizeTimetableEntries(body) {
 async function ensureOwnedSubjects(entries, userId) {
   const subjectIds = [
     ...new Set(
-      entries.flatMap((entry) => entry.slots.map((slot) => slot.subjectId)),
+      entries.flatMap((entry) =>
+        entry.slots
+          .map((slot) => slot.subjectId)
+          .filter((subjectId) => Boolean(subjectId)),
+      ),
     ),
   ];
 
   if (!subjectIds.length) {
-    return;
+    return [];
   }
 
   const subjects = await Subject.find({
     _id: { $in: subjectIds },
     userId,
   })
-    .select('_id')
+    .select('_id name')
     .lean();
 
   if (subjects.length !== subjectIds.length) {
     throw new Error('Subject not found');
   }
+
+  return subjects;
+}
+
+async function hydrateSlotSubjects(entries, userId) {
+  const ownedSubjects = await ensureOwnedSubjects(entries, userId);
+  const ownedSubjectById = new Map(
+    ownedSubjects.map((subject) => [String(subject._id), subject]),
+  );
+  const needsNameLookup = entries.some((entry) =>
+    entry.slots.some((slot) => !slot.subjectId && slot.subjectName),
+  );
+  const namedSubjects = needsNameLookup
+    ? await Subject.find({ userId }).select('_id name').lean()
+    : [];
+  const ownedSubjectByName = new Map(
+    namedSubjects.map((subject) => [subject.name.trim().toLowerCase(), subject]),
+  );
+
+  return entries.map((entry) => ({
+    ...entry,
+    slots: entry.slots.map((slot) => {
+      if (slot.subjectId) {
+        const subject = ownedSubjectById.get(String(slot.subjectId));
+
+        if (!subject) {
+          throw new Error('Subject not found');
+        }
+
+        return {
+          ...slot,
+          subjectId: String(subject._id),
+          subjectName: subject.name,
+        };
+      }
+
+      const matchedSubject = ownedSubjectByName.get(
+        slot.subjectName.trim().toLowerCase(),
+      );
+
+      if (matchedSubject) {
+        return {
+          ...slot,
+          subjectId: String(matchedSubject._id),
+          subjectName: matchedSubject.name,
+        };
+      }
+
+      return {
+        ...slot,
+        subjectId: null,
+        subjectName: slot.subjectName,
+      };
+    }),
+  }));
 }
 
 async function replaceTimetable(entries, userId) {
@@ -264,10 +332,15 @@ export async function GET() {
     await connectDB();
 
     const timetable = sortTimetableEntries(
-      await Timetable.find({ userId: currentUser.id }).lean(),
+      await Timetable.find({ userId: currentUser.id })
+        .populate({ path: 'slots.subjectId', select: 'name' })
+        .lean(),
     );
 
-    return NextResponse.json({ timetable }, { status: 200 });
+    return NextResponse.json(
+      { timetable: serializeTimetableEntries(timetable) },
+      { status: 200 },
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -282,17 +355,16 @@ export async function POST(request) {
     const body = await readJsonBody(request);
     const entries = normalizeTimetableEntries(body);
     const existingTimetable = await Timetable.exists({ userId: currentUser.id });
+    const hydratedEntries = await hydrateSlotSubjects(entries, currentUser.id);
 
-    await ensureOwnedSubjects(entries, currentUser.id);
-
-    const timetable = await replaceTimetable(entries, currentUser.id);
+    const timetable = await replaceTimetable(hydratedEntries, currentUser.id);
 
     return NextResponse.json(
       {
         message: existingTimetable
           ? 'Timetable saved successfully'
           : 'Timetable created successfully',
-        timetable,
+        timetable: serializeTimetableEntries(timetable),
       },
       { status: existingTimetable ? 200 : 201 },
     );
@@ -309,15 +381,14 @@ export async function PUT(request) {
 
     const body = await readJsonBody(request);
     const entries = normalizeTimetableEntries(body);
+    const hydratedEntries = await hydrateSlotSubjects(entries, currentUser.id);
 
-    await ensureOwnedSubjects(entries, currentUser.id);
-
-    const timetable = await replaceTimetable(entries, currentUser.id);
+    const timetable = await replaceTimetable(hydratedEntries, currentUser.id);
 
     return NextResponse.json(
       {
         message: 'Timetable updated successfully',
-        timetable,
+        timetable: serializeTimetableEntries(timetable),
       },
       { status: 200 },
     );
