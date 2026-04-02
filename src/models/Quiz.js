@@ -66,6 +66,15 @@ const quizSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    assignedTo: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      ],
+      default: [],
+    },
     questions: {
       type: [quizQuestionSchema],
       validate: {
@@ -84,6 +93,11 @@ const quizSchema = new mongoose.Schema(
 
 quizSchema.index({ createdBy: 1, createdAt: -1 });
 quizSchema.index({ subjectId: 1 });
+quizSchema.index({ assignedTo: 1, createdAt: -1 });
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Quiz) {
+  delete mongoose.models.Quiz;
+}
 
 const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', quizSchema);
 

@@ -3,6 +3,17 @@ import { NextResponse } from 'next/server';
 import StudySession from '@/models/StudySession';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeStudySession } from '@/lib/session-utils';
+
+export const runtime = 'nodejs';
+
+function getErrorDetails(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Internal server error';
+}
 
 function createErrorResponse(error) {
   console.error('End session API error:', error);
@@ -40,10 +51,22 @@ function createErrorResponse(error) {
     if (error.name === 'ValidationError') {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        { error: 'Invalid database identifier' },
+        { status: 400 },
+      );
+    }
   }
 
   return NextResponse.json(
-    { error: 'Internal server error' },
+    {
+      error: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development'
+        ? { details: getErrorDetails(error) }
+        : {}),
+    },
     { status: 500 },
   );
 }
@@ -75,9 +98,23 @@ function calculateDurationInMinutes(startTime, endTime) {
   );
 }
 
+function getUserId(currentUser) {
+  const userId =
+    currentUser && typeof currentUser.id === 'string'
+      ? currentUser.id.trim()
+      : '';
+
+  if (!userId || !isValidObjectId(userId)) {
+    throw new Error('Unauthorized');
+  }
+
+  return userId;
+}
+
 export async function POST(request) {
   try {
     const currentUser = await requireAuth();
+    const userId = getUserId(currentUser);
 
     await connectDB();
 
@@ -100,7 +137,7 @@ export async function POST(request) {
 
     const session = await StudySession.findOne({
       _id: sessionId,
-      userId: currentUser.id,
+      userId,
     });
 
     if (!session) {
@@ -157,11 +194,12 @@ export async function POST(request) {
     session.duration = calculateDurationInMinutes(session.startTime, endTime);
 
     await session.save();
+    await session.populate({ path: 'subjectId', select: 'name' });
 
     return NextResponse.json(
       {
         message: 'Study session ended successfully',
-        session: session.toObject(),
+        session: serializeStudySession(session.toObject()),
       },
       { status: 200 },
     );

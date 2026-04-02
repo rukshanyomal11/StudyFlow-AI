@@ -1,10 +1,31 @@
 import { isValidObjectId } from 'mongoose';
 import { NextResponse } from 'next/server';
+import MentorStudent from '@/models/MentorStudent';
 import Quiz from '@/models/Quiz';
+import Subject from '@/models/Subject';
+import User from '@/models/User';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import {
+  ensureQuizManager,
+  getAssignedStudentIds,
+  getUserId,
+  isQuizVisibleToStudent,
+  normalizeAssignedTo,
+  normalizeQuestions,
+  serializeQuiz,
+  stringifyId,
+} from '@/lib/quiz-utils';
 
-const quizManagerRoles = new Set(['mentor', 'admin']);
+export const runtime = 'nodejs';
+
+function getErrorDetails(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Internal server error';
+}
 
 function createErrorResponse(error) {
   console.error('Quiz detail API error:', error);
@@ -22,6 +43,17 @@ function createErrorResponse(error) {
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
 
+    if (error.message === 'Subject not found') {
+      return NextResponse.json({ error: 'Subject not found' }, { status: 404 });
+    }
+
+    if (error.message === 'Assigned student not found') {
+      return NextResponse.json(
+        { error: 'Assigned student not found' },
+        { status: 404 },
+      );
+    }
+
     if (
       error.message === 'Quiz ID is invalid' ||
       error.message === 'Invalid JSON body' ||
@@ -29,6 +61,10 @@ function createErrorResponse(error) {
       error.message === 'At least one quiz field is required' ||
       error.message === 'Subject ID is required' ||
       error.message === 'Subject ID is invalid' ||
+      error.message === 'Assigned student ID is invalid' ||
+      error.message === 'Assigned students must be an array' ||
+      error.message ===
+        'Assigned student is not linked to this mentor for the selected subject' ||
       error.message === 'Quiz title is required' ||
       error.message === 'Description must be a string' ||
       error.message === 'Questions must be a non-empty array' ||
@@ -44,32 +80,24 @@ function createErrorResponse(error) {
     if (error.name === 'ValidationError') {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        { error: 'Invalid database identifier' },
+        { status: 400 },
+      );
+    }
   }
 
   return NextResponse.json(
-    { error: 'Internal server error' },
+    {
+      error: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development'
+        ? { details: getErrorDetails(error) }
+        : {}),
+    },
     { status: 500 },
   );
-}
-
-function ensureQuizManager(user) {
-  if (!quizManagerRoles.has(user.role)) {
-    throw new Error('Forbidden');
-  }
-}
-
-function canManageQuiz(user, quiz) {
-  return user.role === 'admin' || String(quiz.createdBy) === String(user.id);
-}
-
-function sanitizeQuizForStudent(quiz) {
-  return {
-    ...quiz,
-    questions: quiz.questions.map((question) => ({
-      question: question.question,
-      options: question.options,
-    })),
-  };
 }
 
 async function readJsonBody(request) {
@@ -78,72 +106,6 @@ async function readJsonBody(request) {
   } catch {
     throw new Error('Invalid JSON body');
   }
-}
-
-function normalizeQuestion(question) {
-  if (!question || typeof question !== 'object' || Array.isArray(question)) {
-    throw new Error('Questions must be a non-empty array');
-  }
-
-  const questionText =
-    typeof question.question === 'string' ? question.question.trim() : '';
-
-  if (!questionText) {
-    throw new Error('Question text is required');
-  }
-
-  if (!Array.isArray(question.options) || question.options.length < 2) {
-    throw new Error('Each question must include at least two options');
-  }
-
-  const options = question.options.map((option) => {
-    const optionText = typeof option === 'string' ? option.trim() : '';
-
-    if (!optionText) {
-      throw new Error('Each option must be a non-empty string');
-    }
-
-    return optionText;
-  });
-
-  const correctAnswer =
-    typeof question.correctAnswer === 'number'
-      ? question.correctAnswer
-      : Number(question.correctAnswer);
-
-  if (
-    !Number.isInteger(correctAnswer) ||
-    correctAnswer < 0 ||
-    correctAnswer >= options.length
-  ) {
-    throw new Error('Correct answer must be a valid option index');
-  }
-
-  if (
-    question.explanation !== undefined &&
-    question.explanation !== null &&
-    typeof question.explanation !== 'string'
-  ) {
-    throw new Error('Explanation must be a string');
-  }
-
-  return {
-    question: questionText,
-    options,
-    correctAnswer,
-    explanation:
-      typeof question.explanation === 'string'
-        ? question.explanation.trim()
-        : '',
-  };
-}
-
-function normalizeQuestions(value) {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new Error('Questions must be a non-empty array');
-  }
-
-  return value.map((question) => normalizeQuestion(question));
 }
 
 async function getQuizId(context) {
@@ -155,6 +117,81 @@ async function getQuizId(context) {
   }
 
   return id;
+}
+
+async function ensureQuizSubjectAccess(user, userId, subjectId) {
+  if (!isValidObjectId(subjectId)) {
+    throw new Error('Subject ID is invalid');
+  }
+
+  const subject = await Subject.findById(subjectId)
+    .select('_id name userId')
+    .lean();
+
+  if (!subject) {
+    throw new Error('Subject not found');
+  }
+
+  if (user.role === 'admin' || String(subject.userId) === userId) {
+    return subject;
+  }
+
+  const assignment = await MentorStudent.findOne({
+    mentorId: userId,
+    subjectId,
+  }).lean();
+
+  if (!assignment) {
+    throw new Error('Forbidden');
+  }
+
+  return subject;
+}
+
+async function validateAssignedStudents(user, userId, subjectId, assignedTo) {
+  if (!Array.isArray(assignedTo) || assignedTo.length === 0) {
+    return [];
+  }
+
+  const students = await User.find({
+    _id: { $in: assignedTo },
+    role: 'student',
+  })
+    .select('_id')
+    .lean();
+
+  if (students.length !== assignedTo.length) {
+    throw new Error('Assigned student not found');
+  }
+
+  if (user.role !== 'mentor') {
+    return assignedTo;
+  }
+
+  const assignedStudentIds = await MentorStudent.distinct('studentId', {
+    mentorId: userId,
+    subjectId,
+    studentId: { $in: assignedTo },
+  });
+  const allowedStudentIds = new Set(
+    assignedStudentIds.map((studentId) => String(studentId)),
+  );
+
+  const hasInvalidStudent = assignedTo.some(
+    (studentId) => !allowedStudentIds.has(studentId),
+  );
+
+  if (hasInvalidStudent) {
+    throw new Error(
+      'Assigned student is not linked to this mentor for the selected subject',
+    );
+  }
+
+  return assignedTo;
+}
+
+function canManageQuiz(user, quiz) {
+  return user.role === 'admin' || stringifyId(quiz.createdBy) === String(user.id);
 }
 
 function buildUpdatePayload(body) {
@@ -206,6 +243,10 @@ function buildUpdatePayload(body) {
     updates.questions = normalizeQuestions(body.questions);
   }
 
+  if ('assignedTo' in body) {
+    updates.assignedTo = normalizeAssignedTo(body.assignedTo) ?? [];
+  }
+
   if (Object.keys(updates).length === 0) {
     throw new Error('At least one quiz field is required');
   }
@@ -213,23 +254,52 @@ function buildUpdatePayload(body) {
   return updates;
 }
 
+async function getStudentSubjectIds(userId) {
+  const subjects = await Subject.find({ userId }).select('_id').lean();
+
+  return new Set(subjects.map((subject) => String(subject._id)));
+}
+
 export async function GET(_request, context) {
   try {
     const currentUser = await requireAuth();
+    const userId = getUserId(currentUser);
     const quizId = await getQuizId(context);
 
     await connectDB();
 
-    const quiz = await Quiz.findById(quizId).lean();
+    const quiz = await Quiz.findById(quizId)
+      .populate({ path: 'subjectId', select: 'name' })
+      .populate({ path: 'createdBy', select: 'name role' })
+      .lean();
 
     if (!quiz) {
       throw new Error('Quiz not found');
     }
 
-    const responseQuiz =
-      currentUser.role === 'student' ? sanitizeQuizForStudent(quiz) : quiz;
+    if (currentUser.role === 'student') {
+      const studentSubjectIds = await getStudentSubjectIds(userId);
 
-    return NextResponse.json({ quiz: responseQuiz }, { status: 200 });
+      if (!isQuizVisibleToStudent(quiz, userId, studentSubjectIds)) {
+        throw new Error('Quiz not found');
+      }
+
+      return NextResponse.json(
+        {
+          quiz: serializeQuiz(quiz, {
+            forStudent: true,
+            currentStudentId: userId,
+          }),
+        },
+        { status: 200 },
+      );
+    }
+
+    if (!canManageQuiz(currentUser, quiz)) {
+      throw new Error('Forbidden');
+    }
+
+    return NextResponse.json({ quiz: serializeQuiz(quiz) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -238,13 +308,15 @@ export async function GET(_request, context) {
 export async function PUT(request, context) {
   try {
     const currentUser = await requireAuth();
+    const userId = getUserId(currentUser);
+
     ensureQuizManager(currentUser);
 
     const quizId = await getQuizId(context);
 
     await connectDB();
 
-    const existingQuiz = await Quiz.findById(quizId);
+    const existingQuiz = await Quiz.findById(quizId).lean();
 
     if (!existingQuiz) {
       throw new Error('Quiz not found');
@@ -256,16 +328,38 @@ export async function PUT(request, context) {
 
     const body = await readJsonBody(request);
     const updates = buildUpdatePayload(body);
-    const quiz = await Quiz.findByIdAndUpdate(
+    const nextSubjectId =
+      updates.subjectId ?? stringifyId(existingQuiz.subjectId);
+
+    await ensureQuizSubjectAccess(currentUser, userId, nextSubjectId);
+
+    if ('assignedTo' in updates || 'subjectId' in updates) {
+      const nextAssignedTo =
+        'assignedTo' in updates
+          ? updates.assignedTo
+          : getAssignedStudentIds(existingQuiz);
+
+      updates.assignedTo = await validateAssignedStudents(
+        currentUser,
+        userId,
+        nextSubjectId,
+        nextAssignedTo,
+      );
+    }
+
+    const updatedQuiz = await Quiz.findByIdAndUpdate(
       quizId,
       { $set: updates },
       { new: true, runValidators: true },
-    ).lean();
+    )
+      .populate({ path: 'subjectId', select: 'name' })
+      .populate({ path: 'createdBy', select: 'name role' })
+      .lean();
 
     return NextResponse.json(
       {
         message: 'Quiz updated successfully',
-        quiz,
+        quiz: serializeQuiz(updatedQuiz),
       },
       { status: 200 },
     );
@@ -277,13 +371,14 @@ export async function PUT(request, context) {
 export async function DELETE(_request, context) {
   try {
     const currentUser = await requireAuth();
+
     ensureQuizManager(currentUser);
 
     const quizId = await getQuizId(context);
 
     await connectDB();
 
-    const existingQuiz = await Quiz.findById(quizId);
+    const existingQuiz = await Quiz.findById(quizId).lean();
 
     if (!existingQuiz) {
       throw new Error('Quiz not found');

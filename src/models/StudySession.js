@@ -17,6 +17,11 @@ const studySessionSchema = new mongoose.Schema(
       ref: 'Task',
       default: null,
     },
+    goal: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     startTime: {
       type: Date,
       required: [true, 'Start time is required'],
@@ -55,6 +60,10 @@ const studySessionSchema = new mongoose.Schema(
 studySessionSchema.index({ userId: 1, createdAt: -1 });
 studySessionSchema.index({ subjectId: 1 });
 studySessionSchema.index({ taskId: 1 });
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.StudySession) {
+  delete mongoose.models.StudySession;
+}
 
 const StudySession = mongoose.models.StudySession || mongoose.model('StudySession', studySessionSchema);
 

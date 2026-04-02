@@ -5,6 +5,17 @@ import Subject from '@/models/Subject';
 import Task from '@/models/Task';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { serializeStudySession } from '@/lib/session-utils';
+
+export const runtime = 'nodejs';
+
+function getErrorDetails(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Internal server error';
+}
 
 function createErrorResponse(error) {
   console.error('Start session API error:', error);
@@ -23,6 +34,7 @@ function createErrorResponse(error) {
       error.message === 'Request body must be a JSON object' ||
       error.message === 'Subject ID is required' ||
       error.message === 'Subject ID is invalid' ||
+      error.message === 'Goal is required' ||
       error.message === 'Task ID is invalid' ||
       error.message === 'Task does not belong to the selected subject' ||
       error.message === 'Start time must be a valid date' ||
@@ -34,10 +46,22 @@ function createErrorResponse(error) {
     if (error.name === 'ValidationError') {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        { error: 'Invalid database identifier' },
+        { status: 400 },
+      );
+    }
   }
 
   return NextResponse.json(
-    { error: 'Internal server error' },
+    {
+      error: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development'
+        ? { details: getErrorDetails(error) }
+        : {}),
+    },
     { status: 500 },
   );
 }
@@ -94,6 +118,11 @@ async function buildSessionPayload(body, userId) {
   }
 
   let startTime = new Date();
+  const goal = typeof body.goal === 'string' ? body.goal.trim() : '';
+
+  if (!goal) {
+    throw new Error('Goal is required');
+  }
 
   if (body.startTime !== undefined && body.startTime !== null && body.startTime !== '') {
     startTime = new Date(String(body.startTime));
@@ -115,25 +144,41 @@ async function buildSessionPayload(body, userId) {
     userId,
     subjectId,
     taskId: resolvedTaskId,
+    goal,
     startTime,
     notes: typeof body.notes === 'string' ? body.notes.trim() : '',
   };
 }
 
+function getUserId(currentUser) {
+  const userId =
+    currentUser && typeof currentUser.id === 'string'
+      ? currentUser.id.trim()
+      : '';
+
+  if (!userId || !isValidObjectId(userId)) {
+    throw new Error('Unauthorized');
+  }
+
+  return userId;
+}
+
 export async function POST(request) {
   try {
     const currentUser = await requireAuth();
+    const userId = getUserId(currentUser);
 
     await connectDB();
 
     const body = await readJsonBody(request);
-    const sessionData = await buildSessionPayload(body, currentUser.id);
+    const sessionData = await buildSessionPayload(body, userId);
     const session = await StudySession.create(sessionData);
+    await session.populate({ path: 'subjectId', select: 'name' });
 
     return NextResponse.json(
       {
         message: 'Study session started successfully',
-        session: session.toObject(),
+        session: serializeStudySession(session.toObject()),
       },
       { status: 201 },
     );

@@ -2,8 +2,20 @@ import { isValidObjectId } from 'mongoose';
 import { NextResponse } from 'next/server';
 import Quiz from '@/models/Quiz';
 import QuizResult from '@/models/QuizResult';
+import Subject from '@/models/Subject';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import { getUserId, isQuizVisibleToStudent } from '@/lib/quiz-utils';
+
+export const runtime = 'nodejs';
+
+function getErrorDetails(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Internal server error';
+}
 
 function createErrorResponse(error) {
   console.error('Quiz submission API error:', error);
@@ -39,7 +51,12 @@ function createErrorResponse(error) {
   }
 
   return NextResponse.json(
-    { error: 'Internal server error' },
+    {
+      error: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development'
+        ? { details: getErrorDetails(error) }
+        : {}),
+    },
     { status: 500 },
   );
 }
@@ -99,9 +116,16 @@ function normalizeAnswers(value) {
   });
 }
 
+async function getStudentSubjectIds(userId) {
+  const subjects = await Subject.find({ userId }).select('_id').lean();
+
+  return new Set(subjects.map((subject) => String(subject._id)));
+}
+
 export async function POST(request) {
   try {
     const currentUser = await requireAuth();
+    const userId = getUserId(currentUser);
     ensureStudent(currentUser);
 
     await connectDB();
@@ -126,6 +150,12 @@ export async function POST(request) {
     const quiz = await Quiz.findById(quizId).lean();
 
     if (!quiz) {
+      throw new Error('Quiz not found');
+    }
+
+    const studentSubjectIds = await getStudentSubjectIds(userId);
+
+    if (!isQuizVisibleToStudent(quiz, userId, studentSubjectIds)) {
       throw new Error('Quiz not found');
     }
 
@@ -154,7 +184,7 @@ export async function POST(request) {
       : 0;
 
     const result = await QuizResult.create({
-      userId: currentUser.id,
+      userId,
       quizId: quiz._id,
       score,
       correctAnswers,
