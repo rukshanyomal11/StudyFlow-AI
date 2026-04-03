@@ -22,6 +22,16 @@ const notificationSchema = new mongoose.Schema(
       required: [true, 'Notification message is required'],
       trim: true,
     },
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    relatedDoubtId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Doubt',
+      default: null,
+    },
     isRead: {
       type: Boolean,
       default: false,

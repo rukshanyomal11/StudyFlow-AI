@@ -47,6 +47,11 @@ const announcementSchema = new mongoose.Schema(
 announcementSchema.index({ mentorId: 1, createdAt: -1 });
 announcementSchema.index({ mentorId: 1, status: 1 });
 announcementSchema.index({ audienceType: 1 });
+announcementSchema.index({ status: 1, scheduledAt: -1 });
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Announcement) {
+  delete mongoose.models.Announcement;
+}
 
 const Announcement =
   mongoose.models.Announcement ||

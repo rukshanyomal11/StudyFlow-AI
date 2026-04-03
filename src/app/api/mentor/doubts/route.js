@@ -60,7 +60,7 @@ function createErrorResponse(error) {
 }
 
 function ensureDoubtViewer(user) {
-  if (user.role !== 'mentor' && user.role !== 'admin') {
+  if (user.role !== 'mentor' && user.role !== 'admin' && user.role !== 'student') {
     throw new Error('Forbidden');
   }
 }
@@ -100,6 +100,10 @@ function normalizeStatus(value) {
 async function resolveMentorFilter(request, currentUser) {
   if (currentUser.role === 'mentor') {
     return currentUser.id;
+  }
+
+  if (currentUser.role === 'student') {
+    return null;
   }
 
   const mentorId = request.nextUrl.searchParams.get('mentorId')?.trim() || '';
@@ -236,7 +240,14 @@ export async function GET(request) {
     await connectDB();
 
     const mentorId = await resolveMentorFilter(request, currentUser);
-    const filter = mentorId ? { mentorId } : {};
+    let filter = {};
+
+    if (currentUser.role === 'student') {
+      filter = { studentId: currentUser.id };
+    } else if (mentorId) {
+      filter = { mentorId };
+    }
+
     const doubts = await Doubt.find(filter)
       .populate({
         path: 'studentId',

@@ -47,6 +47,11 @@ const materialSchema = new mongoose.Schema(
 materialSchema.index({ mentorId: 1, createdAt: -1 });
 materialSchema.index({ subjectId: 1, createdAt: -1 });
 materialSchema.index({ visibility: 1 });
+materialSchema.index({ mentorId: 1, visibility: 1, createdAt: -1 });
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Material) {
+  delete mongoose.models.Material;
+}
 
 const Material = mongoose.models.Material || mongoose.model('Material', materialSchema);
 

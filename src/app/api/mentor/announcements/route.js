@@ -5,13 +5,16 @@ import MentorStudent from '@/models/MentorStudent';
 import User from '@/models/User';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import {
+  ANNOUNCEMENT_AUDIENCE_TYPES,
+  ANNOUNCEMENT_STATUSES,
+  normalizeAnnouncementAudienceType,
+  normalizeAnnouncementStatus,
+  normalizeAnnouncementTargetIds,
+  serializeAnnouncement,
+} from '@/lib/announcement-utils';
 
-const allowedAudienceTypes = new Set([
-  'all_assigned_students',
-  'students',
-  'groups',
-]);
-const allowedStatuses = new Set(['Draft', 'Scheduled', 'Sent']);
+export const runtime = 'nodejs';
 
 function createErrorResponse(error) {
   console.error('Mentor announcements API error:', error);
@@ -27,7 +30,8 @@ function createErrorResponse(error) {
 
     if (
       error.message === 'Mentor not found' ||
-      error.message === 'Some target students are not assigned to this mentor'
+      error.message === 'Some target students are not assigned to this mentor' ||
+      error.message === 'Some target groups are not linked to this mentor'
     ) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
@@ -40,12 +44,13 @@ function createErrorResponse(error) {
       error.message === 'Announcement title is required' ||
       error.message === 'Announcement message is required' ||
       error.message ===
-        'Audience type must be one of: all_assigned_students, students, groups' ||
+        `Audience type must be one of: ${ANNOUNCEMENT_AUDIENCE_TYPES.join(', ')}` ||
       error.message === 'Target IDs must be an array of strings' ||
       error.message === 'Student target IDs must be valid IDs' ||
       error.message === 'At least one target ID is required for this audience type' ||
       error.message === 'Scheduled date must be a valid date' ||
-      error.message === 'Status must be one of: Draft, Scheduled, Sent'
+      error.message === 'Scheduled announcements require a scheduled date' ||
+      error.message === `Status must be one of: ${ANNOUNCEMENT_STATUSES.join(', ')}`
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -55,10 +60,12 @@ function createErrorResponse(error) {
     }
   }
 
-  return NextResponse.json(
-    { error: 'Internal server error' },
-    { status: 500 },
-  );
+  const fallbackMessage =
+    process.env.NODE_ENV === 'development' && error instanceof Error
+      ? error.message
+      : 'Internal server error';
+
+  return NextResponse.json({ error: fallbackMessage }, { status: 500 });
 }
 
 function ensureAnnouncementAccess(user) {
@@ -101,7 +108,6 @@ async function resolveMentorIdForGet(request, currentUser) {
   }
 
   await ensureMentorExists(mentorId);
-
   return mentorId;
 }
 
@@ -121,47 +127,7 @@ async function resolveMentorIdForCreate(body, currentUser) {
   }
 
   await ensureMentorExists(mentorId);
-
   return mentorId;
-}
-
-function normalizeAudienceType(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  return allowedAudienceTypes.has(trimmedValue) ? trimmedValue : null;
-}
-
-function normalizeStatus(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  return allowedStatuses.has(trimmedValue) ? trimmedValue : null;
-}
-
-function normalizeTargetIds(value) {
-  if (value === undefined || value === null) {
-    return [];
-  }
-
-  if (!Array.isArray(value)) {
-    throw new Error('Target IDs must be an array of strings');
-  }
-
-  const targetIds = value
-    .filter((targetId) => typeof targetId === 'string')
-    .map((targetId) => targetId.trim())
-    .filter(Boolean);
-
-  if (targetIds.length !== value.length) {
-    throw new Error('Target IDs must be an array of strings');
-  }
-
-  return [...new Set(targetIds)];
 }
 
 async function ensureAssignedStudents(mentorId, targetIds) {
@@ -177,6 +143,73 @@ async function ensureAssignedStudents(mentorId, targetIds) {
   if (assignedStudentIds.length !== targetIds.length) {
     throw new Error('Some target students are not assigned to this mentor');
   }
+}
+
+async function ensureTargetGroupsBelongToMentor(mentorId, targetIds) {
+  const objectIdTargets = targetIds.filter((targetId) => isValidObjectId(targetId));
+
+  if (!objectIdTargets.length) {
+    return;
+  }
+
+  const mentorSubjectIds = await MentorStudent.distinct('subjectId', {
+    mentorId,
+    subjectId: { $in: objectIdTargets },
+  });
+
+  const mentorSubjectIdSet = new Set(
+    mentorSubjectIds.map((subjectId) =>
+      typeof subjectId?.toString === 'function' ? subjectId.toString() : String(subjectId),
+    ),
+  );
+
+  const missingTarget = objectIdTargets.some(
+    (targetId) => !mentorSubjectIdSet.has(targetId),
+  );
+
+  if (missingTarget) {
+    throw new Error('Some target groups are not linked to this mentor');
+  }
+}
+
+function resolveScheduleAndStatus(body) {
+  let scheduledAt = null;
+
+  if (
+    body.scheduledAt !== undefined &&
+    body.scheduledAt !== null &&
+    body.scheduledAt !== ''
+  ) {
+    scheduledAt = new Date(String(body.scheduledAt));
+
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new Error('Scheduled date must be a valid date');
+    }
+  }
+
+  const providedStatus =
+    body.status === undefined ? null : normalizeAnnouncementStatus(body.status);
+
+  if (body.status !== undefined && !providedStatus) {
+    throw new Error(`Status must be one of: ${ANNOUNCEMENT_STATUSES.join(', ')}`);
+  }
+
+  if (providedStatus === 'Scheduled' && !scheduledAt) {
+    throw new Error('Scheduled announcements require a scheduled date');
+  }
+
+  if (providedStatus) {
+    return {
+      scheduledAt,
+      status: providedStatus,
+    };
+  }
+
+  return {
+    scheduledAt,
+    status:
+      scheduledAt && scheduledAt.getTime() > Date.now() ? 'Scheduled' : 'Sent',
+  };
 }
 
 async function buildCreatePayload(body, currentUser) {
@@ -196,15 +229,15 @@ async function buildCreatePayload(body, currentUser) {
     throw new Error('Announcement message is required');
   }
 
-  const audienceType = normalizeAudienceType(body.audienceType);
+  const audienceType = normalizeAnnouncementAudienceType(body.audienceType);
 
   if (!audienceType) {
     throw new Error(
-      'Audience type must be one of: all_assigned_students, students, groups',
+      `Audience type must be one of: ${ANNOUNCEMENT_AUDIENCE_TYPES.join(', ')}`,
     );
   }
 
-  const targetIds = normalizeTargetIds(body.targetIds);
+  const targetIds = normalizeAnnouncementTargetIds(body.targetIds);
 
   if (audienceType !== 'all_assigned_students' && targetIds.length === 0) {
     throw new Error('At least one target ID is required for this audience type');
@@ -214,27 +247,11 @@ async function buildCreatePayload(body, currentUser) {
     await ensureAssignedStudents(mentorId, targetIds);
   }
 
-  let scheduledAt = null;
-
-  if (body.scheduledAt !== undefined && body.scheduledAt !== null && body.scheduledAt !== '') {
-    scheduledAt = new Date(String(body.scheduledAt));
-
-    if (Number.isNaN(scheduledAt.getTime())) {
-      throw new Error('Scheduled date must be a valid date');
-    }
+  if (audienceType === 'groups') {
+    await ensureTargetGroupsBelongToMentor(mentorId, targetIds);
   }
 
-  let status = scheduledAt ? 'Scheduled' : 'Draft';
-
-  if (body.status !== undefined) {
-    const normalizedStatus = normalizeStatus(body.status);
-
-    if (!normalizedStatus) {
-      throw new Error('Status must be one of: Draft, Scheduled, Sent');
-    }
-
-    status = normalizedStatus;
-  }
+  const { scheduledAt, status } = resolveScheduleAndStatus(body);
 
   return {
     mentorId,
@@ -261,10 +278,13 @@ export async function GET(request) {
         path: 'mentorId',
         select: 'name email role',
       })
-      .sort({ createdAt: -1 })
+      .sort({ scheduledAt: -1, createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ announcements }, { status: 200 });
+    return NextResponse.json(
+      { announcements: announcements.map(serializeAnnouncement) },
+      { status: 200 },
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -290,7 +310,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         message: 'Announcement created successfully',
-        announcement: populatedAnnouncement,
+        announcement: serializeAnnouncement(populatedAnnouncement),
       },
       { status: 201 },
     );

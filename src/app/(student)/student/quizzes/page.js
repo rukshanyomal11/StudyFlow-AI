@@ -201,11 +201,19 @@ export default function StudentQuizzesPage() {
   }, [allQuizzes]);
 
   const quizzes = useMemo(() => {
-    if (!subjectFilter) {
-      return allQuizzes;
-    }
+    const filteredQuizzes = subjectFilter
+      ? allQuizzes.filter((quiz) => quiz.subjectId === subjectFilter)
+      : allQuizzes;
 
-    return allQuizzes.filter((quiz) => quiz.subjectId === subjectFilter);
+    return [...filteredQuizzes].sort((left, right) => {
+      if (
+        left.isAssignedToCurrentStudent !== right.isAssignedToCurrentStudent
+      ) {
+        return left.isAssignedToCurrentStudent ? -1 : 1;
+      }
+
+      return left.title.localeCompare(right.title);
+    });
   }, [allQuizzes, subjectFilter]);
 
   const activeQuiz = useMemo(
@@ -366,6 +374,9 @@ export default function StudentQuizzesPage() {
   const readyQuizCount = allQuizzes.filter(
     (quiz) => quiz.questionCount > 0,
   ).length;
+  const assignedQuizCount = allQuizzes.filter(
+    (quiz) => quiz.isAssignedToCurrentStudent,
+  ).length;
 
   return (
     <ProtectedDashboardLayout
@@ -404,7 +415,7 @@ export default function StudentQuizzesPage() {
                 </span>
                 <span className="inline-flex items-center gap-2 rounded-2xl border border-white/85 bg-white/92 px-4 py-2.5 shadow-[0_14px_30px_-24px_rgba(56,189,248,0.38)]">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  {readyQuizCount} ready to start
+                  {assignedQuizCount} assigned, {readyQuizCount} ready
                 </span>
               </div>
               <div className="rounded-[28px] border border-sky-100/80 bg-white/78 p-5 shadow-[0_24px_56px_-42px_rgba(56,189,248,0.42)] backdrop-blur">

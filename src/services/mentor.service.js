@@ -54,7 +54,8 @@ export const mentorService = {
         headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error(`Failed to fetch announcements: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      return data?.announcements || [];
     } catch (error) {
       console.error('Error fetching announcements:', error);
       throw error;

@@ -1,6 +1,7 @@
 import { isValidObjectId } from 'mongoose';
 import { NextResponse } from 'next/server';
 import Doubt from '@/models/Doubt';
+import Notification from '@/models/Notification';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
 
@@ -23,6 +24,10 @@ function createErrorResponse(error) {
 
     if (error.message === 'Doubt not found') {
       return NextResponse.json({ error: 'Doubt not found' }, { status: 404 });
+    }
+
+    if (error.message === 'Doubt student not found') {
+      return NextResponse.json({ error: 'Doubt student not found' }, { status: 404 });
     }
 
     if (
@@ -121,6 +126,7 @@ export async function POST(request, context) {
         $set: {
           reply,
           status,
+          replyAt: new Date(),
         },
       },
       { new: true, runValidators: true },
@@ -142,6 +148,24 @@ export async function POST(request, context) {
     if (!doubt) {
       throw new Error('Doubt not found');
     }
+
+    const studentId = doubt?.studentId?._id?.toString() || '';
+    const subjectName = doubt?.subjectId?.name || 'your subject';
+    const doubtTitle = typeof doubt.title === 'string' ? doubt.title.trim() : 'Your doubt';
+
+    if (!studentId) {
+      throw new Error('Doubt student not found');
+    }
+
+    await Notification.create({
+      userId: studentId,
+      type: 'doubt_reply',
+      title: `Mentor replied: ${doubtTitle}`,
+      message: `Your mentor replied to your doubt in ${subjectName}: ${reply}`,
+      senderId: currentUser.id,
+      relatedDoubtId: doubt._id,
+      isRead: false,
+    });
 
     return NextResponse.json(
       {

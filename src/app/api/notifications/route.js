@@ -3,12 +3,22 @@ import Notification from '@/models/Notification';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
 
+function ensureNotificationReader(user) {
+  if (user.role !== 'student' && user.role !== 'mentor' && user.role !== 'admin') {
+    throw new Error('Forbidden');
+  }
+}
+
 function createErrorResponse(error) {
   console.error('Notifications API error:', error);
 
   if (error instanceof Error) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (error.message === 'Forbidden') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     if (
@@ -80,13 +90,33 @@ function buildCreatePayload(body, userId) {
   return notificationData;
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     const currentUser = await requireAuth();
+    ensureNotificationReader(currentUser);
 
     await connectDB();
 
-    const notifications = await Notification.find({ userId: currentUser.id })
+    const typeFilter = request.nextUrl.searchParams.get('type')?.trim() || '';
+    const filter = { userId: currentUser.id };
+
+    if (typeFilter) {
+      filter.type = typeFilter;
+    }
+
+    const notifications = await Notification.find(filter)
+      .populate({
+        path: 'senderId',
+        select: 'name email role avatar',
+      })
+      .populate({
+        path: 'relatedDoubtId',
+        select: 'title message reply status subjectId replyAt updatedAt',
+        populate: {
+          path: 'subjectId',
+          select: 'name',
+        },
+      })
       .sort({ createdAt: -1 })
       .lean();
 

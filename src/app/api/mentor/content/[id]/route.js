@@ -1,16 +1,19 @@
 import { isValidObjectId } from 'mongoose';
 import { NextResponse } from 'next/server';
 import Material from '@/models/Material';
+import MentorStudent from '@/models/MentorStudent';
 import Subject from '@/models/Subject';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import {
+  MATERIAL_TYPES,
+  MATERIAL_VISIBILITY,
+  normalizeMaterialType,
+  normalizeMaterialVisibility,
+  serializeMaterial,
+} from '@/lib/material-utils';
 
-const allowedTypes = new Set(['Notes', 'PDFs', 'Videos', 'Assignments']);
-const allowedVisibility = new Set([
-  'Assigned Students',
-  'All Assigned Cohorts',
-  'Private Draft',
-]);
+export const runtime = 'nodejs';
 
 function createErrorResponse(error) {
   console.error('Mentor content detail API error:', error);
@@ -20,16 +23,12 @@ function createErrorResponse(error) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (error.message === 'Forbidden') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (error.message === 'Forbidden' || error.message === 'Subject access denied') {
+      return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    if (error.message === 'Material not found') {
-      return NextResponse.json({ error: 'Material not found' }, { status: 404 });
-    }
-
-    if (error.message === 'Subject not found') {
-      return NextResponse.json({ error: 'Subject not found' }, { status: 404 });
+    if (error.message === 'Material not found' || error.message === 'Subject not found') {
+      return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
     if (
@@ -40,11 +39,11 @@ function createErrorResponse(error) {
       error.message === 'Material title is required' ||
       error.message === 'Subject ID is required' ||
       error.message === 'Subject ID is invalid' ||
-      error.message === 'Material type must be one of: Notes, PDFs, Videos, Assignments' ||
+      error.message === `Material type must be one of: ${MATERIAL_TYPES.join(', ')}` ||
       error.message === 'Description must be a string' ||
       error.message === 'File URL is required' ||
       error.message ===
-        'Visibility must be one of: Assigned Students, All Assigned Cohorts, Private Draft'
+        `Visibility must be one of: ${MATERIAL_VISIBILITY.join(', ')}`
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -54,10 +53,12 @@ function createErrorResponse(error) {
     }
   }
 
-  return NextResponse.json(
-    { error: 'Internal server error' },
-    { status: 500 },
-  );
+  const fallbackMessage =
+    process.env.NODE_ENV === 'development' && error instanceof Error
+      ? error.message
+      : 'Internal server error';
+
+  return NextResponse.json({ error: fallbackMessage }, { status: 500 });
 }
 
 function ensureMentorAccess(user) {
@@ -74,41 +75,35 @@ async function readJsonBody(request) {
   }
 }
 
-function normalizeType(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  return allowedTypes.has(trimmedValue) ? trimmedValue : null;
-}
-
-function normalizeVisibility(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  return allowedVisibility.has(trimmedValue) ? trimmedValue : null;
-}
-
-async function ensureSubjectExists(subjectId) {
-  const subject = await Subject.findById(subjectId).select('_id name').lean();
+async function ensureSubjectAccess(subjectId, mentorId) {
+  const subject = await Subject.findById(subjectId).select('_id name userId').lean();
 
   if (!subject) {
     throw new Error('Subject not found');
+  }
+
+  const assignment = await MentorStudent.findOne({
+    mentorId,
+    studentId: subject.userId,
+    $or: [{ subjectId }, { subjectId: null }],
+  })
+    .select('_id')
+    .lean();
+
+  if (!assignment) {
+    throw new Error('Subject access denied');
   }
 }
 
 async function getMaterialId(context) {
   const params = await context.params;
-  const { id } = params;
+  const materialId = params?.id;
 
-  if (!isValidObjectId(id)) {
+  if (!isValidObjectId(materialId)) {
     throw new Error('Material ID is invalid');
   }
 
-  return id;
+  return materialId;
 }
 
 function buildMaterialFilter(materialId, currentUser) {
@@ -122,7 +117,17 @@ function buildMaterialFilter(materialId, currentUser) {
   };
 }
 
-async function buildUpdatePayload(body) {
+function validateDescription(description) {
+  if (
+    description !== null &&
+    description !== undefined &&
+    typeof description !== 'string'
+  ) {
+    throw new Error('Description must be a string');
+  }
+}
+
+async function buildUpdatePayload(body, existingMaterial) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Request body must be a JSON object');
   }
@@ -140,8 +145,7 @@ async function buildUpdatePayload(body) {
   }
 
   if ('subjectId' in body) {
-    const subjectId =
-      typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
+    const subjectId = typeof body.subjectId === 'string' ? body.subjectId.trim() : '';
 
     if (!subjectId) {
       throw new Error('Subject ID is required');
@@ -151,29 +155,22 @@ async function buildUpdatePayload(body) {
       throw new Error('Subject ID is invalid');
     }
 
-    await ensureSubjectExists(subjectId);
+    await ensureSubjectAccess(subjectId, existingMaterial.mentorId.toString());
     updates.subjectId = subjectId;
   }
 
   if ('type' in body) {
-    const type = normalizeType(body.type);
+    const type = normalizeMaterialType(body.type);
 
     if (!type) {
-      throw new Error('Material type must be one of: Notes, PDFs, Videos, Assignments');
+      throw new Error(`Material type must be one of: ${MATERIAL_TYPES.join(', ')}`);
     }
 
     updates.type = type;
   }
 
   if ('description' in body) {
-    if (
-      body.description !== null &&
-      body.description !== undefined &&
-      typeof body.description !== 'string'
-    ) {
-      throw new Error('Description must be a string');
-    }
-
+    validateDescription(body.description);
     updates.description =
       typeof body.description === 'string' ? body.description.trim() : '';
   }
@@ -189,11 +186,11 @@ async function buildUpdatePayload(body) {
   }
 
   if ('visibility' in body) {
-    const visibility = normalizeVisibility(body.visibility);
+    const visibility = normalizeMaterialVisibility(body.visibility);
 
     if (!visibility) {
       throw new Error(
-        'Visibility must be one of: Assigned Students, All Assigned Cohorts, Private Draft',
+        `Visibility must be one of: ${MATERIAL_VISIBILITY.join(', ')}`,
       );
     }
 
@@ -207,6 +204,21 @@ async function buildUpdatePayload(body) {
   return updates;
 }
 
+async function populateMaterial(materialId) {
+  const material = await Material.findById(materialId)
+    .populate({
+      path: 'mentorId',
+      select: 'name email role',
+    })
+    .populate({
+      path: 'subjectId',
+      select: 'name',
+    })
+    .lean();
+
+  return material ? serializeMaterial(material) : null;
+}
+
 export async function GET(_request, context) {
   try {
     const currentUser = await requireAuth();
@@ -215,8 +227,7 @@ export async function GET(_request, context) {
     await connectDB();
 
     const materialId = await getMaterialId(context);
-    const filter = buildMaterialFilter(materialId, currentUser);
-    const material = await Material.findOne(filter)
+    const material = await Material.findOne(buildMaterialFilter(materialId, currentUser))
       .populate({
         path: 'mentorId',
         select: 'name email role',
@@ -231,7 +242,7 @@ export async function GET(_request, context) {
       throw new Error('Material not found');
     }
 
-    return NextResponse.json({ material }, { status: 200 });
+    return NextResponse.json({ material: serializeMaterial(material) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -245,27 +256,23 @@ export async function PUT(request, context) {
     await connectDB();
 
     const materialId = await getMaterialId(context);
-    const filter = buildMaterialFilter(materialId, currentUser);
-    const body = await readJsonBody(request);
-    const updates = await buildUpdatePayload(body);
-    const material = await Material.findOneAndUpdate(
-      filter,
-      { $set: updates },
-      { new: true, runValidators: true },
-    )
-      .populate({
-        path: 'mentorId',
-        select: 'name email role',
-      })
-      .populate({
-        path: 'subjectId',
-        select: 'name',
-      })
-      .lean();
+    const materialFilter = buildMaterialFilter(materialId, currentUser);
+    const existingMaterial = await Material.findOne(materialFilter).select('_id mentorId').lean();
 
-    if (!material) {
+    if (!existingMaterial) {
       throw new Error('Material not found');
     }
+
+    const body = await readJsonBody(request);
+    const updates = await buildUpdatePayload(body, existingMaterial);
+
+    await Material.updateOne(
+      { _id: materialId },
+      { $set: updates },
+      { runValidators: true },
+    );
+
+    const material = await populateMaterial(materialId);
 
     return NextResponse.json(
       {
@@ -287,8 +294,9 @@ export async function DELETE(_request, context) {
     await connectDB();
 
     const materialId = await getMaterialId(context);
-    const filter = buildMaterialFilter(materialId, currentUser);
-    const material = await Material.findOneAndDelete(filter).lean();
+    const material = await Material.findOneAndDelete(
+      buildMaterialFilter(materialId, currentUser),
+    ).lean();
 
     if (!material) {
       throw new Error('Material not found');

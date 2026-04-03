@@ -32,6 +32,10 @@ const doubtSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    replyAt: {
+      type: Date,
+      default: null,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Reviewing', 'Answered'],
