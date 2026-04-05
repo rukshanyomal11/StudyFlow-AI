@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Camera,
@@ -60,18 +60,103 @@ interface PasswordFormState {
 }
 
 const INITIAL_PROFILE: StudentProfileState = {
-  fullName: "Nethmi Jayawardena",
-  email: "nethmi.j@studyflow.ai",
-  studyLevel: "Grade 12 - Advanced Level",
-  preferredStudyTime: "6:30 PM - 9:00 PM",
-  goals:
-    "Finish Physics revision before the monthly exam, complete 3 Math practice sets each week, and keep a 14-day study streak active.",
-  streak: 18,
-  totalStudyHours: 146,
-  completedTasks: 284,
-  twoFactorEnabled: true,
+  fullName: "",
+  email: "",
+  studyLevel: "",
+  preferredStudyTime: "",
+  goals: "",
+  streak: 0,
+  totalStudyHours: 0,
+  completedTasks: 0,
+  twoFactorEnabled: false,
   avatarUrl: null,
 };
+
+function normalizeString(value: unknown, fallback = "") {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return trimmed || fallback;
+}
+
+function normalizeGoals(value: unknown) {
+  if (Array.isArray(value)) {
+    const goals = value
+      .filter((goal) => typeof goal === "string")
+      .map((goal) => goal.trim())
+      .filter(Boolean);
+
+    return goals.join("\n");
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  return "";
+}
+
+function splitGoals(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((goal) => goal.trim())
+    .filter(Boolean);
+}
+
+function mergeUserIntoProfile(
+  user: Record<string, unknown>,
+  current: StudentProfileState,
+) {
+  const preferences =
+    user.preferences && typeof user.preferences === "object"
+      ? (user.preferences as Record<string, unknown>)
+      : {};
+
+  return {
+    ...current,
+    fullName: normalizeString(user.name),
+    email: normalizeString(user.email),
+    studyLevel: normalizeString(user.level),
+    preferredStudyTime: normalizeString(preferences.preferredTime),
+    goals: normalizeGoals(user.goals),
+    twoFactorEnabled: Boolean(preferences.twoFactorAuth),
+    avatarUrl:
+      typeof user.avatar === "string" && user.avatar.trim()
+        ? user.avatar
+        : null,
+  };
+}
+
+function toProfileForm(profile: StudentProfileState): ProfileFormState {
+  return {
+    fullName: profile.fullName,
+    email: profile.email,
+    studyLevel: profile.studyLevel,
+    preferredStudyTime: profile.preferredStudyTime,
+    goals: profile.goals,
+    avatarUrl: profile.avatarUrl,
+  };
+}
+
+async function readApiError(response: Response, fallbackMessage: string) {
+  try {
+    const data = await response.json();
+
+    if (typeof data?.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
+}
 
 const inputClassName =
   "h-12 w-full rounded-2xl border border-sky-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_14px_30px_-22px_rgba(59,130,246,0.18)] transition-all duration-200 placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100";
@@ -223,22 +308,112 @@ function InfoCard({
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState(INITIAL_PROFILE);
-  const [profileForm, setProfileForm] = useState<ProfileFormState>({
-    fullName: INITIAL_PROFILE.fullName,
-    email: INITIAL_PROFILE.email,
-    studyLevel: INITIAL_PROFILE.studyLevel,
-    preferredStudyTime: INITIAL_PROFILE.preferredStudyTime,
-    goals: INITIAL_PROFILE.goals,
-    avatarUrl: INITIAL_PROFILE.avatarUrl,
-  });
+  const [profileForm, setProfileForm] = useState<ProfileFormState>(
+    toProfileForm(INITIAL_PROFILE),
+  );
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isUpdatingTwoFactor, setIsUpdatingTwoFactor] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [securityMessage, setSecurityMessage] = useState("");
   const editFormRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProfile = async () => {
+      setIsLoading(true);
+      setProfileMessage("");
+
+      try {
+        const [userResponse, overviewResponse, streakResponse] = await Promise.all([
+          fetch("/api/users/me", { cache: "no-store" }),
+          fetch("/api/progress/overview", { cache: "no-store" }),
+          fetch("/api/progress/streak", { cache: "no-store" }),
+        ]);
+
+        if (!userResponse.ok) {
+          throw new Error(
+            await readApiError(
+              userResponse,
+              "Unable to load your profile right now.",
+            ),
+          );
+        }
+
+        if (!overviewResponse.ok) {
+          throw new Error(
+            await readApiError(
+              overviewResponse,
+              "Unable to load your progress overview right now.",
+            ),
+          );
+        }
+
+        if (!streakResponse.ok) {
+          throw new Error(
+            await readApiError(
+              streakResponse,
+              "Unable to load your streak information right now.",
+            ),
+          );
+        }
+
+        const userData = await userResponse.json();
+        const overviewData = await overviewResponse.json();
+        const streakData = await streakResponse.json();
+
+        if (!isActive) {
+          return;
+        }
+
+        const nextProfile = mergeUserIntoProfile(userData?.user ?? {}, {
+          ...INITIAL_PROFILE,
+          totalStudyHours:
+            typeof overviewData?.overview?.totalStudyHours === "number"
+              ? overviewData.overview.totalStudyHours
+              : 0,
+          completedTasks:
+            typeof overviewData?.overview?.completedTasksCount === "number"
+              ? overviewData.overview.completedTasksCount
+              : 0,
+          streak:
+            typeof streakData?.streak?.current === "number"
+              ? streakData.streak.current
+              : 0,
+        });
+
+        setProfile(nextProfile);
+        setProfileForm(toProfileForm(nextProfile));
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setProfileMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to load your profile right now.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleProfileChange = (
     field: keyof ProfileFormState,
@@ -273,12 +448,53 @@ export default function StudentProfilePage() {
     setProfileMessage("");
   };
 
-  const handleSaveProfile = () => {
-    setProfile((current) => ({
-      ...current,
-      ...profileForm,
-    }));
-    setProfileMessage("Profile details saved successfully.");
+  const handleSaveProfile = async () => {
+    const trimmedName = profileForm.fullName.trim();
+
+    if (!trimmedName) {
+      setProfileMessage("Full name is required.");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    setProfileMessage("");
+
+    try {
+      const response = await fetch("/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          level: profileForm.studyLevel.trim(),
+          goals: splitGoals(profileForm.goals),
+          avatar: profileForm.avatarUrl,
+          "preferences.preferredTime": profileForm.preferredStudyTime.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to save your profile changes."),
+        );
+      }
+
+      const data = await response.json();
+      const nextProfile = mergeUserIntoProfile(data?.user ?? {}, profile);
+
+      setProfile(nextProfile);
+      setProfileForm(toProfileForm(nextProfile));
+      setProfileMessage(data?.message || "Profile details saved successfully.");
+    } catch (error) {
+      setProfileMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to save your profile changes.",
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   const handlePasswordChange = (
@@ -292,7 +508,7 @@ export default function StudentProfilePage() {
     setSecurityMessage("");
   };
 
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
     if (
       !passwordForm.currentPassword ||
       !passwordForm.newPassword ||
@@ -307,35 +523,99 @@ export default function StudentProfilePage() {
       return;
     }
 
-    setPasswordForm({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    setSecurityMessage("Password updated and account security refreshed.");
+    if (passwordForm.newPassword.length < 6) {
+      setSecurityMessage("New password must be at least 6 characters.");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    setSecurityMessage("");
+
+    try {
+      const response = await fetch("/api/users/me/password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to update password right now."),
+        );
+      }
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setSecurityMessage("Password updated and account security refreshed.");
+    } catch (error) {
+      setSecurityMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update password right now.",
+      );
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
-  const handleToggleTwoFactor = () => {
-    setProfile((current) => ({
-      ...current,
-      twoFactorEnabled: !current.twoFactorEnabled,
-    }));
-    setSecurityMessage(
-      profile.twoFactorEnabled
-        ? "Two-factor authentication has been turned off."
-        : "Two-factor authentication is now enabled.",
-    );
+  const handleToggleTwoFactor = async () => {
+    const nextTwoFactorState = !profile.twoFactorEnabled;
+
+    setIsUpdatingTwoFactor(true);
+    setSecurityMessage("");
+
+    try {
+      const response = await fetch("/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "preferences.twoFactorAuth": nextTwoFactorState,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(
+            response,
+            "Unable to update two-factor authentication right now.",
+          ),
+        );
+      }
+
+      const data = await response.json();
+      const nextProfile = mergeUserIntoProfile(data?.user ?? {}, profile);
+
+      setProfile(nextProfile);
+      setProfileForm(toProfileForm(nextProfile));
+      setSecurityMessage(
+        nextProfile.twoFactorEnabled
+          ? "Two-factor authentication is now enabled."
+          : "Two-factor authentication has been turned off.",
+      );
+    } catch (error) {
+      setSecurityMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update two-factor authentication right now.",
+      );
+    } finally {
+      setIsUpdatingTwoFactor(false);
+    }
   };
 
   const scrollToEditForm = () => {
-    setProfileForm({
-      fullName: profile.fullName,
-      email: profile.email,
-      studyLevel: profile.studyLevel,
-      preferredStudyTime: profile.preferredStudyTime,
-      goals: profile.goals,
-      avatarUrl: profile.avatarUrl,
-    });
+    setProfileForm(toProfileForm(profile));
     setProfileMessage("");
     editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -373,7 +653,7 @@ export default function StudentProfilePage() {
                       />
                     ) : null}
                     <AvatarFallback className="rounded-[26px] bg-[linear-gradient(135deg,#dbeafe_0%,#e9d5ff_100%)] text-2xl font-bold text-sky-700">
-                      {getInitials(profile.fullName)}
+                      {getInitials(profile.fullName || "Student")}
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -386,7 +666,7 @@ export default function StudentProfilePage() {
 
                   <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-                      {profile.fullName}
+                      {isLoading ? "Loading profile..." : profile.fullName || "Student"}
                     </h1>
                     <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-700">
                       Keep your learning identity polished with a cleaner
@@ -400,15 +680,15 @@ export default function StudentProfilePage() {
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(59,130,246,0.14)] backdrop-blur-sm">
                   <Mail className="h-4 w-4 text-sky-600" />
-                  {profile.email}
+                  {profile.email || "No email"}
                 </span>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(99,102,241,0.14)] backdrop-blur-sm">
                   <GraduationCap className="h-4 w-4 text-indigo-600" />
-                  {profile.studyLevel}
+                  {profile.studyLevel || "Study level not set"}
                 </span>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(14,165,233,0.16)] backdrop-blur-sm">
                   <Clock3 className="h-4 w-4 text-cyan-600" />
-                  Best time: {profile.preferredStudyTime}
+                  Best time: {profile.preferredStudyTime || "Not set"}
                 </span>
               </div>
 
@@ -428,7 +708,7 @@ export default function StudentProfilePage() {
                           Study Rhythm
                         </p>
                         <p className="text-sm font-semibold text-slate-900">
-                          {profile.preferredStudyTime}
+                          {profile.preferredStudyTime || "Not set"}
                         </p>
                       </div>
                     </div>
@@ -496,6 +776,7 @@ export default function StudentProfilePage() {
 
                 <Button
                   className={cn(primaryButtonClassName, "mt-5 justify-center")}
+                  disabled={isLoading}
                   onClick={scrollToEditForm}
                 >
                   <PencilLine className="mr-2 h-4 w-4" />
@@ -552,14 +833,20 @@ export default function StudentProfilePage() {
                 icon={<GraduationCap className="h-5 w-5" />}
                 iconClassName="bg-[linear-gradient(135deg,#14b8a6_0%,#10b981_100%)]"
                 label="Study Level"
-                value={<p className="font-semibold">{profile.studyLevel}</p>}
+                value={
+                  <p className="font-semibold">
+                    {profile.studyLevel || "Study level not set"}
+                  </p>
+                }
               />
               <InfoCard
                 icon={<Clock3 className="h-5 w-5" />}
                 iconClassName="bg-[linear-gradient(135deg,#f97316_0%,#ef4444_100%)]"
                 label="Preferred Study Time"
                 value={
-                  <p className="font-semibold">{profile.preferredStudyTime}</p>
+                  <p className="font-semibold">
+                    {profile.preferredStudyTime || "Not set"}
+                  </p>
                 }
               />
               <div className="md:col-span-2">
@@ -567,7 +854,7 @@ export default function StudentProfilePage() {
                   icon={<Target className="h-5 w-5" />}
                   iconClassName="bg-[linear-gradient(135deg,#06b6d4_0%,#3b82f6_100%)]"
                   label="Goals"
-                  value={<p className="font-medium">{profile.goals}</p>}
+                  value={<p className="font-medium">{profile.goals || "No goals added yet."}</p>}
                 />
               </div>
             </div>
@@ -632,6 +919,7 @@ export default function StudentProfilePage() {
                         ? "bg-white border border-slate-200 hover:bg-slate-50"
                         : "bg-emerald-600 text-white hover:bg-emerald-700",
                     )}
+                    disabled={isUpdatingTwoFactor || isLoading}
                     onClick={handleToggleTwoFactor}
                   >
                     {profile.twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"}
@@ -696,10 +984,11 @@ export default function StudentProfilePage() {
 
                   <Button
                     className={primaryButtonClassName}
+                    disabled={isUpdatingPassword || isLoading}
                     onClick={handlePasswordUpdate}
                   >
                     <KeyRound className="mr-2 h-4 w-4" />
-                    Change Password
+                    {isUpdatingPassword ? "Updating..." : "Change Password"}
                   </Button>
                 </div>
               </div>
@@ -729,7 +1018,7 @@ export default function StudentProfilePage() {
                       />
                     ) : null}
                     <AvatarFallback className="rounded-[26px] bg-[linear-gradient(135deg,#dbeafe_0%,#ede9fe_100%)] text-2xl font-bold text-sky-700">
-                      {getInitials(profileForm.fullName)}
+                      {getInitials(profileForm.fullName || "Student")}
                     </AvatarFallback>
                   </Avatar>
 
@@ -754,6 +1043,7 @@ export default function StudentProfilePage() {
                     <input
                       className={inputClassName}
                       id="full-name"
+                      disabled={isLoading}
                       onChange={(event) =>
                         handleProfileChange("fullName", event.target.value)
                       }
@@ -763,11 +1053,13 @@ export default function StudentProfilePage() {
 
                   <Field htmlFor="email" label="Email">
                     <input
-                      className={inputClassName}
+                      className={cn(
+                        inputClassName,
+                        "cursor-not-allowed bg-slate-100 text-slate-500",
+                      )}
+                      disabled
                       id="email"
-                      onChange={(event) =>
-                        handleProfileChange("email", event.target.value)
-                      }
+                      readOnly
                       type="email"
                       value={profileForm.email}
                     />
@@ -777,6 +1069,7 @@ export default function StudentProfilePage() {
                     <input
                       className={inputClassName}
                       id="study-level"
+                      disabled={isLoading}
                       onChange={(event) =>
                         handleProfileChange("studyLevel", event.target.value)
                       }
@@ -788,6 +1081,7 @@ export default function StudentProfilePage() {
                     <input
                       className={inputClassName}
                       id="study-time"
+                      disabled={isLoading}
                       onChange={(event) =>
                         handleProfileChange(
                           "preferredStudyTime",
@@ -802,6 +1096,7 @@ export default function StudentProfilePage() {
                 <Field htmlFor="goals" label="Goals">
                   <textarea
                     className={textareaClassName}
+                    disabled={isLoading}
                     id="goals"
                     onChange={(event) =>
                       handleProfileChange("goals", event.target.value)
@@ -814,15 +1109,16 @@ export default function StudentProfilePage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm">
                     {profileMessage ||
-                      "Your updates stay local in this demo state."}
+                      "Profile updates are saved to your StudyFlow account."}
                   </div>
 
                   <Button
                     className={primaryButtonClassName}
+                    disabled={isSavingProfile || isLoading}
                     onClick={handleSaveProfile}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    {isSavingProfile ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               </div>
