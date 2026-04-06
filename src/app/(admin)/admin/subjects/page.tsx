@@ -131,117 +131,6 @@ const INITIAL_CATEGORIES: CategoryRecord[] = [
   },
 ];
 
-const INITIAL_SUBJECTS: SubjectRecord[] = [
-  {
-    id: "sub-1001",
-    name: "Mathematics",
-    categoryId: "stem",
-    description:
-      "Core numeracy, algebra, calculus, and problem-solving pathways for student plans and quiz programs.",
-    enrolledStudents: 3820,
-    mentors: ["Marcus Perera", "Isuru Senaratne"],
-    quizzes: 142,
-    status: "Active",
-    difficulty: "Advanced",
-  },
-  {
-    id: "sub-1002",
-    name: "Physics",
-    categoryId: "stem",
-    description:
-      "Mechanics, electricity, and theory modules powering advanced study recommendations.",
-    enrolledStudents: 2740,
-    mentors: ["Marcus Perera"],
-    quizzes: 118,
-    status: "Active",
-    difficulty: "Advanced",
-  },
-  {
-    id: "sub-1003",
-    name: "Chemistry",
-    categoryId: "stem",
-    description:
-      "Organic, inorganic, and exam-focused chemistry units for quizzes and planner goals.",
-    enrolledStudents: 3015,
-    mentors: ["Dilan Fernando", "Priya Raman"],
-    quizzes: 126,
-    status: "Active",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "sub-1004",
-    name: "Biology",
-    categoryId: "stem",
-    description:
-      "High-engagement subject tracks covering theory, diagrams, and revision sprints.",
-    enrolledStudents: 2480,
-    mentors: ["Dilan Fernando"],
-    quizzes: 111,
-    status: "Active",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "sub-1005",
-    name: "English Literature",
-    categoryId: "humanities",
-    description:
-      "Literary analysis, essay writing, and reading comprehension flows for study plans.",
-    enrolledStudents: 1295,
-    mentors: ["Suhani Jayasinghe"],
-    quizzes: 68,
-    status: "Active",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "sub-1006",
-    name: "Economics",
-    categoryId: "commerce",
-    description:
-      "Macro and microeconomics lessons with quiz-based reinforcement and mentor support.",
-    enrolledStudents: 910,
-    mentors: ["Aarav Iqbal"],
-    quizzes: 52,
-    status: "Draft",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "sub-1007",
-    name: "Accounting",
-    categoryId: "commerce",
-    description:
-      "Structured accounting practice sets, study sessions, and mentor-reviewed assessments.",
-    enrolledStudents: 860,
-    mentors: ["Aarav Iqbal", "Priya Raman"],
-    quizzes: 47,
-    status: "Active",
-    difficulty: "Beginner",
-  },
-  {
-    id: "sub-1008",
-    name: "Computer Science",
-    categoryId: "technology",
-    description:
-      "Programming logic, system design foundations, and practical learning sequences.",
-    enrolledStudents: 2140,
-    mentors: ["Isuru Senaratne"],
-    quizzes: 95,
-    status: "Active",
-    difficulty: "Intermediate",
-  },
-  {
-    id: "sub-1009",
-    name: "World History",
-    categoryId: "humanities",
-    description:
-      "Archived humanities catalog covering timelines, essay prompts, and revision banks.",
-    enrolledStudents: 420,
-    mentors: ["Suhani Jayasinghe"],
-    quizzes: 24,
-    status: "Archived",
-    difficulty: "Beginner",
-  },
-];
-
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -331,6 +220,65 @@ function getUniqueCategoryId(categories: CategoryRecord[], baseId: string) {
   }
 
   return nextId;
+}
+
+function normalizeStatus(value: unknown): SubjectStatus {
+  if (value === "Active" || value === "Archived" || value === "Draft") {
+    return value;
+  }
+
+  return "Active";
+}
+
+function normalizeDifficulty(value: unknown): DifficultyLevel {
+  if (value === "Beginner" || value === "Intermediate" || value === "Advanced") {
+    return value;
+  }
+
+  return "Beginner";
+}
+
+function mapApiSubjectToRecord(subject: any): SubjectRecord {
+  return {
+    id: subject?._id || subject?.id || `subject-${Date.now()}`,
+    name: typeof subject?.name === "string" ? subject.name : "Untitled subject",
+    categoryId:
+      typeof subject?.categoryId === "string" && subject.categoryId.trim()
+        ? subject.categoryId
+        : "general",
+    description: typeof subject?.description === "string" ? subject.description : "",
+    enrolledStudents:
+      typeof subject?.enrolledStudents === "number" && Number.isFinite(subject.enrolledStudents)
+        ? subject.enrolledStudents
+        : 0,
+    mentors: Array.isArray(subject?.mentors)
+      ? subject.mentors.filter((mentor: unknown) => typeof mentor === "string")
+      : [],
+    quizzes:
+      typeof subject?.quizzes === "number" && Number.isFinite(subject.quizzes)
+        ? subject.quizzes
+        : 0,
+    status: normalizeStatus(subject?.status),
+    difficulty: normalizeDifficulty(subject?.difficulty),
+  };
+}
+
+async function readApiError(response: Response, fallbackMessage: string) {
+  try {
+    const data = await response.json();
+
+    if (typeof data?.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
 }
 
 function SummaryCard({
@@ -570,7 +518,10 @@ function SubjectActionsMenu({
 
 export default function AdminSubjectsManagementPage() {
   const [categories, setCategories] = useState<CategoryRecord[]>(INITIAL_CATEGORIES);
-  const [subjects, setSubjects] = useState<SubjectRecord[]>(INITIAL_SUBJECTS);
+  const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
+  const [isSavingSubject, setIsSavingSubject] = useState(false);
+  const [pendingSubjectActionId, setPendingSubjectActionId] = useState<string | null>(null);
   const [subjectModal, setSubjectModal] = useState<SubjectModalState>({
     open: false,
     mode: "view",
@@ -590,6 +541,55 @@ export default function AdminSubjectsManagementPage() {
     getEmptyCategoryForm(),
   );
   const [categoryFormError, setCategoryFormError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadSubjects = async () => {
+      setIsLoadingSubjects(true);
+
+      try {
+        const response = await fetch("/api/admin/subjects", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(
+            await readApiError(response, "Unable to load admin subjects right now."),
+          );
+        }
+
+        const data = await response.json();
+        const nextSubjects = Array.isArray(data?.subjects)
+          ? data.subjects.map(mapApiSubjectToRecord)
+          : [];
+
+        if (!isActive) {
+          return;
+        }
+
+        setSubjects(nextSubjects);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setSubjectFormError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load admin subjects right now.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingSubjects(false);
+        }
+      }
+    };
+
+    void loadSubjects();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!subjectModal.open && !categoryModal.open) {
@@ -618,12 +618,18 @@ export default function AdminSubjectsManagementPage() {
   const activeSubject =
     subjects.find((subject) => subject.id === subjectModal.subjectId) ?? null;
 
-  const mostStudiedSubject = subjects.reduce((best, subject) =>
-    subject.enrolledStudents > best.enrolledStudents ? subject : best,
-  );
-  const leastUsedSubject = subjects.reduce((lowest, subject) =>
-    subject.enrolledStudents < lowest.enrolledStudents ? subject : lowest,
-  );
+  const mostStudiedSubject =
+    subjects.length > 0
+      ? subjects.reduce((best, subject) =>
+          subject.enrolledStudents > best.enrolledStudents ? subject : best,
+        )
+      : null;
+  const leastUsedSubject =
+    subjects.length > 0
+      ? subjects.reduce((lowest, subject) =>
+          subject.enrolledStudents < lowest.enrolledStudents ? subject : lowest,
+        )
+      : null;
   const totalQuizzes = subjects.reduce((sum, subject) => sum + subject.quizzes, 0);
   const quizLeaderboard = [...subjects].sort((a, b) => b.quizzes - a.quizzes);
   const maxQuizValue = quizLeaderboard[0]?.quizzes ?? 1;
@@ -657,8 +663,8 @@ export default function AdminSubjectsManagementPage() {
     },
     {
       title: "Most Popular Subject",
-      value: mostStudiedSubject.name,
-      helper: `${mostStudiedSubject.enrolledStudents.toLocaleString()} enrolled students`,
+      value: mostStudiedSubject?.name || "No subjects yet",
+      helper: `${(mostStudiedSubject?.enrolledStudents ?? 0).toLocaleString()} enrolled students`,
       icon: GraduationCap,
       accentClassName: "from-sky-600 to-cyan-500",
     },
@@ -725,27 +731,53 @@ export default function AdminSubjectsManagementPage() {
     setCategoryFormError("");
   }
 
-  function handleToggleArchive(subjectId: string) {
-    setSubjects((current) =>
-      current.map((subject) =>
-        subject.id === subjectId
-          ? {
-              ...subject,
-              status: subject.status === "Archived" ? "Active" : "Archived",
-            }
-          : subject,
-      ),
-    );
+  async function handleToggleArchive(subjectId: string) {
+    const subject = subjects.find((entry) => entry.id === subjectId);
 
-    if (subjectModal.subjectId === subjectId) {
-      setSubjectForm((current) => ({
-        ...current,
-        status: current.status === "Archived" ? "Active" : "Archived",
-      }));
+    if (!subject) {
+      return;
+    }
+
+    const nextStatus = subject.status === "Archived" ? "Active" : "Archived";
+    setPendingSubjectActionId(subjectId);
+
+    try {
+      const response = await fetch(`/api/admin/subjects/${subjectId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to update subject status right now."),
+        );
+      }
+
+      const data = await response.json();
+      const updated = mapApiSubjectToRecord(data?.subject);
+
+      setSubjects((current) =>
+        current.map((entry) => (entry.id === subjectId ? updated : entry)),
+      );
+
+      if (subjectModal.subjectId === subjectId) {
+        setSubjectForm(createSubjectForm(updated));
+      }
+    } catch (error) {
+      setSubjectFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update subject status right now.",
+      );
+    } finally {
+      setPendingSubjectActionId(null);
     }
   }
 
-  function handleDeleteSubject(subjectId: string) {
+  async function handleDeleteSubject(subjectId: string) {
     const subject = subjects.find((entry) => entry.id === subjectId);
 
     if (!subject) {
@@ -753,17 +785,39 @@ export default function AdminSubjectsManagementPage() {
     }
 
     const didConfirm = window.confirm(
-      `Delete ${subject.name} from the StudyFlow AI subject catalog? This demo updates local page state only.`,
+      `Delete ${subject.name} from the StudyFlow AI subject catalog? This will remove it from the database.`,
     );
 
     if (!didConfirm) {
       return;
     }
 
-    setSubjects((current) => current.filter((entry) => entry.id !== subjectId));
+    setPendingSubjectActionId(subjectId);
 
-    if (subjectModal.subjectId === subjectId) {
-      closeSubjectModal();
+    try {
+      const response = await fetch(`/api/admin/subjects/${subjectId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to delete subject right now."),
+        );
+      }
+
+      setSubjects((current) => current.filter((entry) => entry.id !== subjectId));
+
+      if (subjectModal.subjectId === subjectId) {
+        closeSubjectModal();
+      }
+    } catch (error) {
+      setSubjectFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to delete subject right now.",
+      );
+    } finally {
+      setPendingSubjectActionId(null);
     }
   }
 
@@ -775,7 +829,7 @@ export default function AdminSubjectsManagementPage() {
     );
   }
 
-  function handleSaveSubject() {
+  async function handleSaveSubject() {
     const trimmedName = toTitleCase(subjectForm.name.trim());
     const trimmedDescription = subjectForm.description.trim();
 
@@ -805,72 +859,119 @@ export default function AdminSubjectsManagementPage() {
       return;
     }
 
-    const nextSubject: SubjectRecord = {
-      id: subjectModal.subjectId ?? getNextSubjectId(subjects),
-      name: trimmedName,
-      categoryId: subjectForm.categoryId,
-      description: trimmedDescription,
-      enrolledStudents:
-        activeSubject?.enrolledStudents ??
-        120 +
-          subjects.length * 37 +
-          (subjectForm.difficulty === "Advanced"
-            ? 180
-            : subjectForm.difficulty === "Intermediate"
-              ? 110
-              : 65),
-      mentors: activeSubject?.mentors ?? [],
-      quizzes:
-        activeSubject?.quizzes ??
-        8 +
-          subjects.length * 2 +
-          (subjectForm.status === "Active"
-            ? 10
-            : subjectForm.status === "Draft"
-              ? 4
-              : 2),
-      status: subjectForm.status,
-      difficulty: subjectForm.difficulty,
-    };
+    setIsSavingSubject(true);
+    setSubjectFormError("");
 
-    if (subjectModal.mode === "create") {
-      setSubjects((current) => [nextSubject, ...current]);
-    } else {
+    try {
+      const payload = {
+        name: trimmedName,
+        categoryId: subjectForm.categoryId,
+        description: trimmedDescription,
+        status: subjectForm.status,
+        difficulty: subjectForm.difficulty,
+        mentors: activeSubject?.mentors ?? [],
+        enrolledStudents: activeSubject?.enrolledStudents ?? 0,
+        quizzes: activeSubject?.quizzes ?? 0,
+      };
+
+      const endpoint =
+        subjectModal.mode === "create"
+          ? "/api/admin/subjects"
+          : `/api/admin/subjects/${subjectModal.subjectId}`;
+      const method = subjectModal.mode === "create" ? "POST" : "PUT";
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to save subject right now."),
+        );
+      }
+
+      const data = await response.json();
+      const nextSubject = mapApiSubjectToRecord(data?.subject);
+
+      setSubjects((current) => {
+        if (subjectModal.mode === "create") {
+          return [nextSubject, ...current];
+        }
+
+        return current.map((subject) =>
+          subject.id === nextSubject.id ? nextSubject : subject,
+        );
+      });
+
+      setSubjectForm(createSubjectForm(nextSubject));
+      setMentorSelection(nextSubject.mentors);
+      setSubjectModal({
+        open: true,
+        mode: "view",
+        subjectId: nextSubject.id,
+      });
+    } catch (error) {
+      setSubjectFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to save subject right now.",
+      );
+    } finally {
+      setIsSavingSubject(false);
+    }
+  }
+
+  async function handleSaveMentors() {
+    if (!activeSubject) {
+      return;
+    }
+
+    setIsSavingSubject(true);
+    setSubjectFormError("");
+
+    try {
+      const response = await fetch(`/api/admin/subjects/${activeSubject.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mentors: mentorSelection }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to update mentors right now."),
+        );
+      }
+
+      const data = await response.json();
+      const nextSubject = mapApiSubjectToRecord(data?.subject);
+
       setSubjects((current) =>
         current.map((subject) =>
           subject.id === nextSubject.id ? nextSubject : subject,
         ),
       );
+      setSubjectForm(createSubjectForm(nextSubject));
+      setMentorSelection(nextSubject.mentors);
+      setSubjectModal({
+        open: true,
+        mode: "view",
+        subjectId: nextSubject.id,
+      });
+    } catch (error) {
+      setSubjectFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update mentors right now.",
+      );
+    } finally {
+      setIsSavingSubject(false);
     }
-
-    setSubjectForm(createSubjectForm(nextSubject));
-    setMentorSelection(nextSubject.mentors);
-    setSubjectFormError("");
-    setSubjectModal({
-      open: true,
-      mode: "view",
-      subjectId: nextSubject.id,
-    });
-  }
-
-  function handleSaveMentors() {
-    if (!activeSubject) {
-      return;
-    }
-
-    setSubjects((current) =>
-      current.map((subject) =>
-        subject.id === activeSubject.id
-          ? { ...subject, mentors: mentorSelection }
-          : subject,
-      ),
-    );
-
-    setSubjectModal({
-      open: true,
-      mode: "view",
-      subjectId: activeSubject.id,
-    });
   }
 
   function handleSaveCategory() {
@@ -1020,6 +1121,7 @@ export default function AdminSubjectsManagementPage() {
                 <Button
                   type="button"
                   className="h-12 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700"
+                  disabled={isLoadingSubjects || isSavingSubject}
                   onClick={openCreateSubjectModal}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1029,6 +1131,16 @@ export default function AdminSubjectsManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm">
+          {isLoadingSubjects
+            ? "Loading subjects from the admin catalog..."
+            : pendingSubjectActionId
+              ? "Saving your latest subject update..."
+              : isSavingSubject
+                ? "Applying subject changes..."
+                : "Admin subjects are synced with the backend."}
+        </div>
 
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
           {summaryCards.map((item) => (
@@ -1227,10 +1339,10 @@ export default function AdminSubjectsManagementPage() {
                       Most studied subject
                     </p>
                     <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-                      {mostStudiedSubject.name}
+                      {mostStudiedSubject?.name || "No data yet"}
                     </p>
                     <p className="mt-2 text-sm text-slate-500">
-                      {mostStudiedSubject.enrolledStudents.toLocaleString()} enrolled students
+                      {(mostStudiedSubject?.enrolledStudents ?? 0).toLocaleString()} enrolled students
                     </p>
                   </CardContent>
                 </Card>
@@ -1244,10 +1356,10 @@ export default function AdminSubjectsManagementPage() {
                       Least used subject
                     </p>
                     <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-                      {leastUsedSubject.name}
+                      {leastUsedSubject?.name || "No data yet"}
                     </p>
                     <p className="mt-2 text-sm text-slate-500">
-                      {leastUsedSubject.enrolledStudents.toLocaleString()} enrolled students
+                      {(leastUsedSubject?.enrolledStudents ?? 0).toLocaleString()} enrolled students
                     </p>
                   </CardContent>
                 </Card>

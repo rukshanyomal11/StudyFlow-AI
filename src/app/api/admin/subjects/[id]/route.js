@@ -5,6 +5,8 @@ import Subject from '@/models/Subject';
 import { requireAuth } from '@/lib/getSession';
 
 const allowedPriorities = new Set(['low', 'medium', 'high']);
+const allowedStatuses = new Set(['Active', 'Archived', 'Draft']);
+const allowedDifficulties = new Set(['Beginner', 'Intermediate', 'Advanced']);
 
 function createErrorResponse(error) {
   console.error('Admin subject detail API error:', error);
@@ -30,7 +32,13 @@ function createErrorResponse(error) {
       error.message === 'Subject name is required' ||
       error.message === 'Priority must be one of: low, medium, high' ||
       error.message === 'Exam date must be a valid date' ||
-      error.message === 'Progress must be a number between 0 and 100'
+      error.message === 'Progress must be a number between 0 and 100' ||
+      error.message === 'Status must be one of: Active, Archived, Draft' ||
+      error.message ===
+        'Difficulty must be one of: Beginner, Intermediate, Advanced' ||
+      error.message === 'Mentors must be an array of names' ||
+      error.message === 'Enrolled students must be a non-negative number' ||
+      error.message === 'Quizzes must be a non-negative number'
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -79,6 +87,32 @@ function normalizeProgress(value) {
   }
 
   return Number.NaN;
+}
+
+function normalizeCount(value, fieldName) {
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${fieldName} must be a non-negative number`);
+  }
+
+  return Math.round(parsed);
+}
+
+function normalizeMentors(value) {
+  if (!Array.isArray(value)) {
+    throw new Error('Mentors must be an array of names');
+  }
+
+  return value
+    .filter((mentor) => typeof mentor === 'string')
+    .map((mentor) => mentor.trim())
+    .filter(Boolean);
 }
 
 async function getSubjectId(context) {
@@ -142,6 +176,51 @@ function buildUpdatePayload(body) {
     }
 
     updates.progress = progress;
+  }
+
+  if ('categoryId' in body) {
+    updates.categoryId =
+      typeof body.categoryId === 'string' && body.categoryId.trim()
+        ? body.categoryId.trim()
+        : 'general';
+  }
+
+  if ('status' in body) {
+    const status = typeof body.status === 'string' ? body.status.trim() : '';
+
+    if (!allowedStatuses.has(status)) {
+      throw new Error('Status must be one of: Active, Archived, Draft');
+    }
+
+    updates.status = status;
+  }
+
+  if ('difficulty' in body) {
+    const difficulty =
+      typeof body.difficulty === 'string' ? body.difficulty.trim() : '';
+
+    if (!allowedDifficulties.has(difficulty)) {
+      throw new Error(
+        'Difficulty must be one of: Beginner, Intermediate, Advanced',
+      );
+    }
+
+    updates.difficulty = difficulty;
+  }
+
+  if ('mentors' in body) {
+    updates.mentors = normalizeMentors(body.mentors);
+  }
+
+  if ('enrolledStudents' in body) {
+    updates.enrolledStudents = normalizeCount(
+      body.enrolledStudents,
+      'Enrolled students',
+    );
+  }
+
+  if ('quizzes' in body) {
+    updates.quizzes = normalizeCount(body.quizzes, 'Quizzes');
   }
 
   if (Object.keys(updates).length === 0) {

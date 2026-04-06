@@ -101,6 +101,14 @@ export function serializeMaterial(material) {
   const id = extractObjectId(material?._id || material?.id);
   const subjectId = extractObjectId(material?.subjectId);
   const mentorId = extractObjectId(material?.mentorId);
+  const visibility =
+    normalizeMaterialVisibility(material?.visibility) || 'Assigned Students';
+  const status =
+    typeof material?.status === 'string' && ['Published', 'Draft', 'Archived'].includes(material.status)
+      ? material.status
+      : visibility === 'Private Draft'
+        ? 'Draft'
+        : 'Published';
 
   return {
     _id: id,
@@ -114,8 +122,8 @@ export function serializeMaterial(material) {
     description:
       typeof material?.description === 'string' ? material.description.trim() : '',
     fileUrl: typeof material?.fileUrl === 'string' ? material.fileUrl.trim() : '',
-    visibility:
-      normalizeMaterialVisibility(material?.visibility) || 'Assigned Students',
+    visibility,
+    status,
     createdAt: material?.createdAt || null,
     updatedAt: material?.updatedAt || null,
   };

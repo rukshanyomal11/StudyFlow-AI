@@ -4,6 +4,8 @@ import Subject from '@/models/Subject';
 import { requireAuth } from '@/lib/getSession';
 
 const allowedPriorities = new Set(['low', 'medium', 'high']);
+const allowedStatuses = new Set(['Active', 'Archived', 'Draft']);
+const allowedDifficulties = new Set(['Beginner', 'Intermediate', 'Advanced']);
 
 function createErrorResponse(error) {
   console.error('Admin subjects API error:', error);
@@ -22,9 +24,14 @@ function createErrorResponse(error) {
       error.message === 'Request body must be a JSON object' ||
       error.message === 'Subject name is required' ||
       error.message === 'Priority must be one of: low, medium, high' ||
-      error.message === 'Exam date is required' ||
       error.message === 'Exam date must be a valid date' ||
-      error.message === 'Progress must be a number between 0 and 100'
+      error.message === 'Progress must be a number between 0 and 100' ||
+      error.message === 'Status must be one of: Active, Archived, Draft' ||
+      error.message ===
+        'Difficulty must be one of: Beginner, Intermediate, Advanced' ||
+      error.message === 'Mentors must be an array of names' ||
+      error.message === 'Enrolled students must be a non-negative number' ||
+      error.message === 'Quizzes must be a non-negative number'
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -75,6 +82,40 @@ function normalizeProgress(value) {
   return Number.NaN;
 }
 
+function normalizeCount(value, fieldName) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${fieldName} must be a non-negative number`);
+  }
+
+  return Math.round(parsed);
+}
+
+function normalizeMentors(value) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error('Mentors must be an array of names');
+  }
+
+  return value
+    .filter((mentor) => typeof mentor === 'string')
+    .map((mentor) => mentor.trim())
+    .filter(Boolean);
+}
+
 function buildCreatePayload(body, userId) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Request body must be a JSON object');
@@ -86,20 +127,19 @@ function buildCreatePayload(body, userId) {
     throw new Error('Subject name is required');
   }
 
-  if (body.examDate === undefined || body.examDate === null || body.examDate === '') {
-    throw new Error('Exam date is required');
-  }
+  const examDateInput =
+    body.examDate === undefined || body.examDate === null || body.examDate === ''
+      ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+      : new Date(String(body.examDate));
 
-  const examDate = new Date(String(body.examDate));
-
-  if (Number.isNaN(examDate.getTime())) {
+  if (Number.isNaN(examDateInput.getTime())) {
     throw new Error('Exam date must be a valid date');
   }
 
   const subjectData = {
     userId,
     name,
-    examDate,
+    examDate: examDateInput,
   };
 
   if (body.description !== undefined) {
@@ -125,6 +165,51 @@ function buildCreatePayload(body, userId) {
     }
 
     subjectData.progress = progress;
+  }
+
+  if (body.categoryId !== undefined) {
+    subjectData.categoryId =
+      typeof body.categoryId === 'string' && body.categoryId.trim()
+        ? body.categoryId.trim()
+        : 'general';
+  }
+
+  if (body.status !== undefined) {
+    const status = typeof body.status === 'string' ? body.status.trim() : '';
+
+    if (!allowedStatuses.has(status)) {
+      throw new Error('Status must be one of: Active, Archived, Draft');
+    }
+
+    subjectData.status = status;
+  }
+
+  if (body.difficulty !== undefined) {
+    const difficulty =
+      typeof body.difficulty === 'string' ? body.difficulty.trim() : '';
+
+    if (!allowedDifficulties.has(difficulty)) {
+      throw new Error(
+        'Difficulty must be one of: Beginner, Intermediate, Advanced',
+      );
+    }
+
+    subjectData.difficulty = difficulty;
+  }
+
+  const mentors = normalizeMentors(body.mentors);
+  if (mentors !== undefined) {
+    subjectData.mentors = mentors;
+  }
+
+  const enrolledStudents = normalizeCount(body.enrolledStudents, 'Enrolled students');
+  if (enrolledStudents !== undefined) {
+    subjectData.enrolledStudents = enrolledStudents;
+  }
+
+  const quizzes = normalizeCount(body.quizzes, 'Quizzes');
+  if (quizzes !== undefined) {
+    subjectData.quizzes = quizzes;
   }
 
   return subjectData;

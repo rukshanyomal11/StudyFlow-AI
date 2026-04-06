@@ -33,6 +33,37 @@ const subjectSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    categoryId: {
+      type: String,
+      default: 'general',
+      trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Archived', 'Draft'],
+      default: 'Active',
+    },
+    difficulty: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced'],
+      default: 'Beginner',
+    },
+    mentors: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    enrolledStudents: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    quizzes: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true,

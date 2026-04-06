@@ -38,8 +38,14 @@ type ContentVisibility = "Assigned Students" | "All Assigned Cohorts" | "Private
 type TabType = "All" | ContentType;
 type ModalMode = "create" | "edit" | null;
 
+interface SubjectOption {
+  id: string;
+  name: string;
+}
+
 interface ContentItem {
   id: string;
+  subjectId: string;
   title: string;
   type: ContentType;
   subject: string;
@@ -54,11 +60,11 @@ interface ContentItem {
 
 interface ContentDraft {
   title: string;
-  subject: string;
+  subjectId: string;
   type: ContentType;
   description: string;
   visibility: ContentVisibility;
-  fileName: string;
+  fileUrl: string;
 }
 
 function formatRelativeDate(value?: string | Date) {
@@ -81,6 +87,23 @@ function formatRelativeDate(value?: string | Date) {
   return `${Math.floor(diffDays / 7)} weeks ago`;
 }
 
+function getFileNameFromUrl(fileUrl: string) {
+  if (!fileUrl) {
+    return "Untitled file";
+  }
+
+  const normalizedFileUrl = fileUrl.split("?")[0] || fileUrl;
+  return normalizedFileUrl.split("/").pop() || fileUrl;
+}
+
+function normalizeStatus(value: unknown, visibility: ContentVisibility) {
+  if (value === "Published" || value === "Draft" || value === "Archived") {
+    return value;
+  }
+
+  return visibility === "Private Draft" ? "Draft" : "Published";
+}
+
 function toContentItem(item: any): ContentItem {
   const title = typeof item?.title === "string" ? item.title : "Untitled";
   const type: ContentType = ["Notes", "PDFs", "Videos", "Assignments"].includes(item?.type)
@@ -93,7 +116,7 @@ function toContentItem(item: any): ContentItem {
         ? item.subjectId.name
         : "General";
   const fileUrl = typeof item?.fileUrl === "string" ? item.fileUrl : "";
-  const fileName = fileUrl ? fileUrl.split("/").pop() || `${title}.pdf` : `${title}.pdf`;
+  const fileName = getFileNameFromUrl(fileUrl || `${title}.pdf`);
   const visibility: ContentVisibility = [
     "Assigned Students",
     "All Assigned Cohorts",
@@ -101,15 +124,24 @@ function toContentItem(item: any): ContentItem {
   ].includes(item?.visibility)
     ? item.visibility
     : "Assigned Students";
+  const status = normalizeStatus(item?.status, visibility);
 
   return {
     id: item?._id || item?.id || `content-${Date.now()}`,
+    subjectId:
+      typeof item?.subjectId === "string"
+        ? item.subjectId
+        : typeof item?.subjectId?._id === "string"
+          ? item.subjectId._id
+          : typeof item?.subjectId?.id === "string"
+            ? item.subjectId.id
+            : "",
     title,
     type,
     subject: subjectName,
     uploadDate: formatRelativeDate(item?.createdAt),
-    assignedTo: visibility === "Private Draft" ? "Private" : "Assigned cohort",
-    status: visibility === "Private Draft" ? "Draft" : "Published",
+    assignedTo: visibility === "Private Draft" ? "Private draft" : "Assigned cohort",
+    status,
     description: typeof item?.description === "string" ? item.description : "",
     visibility,
     fileName,
@@ -119,23 +151,13 @@ function toContentItem(item: any): ContentItem {
 
 const CONTENT_TABS: TabType[] = ["All", "Notes", "PDFs", "Videos", "Assignments"];
 
-const INITIAL_CONTENT: ContentItem[] = [
-  { id: "content-01", title: "Organic Chemistry Reaction Notes", type: "Notes", subject: "Chemistry", uploadDate: "Today", assignedTo: "Chemistry cohort (42)", status: "Published", description: "Concise reaction pathway notes with key patterns and quick memory cues.", visibility: "Assigned Students", fileName: "organic-reaction-notes.pdf", isRecent: true },
-  { id: "content-02", title: "Mechanics Worked Examples Pack", type: "PDFs", subject: "Physics", uploadDate: "Yesterday", assignedTo: "Physics cohort (31)", status: "Published", description: "Step-by-step solutions for force diagrams, momentum, and motion breakdowns.", visibility: "Assigned Students", fileName: "mechanics-examples-pack.pdf", isRecent: true },
-  { id: "content-03", title: "Algebra Revision Walkthrough", type: "Videos", subject: "Mathematics", uploadDate: "2 days ago", assignedTo: "Grade 11 algebra group", status: "Published", description: "A short mentor-led walkthrough covering equation simplification and factorization.", visibility: "All Assigned Cohorts", fileName: "algebra-revision-walkthrough.mp4", isRecent: true },
-  { id: "content-04", title: "Timed Essay Practice Brief", type: "Assignments", subject: "Literature", uploadDate: "4 days ago", assignedTo: "Writing improvement group", status: "Draft", description: "A structured assignment brief for timed essay intros and thesis clarity.", visibility: "Private Draft", fileName: "timed-essay-practice.docx", isRecent: false },
-  { id: "content-05", title: "Biology Cell Structure Notes", type: "Notes", subject: "Biology", uploadDate: "1 week ago", assignedTo: "Grade 10 biology class", status: "Published", description: "High-yield revision notes with diagrams and quick summary cues.", visibility: "Assigned Students", fileName: "biology-cell-structure.pdf", isRecent: false },
-  { id: "content-06", title: "Reading Comprehension Skill Drill", type: "PDFs", subject: "English", uploadDate: "1 week ago", assignedTo: "Reading support group", status: "Archived", description: "Past comprehension passages with answer frameworks and annotation hints.", visibility: "Assigned Students", fileName: "reading-comprehension-drill.pdf", isRecent: false },
-  { id: "content-07", title: "Vector Basics Visual Lesson", type: "Videos", subject: "Mathematics", uploadDate: "2 weeks ago", assignedTo: "Advanced Level maths", status: "Published", description: "A visual explainer introducing vector notation, magnitude, and direction.", visibility: "All Assigned Cohorts", fileName: "vector-basics-lesson.mp4", isRecent: false },
-];
-
 const EMPTY_DRAFT: ContentDraft = {
   title: "",
-  subject: "",
+  subjectId: "",
   type: "Notes",
   description: "",
   visibility: "Assigned Students",
-  fileName: "",
+  fileUrl: "",
 };
 
 const inputClassName =
@@ -173,8 +195,8 @@ function SectionCard({
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">
+            <CardTitle className="text-xl text-slate-950 dark:text-slate-950!">{title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-600!">
               {description}
             </CardDescription>
           </div>
@@ -204,15 +226,15 @@ function SummaryCard({
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-500!">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-950!">
               {value}
             </p>
-            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-500!">{detail}</p>
           </div>
           <span
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
               accentClassName,
             )}
           >
@@ -239,7 +261,10 @@ function statusBadgeClass(status: ContentStatus) {
 
 export default function MentorContentPage() {
   const [materials, setMaterials] = useState<ContentItem[]>([]);
+  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [mutatingId, setMutatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("All");
   const [selectedMaterialId, setSelectedMaterialId] = useState("");
@@ -250,14 +275,38 @@ export default function MentorContentPage() {
     "Loading content...",
   );
 
+  const subjectOptions = subjects.length ? subjects : [];
+
   // Fetch content on mount
   useEffect(() => {
+    let isActive = true;
+
     const fetchContent = async () => {
       try {
         setLoading(true);
-        const data = await mentorService.getContent();
-        const mappedMaterials = Array.isArray(data) ? data.map(toContentItem) : [];
+        const [contentData, subjectData] = await Promise.all([
+          mentorService.getContent(),
+          mentorService.getSubjects(),
+        ]);
+
+        const mappedMaterials = Array.isArray(contentData)
+          ? contentData.map(toContentItem)
+          : [];
+        const mappedSubjects = Array.isArray(subjectData)
+          ? subjectData
+              .map((subject: any) => ({
+                id: typeof subject?._id === "string" ? subject._id : typeof subject?.id === "string" ? subject.id : "",
+                name: typeof subject?.name === "string" ? subject.name : "Unnamed subject",
+              }))
+              .filter((subject: SubjectOption) => Boolean(subject.id))
+          : [];
+
+        if (!isActive) {
+          return;
+        }
+
         setMaterials(mappedMaterials);
+        setSubjects(mappedSubjects);
         if (mappedMaterials.length > 0) {
           setSelectedMaterialId(mappedMaterials[0].id);
           setStatusMessage("Select a material to review status, visibility, and assignment coverage.");
@@ -266,22 +315,25 @@ export default function MentorContentPage() {
         }
         setError(null);
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "Failed to fetch content";
-        if (errorMsg.includes("503") || errorMsg.toLowerCase().includes("database is unavailable")) {
-          setMaterials(INITIAL_CONTENT);
-          setSelectedMaterialId(INITIAL_CONTENT[0]?.id ?? "");
-          setError(null);
-          setStatusMessage("Database is currently unavailable. Showing sample content until connection is restored.");
-        } else {
-          setError(errorMsg);
-          setStatusMessage(`Error: ${errorMsg}`);
+        if (!isActive) {
+          return;
         }
+
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch content";
+        setError(errorMsg);
+        setStatusMessage(`Error: ${errorMsg}`);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     };
 
     fetchContent();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const filteredMaterials = useMemo(
@@ -309,6 +361,7 @@ export default function MentorContentPage() {
     setEditingId(null);
     setDraft({
       ...EMPTY_DRAFT,
+      subjectId: subjects[0]?.id ?? "",
       type: type ?? "Notes",
     });
     setStatusMessage("Prepare a new material and assign it to the right learners.");
@@ -319,11 +372,11 @@ export default function MentorContentPage() {
     setEditingId(item.id);
     setDraft({
       title: item.title,
-      subject: item.subject,
+      subjectId: item.subjectId,
       type: item.type,
       description: item.description,
       visibility: item.visibility,
-      fileName: item.fileName,
+      fileUrl: item.fileName,
     });
     setSelectedMaterialId(item.id);
     setStatusMessage(`Editing ${item.title}.`);
@@ -344,59 +397,58 @@ export default function MentorContentPage() {
 
     setDraft((current) => ({
       ...current,
-      fileName: file.name,
+      fileUrl: file.name,
     }));
   };
 
-  const handleSaveMaterial = () => {
+  const handleSaveMaterial = async () => {
     const title = draft.title.trim();
-    const subject = draft.subject.trim();
+    const subjectId = draft.subjectId.trim();
     const description = draft.description.trim();
+    const fileUrl = draft.fileUrl.trim();
 
-    if (!title || !subject || !description || !draft.fileName) {
+    if (!title || !subjectId || !description || !fileUrl) {
       setStatusMessage("Add a title, subject, description, and attachment before saving.");
       return;
     }
 
-    if (modalMode === "edit" && editingId) {
-      setMaterials((current) =>
-        current.map((item) =>
-          item.id === editingId
-            ? {
-                ...item,
-                title,
-                subject,
-                type: draft.type,
-                description,
-                visibility: draft.visibility,
-                fileName: draft.fileName,
-              }
-            : item,
-        ),
+    setIsSaving(true);
+
+    try {
+      const payload = {
+        title,
+        subjectId,
+        type: draft.type,
+        description,
+        visibility: draft.visibility,
+        fileUrl,
+      };
+
+      const response =
+        modalMode === "edit" && editingId
+          ? await mentorService.updateContent(editingId, payload)
+          : await mentorService.createContent(payload);
+
+      const nextMaterial = toContentItem(response?.material ?? response);
+
+      setMaterials((current) => {
+        if (modalMode === "edit" && editingId) {
+          return current.map((item) => (item.id === editingId ? nextMaterial : item));
+        }
+
+        return [nextMaterial, ...current];
+      });
+      setSelectedMaterialId(nextMaterial.id);
+      setStatusMessage(
+        modalMode === "edit" ? `Updated ${nextMaterial.title}.` : `Uploaded ${nextMaterial.title}.`,
       );
-      setStatusMessage(`Updated ${title}.`);
       closeModal();
-      return;
+    } catch (saveError) {
+      const errorMessage = saveError instanceof Error ? saveError.message : "Unable to save material right now.";
+      setStatusMessage(errorMessage);
+    } finally {
+      setIsSaving(false);
     }
-
-    const newItem: ContentItem = {
-      id: `content-${Date.now()}`,
-      title,
-      subject,
-      type: draft.type,
-      description,
-      visibility: draft.visibility,
-      fileName: draft.fileName,
-      uploadDate: "Today",
-      assignedTo: "Newly assigned cohort",
-      status: draft.visibility === "Private Draft" ? "Draft" : "Published",
-      isRecent: true,
-    };
-
-    setMaterials((current) => [newItem, ...current]);
-    setSelectedMaterialId(newItem.id);
-    setStatusMessage(`Uploaded ${newItem.title}.`);
-    closeModal();
   };
 
   const handleView = (id: string) => {
@@ -421,24 +473,62 @@ export default function MentorContentPage() {
     setStatusMessage(`Assignment flow ready for ${item.title}.`);
   };
 
-  const handleArchive = (id: string) => {
-    setMaterials((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, status: "Archived" } : item,
-      ),
-    );
-
+  const handleArchive = async (id: string) => {
     const item = materials.find((material) => material.id === id);
-    if (item) {
+
+    if (!item) {
+      return;
+    }
+
+    setMutatingId(id);
+
+    try {
+      const response = await mentorService.updateContent(id, {
+        status: "Archived",
+      });
+      const updatedItem = toContentItem(response?.material ?? response);
+
+      setMaterials((current) =>
+        current.map((currentItem) =>
+          currentItem.id === id ? updatedItem : currentItem,
+        ),
+      );
       setStatusMessage(`${item.title} moved to archive.`);
+    } catch (archiveError) {
+      setStatusMessage(
+        archiveError instanceof Error
+          ? archiveError.message
+          : "Unable to archive material right now.",
+      );
+    } finally {
+      setMutatingId(null);
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const item = materials.find((material) => material.id === id);
-    setMaterials((current) => current.filter((material) => material.id !== id));
-    if (item) {
+
+    if (!item) {
+      return;
+    }
+
+    setMutatingId(id);
+
+    try {
+      await mentorService.deleteContent(id);
+      setMaterials((current) => current.filter((material) => material.id !== id));
+      if (selectedMaterialId === id) {
+        setSelectedMaterialId("");
+      }
       setStatusMessage(`${item.title} deleted from the library.`);
+    } catch (deleteError) {
+      setStatusMessage(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete material right now.",
+      );
+    } finally {
+      setMutatingId(null);
     }
   };
 
@@ -448,8 +538,8 @@ export default function MentorContentPage() {
       links={mentorSidebarLinks}
       loadingMessage="Loading your content workspace..."
     >
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
-        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
+      <div className="mx-auto max-w-400 space-y-8 pb-8 text-slate-950">
+        <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:border-sky-100! dark:bg-transparent! dark:text-slate-950!">
           <div
             className="absolute inset-0 opacity-95"
             style={{
@@ -460,16 +550,16 @@ export default function MentorContentPage() {
           <CardContent className="relative p-8 md:p-10 xl:p-12">
             <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl space-y-5">
-                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:!border-sky-200 dark:!bg-white dark:!text-sky-700">
+                <Badge className="rounded-full border border-sky-200 bg-white/80 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:border-sky-200! dark:bg-white! dark:text-sky-700!">
                   <FolderOpen className="mr-2 h-3.5 w-3.5" />
                   Mentor content library
                 </Badge>
 
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:text-slate-950!">
                     Content
                   </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:text-slate-600!">
                     Organize notes, PDFs, videos, and assignments in one clean
                     teaching workspace built for StudyFlow AI mentors.
                   </p>
@@ -478,6 +568,7 @@ export default function MentorContentPage() {
 
               <Button
                 className={cn("h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]", PRIMARY_BUTTON_CLASS_NAME)}
+                disabled={loading}
                 onClick={() => openCreateModal()}
                 type="button"
               >
@@ -539,7 +630,7 @@ export default function MentorContentPage() {
                 {filteredMaterials.map((item) => (
                   <div
                     className={cn(
-                      "grid grid-cols-[1.55fr_0.95fr_0.9fr_0.9fr_1.2fr_0.9fr_1.5fr] items-start gap-4 rounded-[24px] border p-4 transition",
+                      "grid grid-cols-[1.55fr_0.95fr_0.9fr_0.9fr_1.2fr_0.9fr_1.5fr] items-start gap-4 rounded-3xl border p-4 transition",
                       selectedMaterial?.id === item.id
                         ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
                         : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
@@ -560,19 +651,19 @@ export default function MentorContentPage() {
                         <Eye className="mr-2 h-4 w-4" />
                         View
                       </Button>
-                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => openEditModal(item)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => openEditModal(item)} type="button" variant="outline">
                         <PencilLine className="mr-2 h-4 w-4" />
                         Edit
                       </Button>
-                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleAssign(item.id)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => handleAssign(item.id)} type="button" variant="outline">
                         <Users className="mr-2 h-4 w-4" />
                         Assign
                       </Button>
-                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleArchive(item.id)} type="button" variant="outline">
+                      <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => void handleArchive(item.id)} type="button" variant="outline">
                         <Archive className="mr-2 h-4 w-4" />
                         Archive
                       </Button>
-                      <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" onClick={() => handleDelete(item.id)} type="button" variant="outline">
+                      <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" disabled={mutatingId === item.id || isSaving} onClick={() => void handleDelete(item.id)} type="button" variant="outline">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </Button>
@@ -624,16 +715,16 @@ export default function MentorContentPage() {
                       <Eye className="mr-2 h-4 w-4" />
                       View
                     </Button>
-                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => openEditModal(item)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => openEditModal(item)} type="button" variant="outline">
                       Edit
                     </Button>
-                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleAssign(item.id)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => handleAssign(item.id)} type="button" variant="outline">
                       Assign
                     </Button>
-                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => handleArchive(item.id)} type="button" variant="outline">
+                    <Button className={cn("h-9 rounded-2xl px-3", SECONDARY_BUTTON_CLASS_NAME)} disabled={mutatingId === item.id || isSaving} onClick={() => void handleArchive(item.id)} type="button" variant="outline">
                       Archive
                     </Button>
-                    <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" onClick={() => handleDelete(item.id)} type="button" variant="outline">
+                    <Button className="h-9 rounded-2xl border border-rose-200 bg-rose-50 px-3 text-rose-700 hover:bg-rose-100" disabled={mutatingId === item.id || isSaving} onClick={() => void handleDelete(item.id)} type="button" variant="outline">
                       Delete
                     </Button>
                   </div>
@@ -671,7 +762,7 @@ export default function MentorContentPage() {
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Subject
                       </p>
@@ -679,7 +770,7 @@ export default function MentorContentPage() {
                         {selectedMaterial.subject}
                       </p>
                     </div>
-                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Uploaded
                       </p>
@@ -687,7 +778,7 @@ export default function MentorContentPage() {
                         {selectedMaterial.uploadDate}
                       </p>
                     </div>
-                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Assigned To
                       </p>
@@ -695,7 +786,7 @@ export default function MentorContentPage() {
                         {selectedMaterial.assignedTo}
                       </p>
                     </div>
-                    <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Visibility
                       </p>
@@ -705,9 +796,9 @@ export default function MentorContentPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
+                  <div className="rounded-3xl border border-slate-200/90 bg-white/92 p-5 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.14)]">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
                         <Paperclip className="h-5 w-5" />
                       </span>
                       <div>
@@ -751,7 +842,7 @@ export default function MentorContentPage() {
               </div>
 
               <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                {statusMessage}
+                {loading ? "Loading your mentor content library..." : statusMessage}
               </div>
             </SectionCard>
           </div>
@@ -759,7 +850,7 @@ export default function MentorContentPage() {
 
         {modalMode ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
-            <div className="w-full max-w-2xl rounded-[32px] border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
+            <div className="w-full max-w-2xl rounded-4xl border border-slate-200 bg-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.45)]">
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-950">
@@ -780,7 +871,16 @@ export default function MentorContentPage() {
 
               <div className="grid gap-5 px-6 py-6 md:grid-cols-2">
                 <input className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="Title" value={draft.title} />
-                <input className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, subject: event.target.value }))} placeholder="Subject" value={draft.subject} />
+                <select className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, subjectId: event.target.value }))} value={draft.subjectId}>
+                  <option value="" disabled>
+                    Select subject
+                  </option>
+                  {subjectOptions.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
                 <select className={inputClassName} onChange={(event) => setDraft((current) => ({ ...current, type: event.target.value as ContentType }))} value={draft.type}>
                   <option value="Notes">Notes</option>
                   <option value="PDFs">PDFs</option>
@@ -798,15 +898,24 @@ export default function MentorContentPage() {
                 </div>
 
                 <div className="md:col-span-2">
+                  <input
+                    className={inputClassName}
+                    onChange={(event) => setDraft((current) => ({ ...current, fileUrl: event.target.value }))}
+                    placeholder="File URL or attachment name"
+                    value={draft.fileUrl}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
                   <label className="block">
                     <input accept="*" className="hidden" onChange={handleFileChange} type="file" />
-                    <span className="flex min-h-[108px] w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-600 transition hover:border-slate-400 hover:bg-slate-100">
+                    <span className="flex min-h-27 w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-600 transition hover:border-slate-400 hover:bg-slate-100">
                       <Upload className="mb-3 h-6 w-6 text-slate-500" />
                       <span className="font-medium text-slate-800">
-                        {draft.fileName || "Choose attachment"}
+                        {draft.fileUrl || "Choose attachment"}
                       </span>
                       <span className="mt-1 text-slate-500">
-                        Upload a file or keep the current attachment name for this demo.
+                        Upload a file or paste a file URL that will be saved with the material.
                       </span>
                     </span>
                   </label>
@@ -815,15 +924,15 @@ export default function MentorContentPage() {
 
               <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-slate-500">
-                  File uploads are local-only for now and ready to connect to storage later.
+                  Materials are stored in MongoDB and can be edited or archived from this page.
                 </p>
                 <div className="flex gap-3">
                   <Button className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)} onClick={closeModal} type="button" variant="outline">
                     Cancel
                   </Button>
-                  <Button className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)} onClick={handleSaveMaterial} type="button">
+                  <Button className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)} disabled={isSaving} onClick={() => void handleSaveMaterial()} type="button">
                     <Upload className="mr-2 h-4 w-4" />
-                    {modalMode === "create" ? "Upload Material" : "Save Changes"}
+                    {isSaving ? "Saving..." : modalMode === "create" ? "Upload Material" : "Save Changes"}
                   </Button>
                 </div>
               </div>

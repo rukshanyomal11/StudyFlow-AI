@@ -38,6 +38,12 @@ const materialSchema = new mongoose.Schema(
       default: 'Assigned Students',
       required: [true, 'Visibility is required'],
     },
+    status: {
+      type: String,
+      enum: ['Published', 'Draft', 'Archived'],
+      default: 'Published',
+      required: [true, 'Status is required'],
+    },
   },
   {
     timestamps: true,

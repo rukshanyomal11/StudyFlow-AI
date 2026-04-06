@@ -137,6 +137,21 @@ export const mentorService = {
   },
 
   // ============== CONTENT ==============
+  async getSubjects() {
+    try {
+      const response = await fetch('/api/subjects', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error(`Failed to fetch subjects: ${response.status}`);
+      const data = await response.json();
+      return data?.subjects || [];
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      throw error;
+    }
+  },
+
   async getContent() {
     try {
       const response = await fetch(`${API_BASE}/content`, {

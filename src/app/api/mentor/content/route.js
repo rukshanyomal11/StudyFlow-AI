@@ -172,6 +172,18 @@ function validateDescription(description) {
   }
 }
 
+function normalizeStatus(value, visibility) {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    if (['Published', 'Draft', 'Archived'].includes(trimmed)) {
+      return trimmed;
+    }
+  }
+
+  return visibility === 'Private Draft' ? 'Draft' : 'Published';
+}
+
 async function buildCreatePayload(body, currentUser) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Request body must be a JSON object');
@@ -186,6 +198,7 @@ async function buildCreatePayload(body, currentUser) {
     body.visibility === undefined
       ? 'Assigned Students'
       : normalizeMaterialVisibility(body.visibility);
+  const status = normalizeStatus(body.status, visibility);
 
   if (!title) {
     throw new Error('Material title is required');
@@ -226,6 +239,7 @@ async function buildCreatePayload(body, currentUser) {
       typeof body.description === 'string' ? body.description.trim() : '',
     fileUrl,
     visibility,
+    status,
   };
 }
 
