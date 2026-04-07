@@ -102,141 +102,6 @@ const ROLE_VALUES: UserRole[] = ["Student", "Mentor", "Admin"];
 const STATUS_VALUES: UserStatus[] = ["Active", "Blocked", "Pending"];
 const PLAN_VALUES: UserPlan[] = ["Free", "Pro", "Team", "Enterprise"];
 
-const INITIAL_USERS: AdminUserRecord[] = [
-  {
-    id: "usr-1001",
-    name: "Lena Jayasuriya",
-    email: "lena.j@studyflow.ai",
-    role: "Student",
-    plan: "Pro",
-    status: "Active",
-    joinedDate: "Mar 20, 2026",
-    lastActive: "5 mins ago",
-    subjects: ["Mathematics", "Physics", "ICT"],
-  },
-  {
-    id: "usr-1002",
-    name: "Dilan Fernando",
-    email: "dilan.f@studyflow.ai",
-    role: "Mentor",
-    plan: "Team",
-    status: "Active",
-    joinedDate: "Mar 18, 2026",
-    lastActive: "12 mins ago",
-    subjects: ["Chemistry", "Biology"],
-  },
-  {
-    id: "usr-1003",
-    name: "Maya Gunasekara",
-    email: "maya.g@studyflow.ai",
-    role: "Student",
-    plan: "Free",
-    status: "Pending",
-    joinedDate: "Mar 17, 2026",
-    lastActive: "28 mins ago",
-    subjects: ["English", "History"],
-  },
-  {
-    id: "usr-1004",
-    name: "Kavin De Silva",
-    email: "kavin.d@studyflow.ai",
-    role: "Admin",
-    plan: "Enterprise",
-    status: "Active",
-    joinedDate: "Mar 15, 2026",
-    lastActive: "42 mins ago",
-    subjects: ["Operations", "Moderation"],
-  },
-  {
-    id: "usr-1005",
-    name: "Nethmi Peris",
-    email: "nethmi.p@studyflow.ai",
-    role: "Student",
-    plan: "Free",
-    status: "Blocked",
-    joinedDate: "Mar 12, 2026",
-    lastActive: "1 hour ago",
-    subjects: ["Mathematics", "Accounting"],
-  },
-  {
-    id: "usr-1006",
-    name: "Aarav Iqbal",
-    email: "aarav.i@studyflow.ai",
-    role: "Mentor",
-    plan: "Pro",
-    status: "Active",
-    joinedDate: "Mar 10, 2026",
-    lastActive: "2 hours ago",
-    subjects: ["Economics", "Business Studies"],
-  },
-  {
-    id: "usr-1007",
-    name: "Sadia Nazeer",
-    email: "sadia.n@studyflow.ai",
-    role: "Student",
-    plan: "Team",
-    status: "Active",
-    joinedDate: "Mar 9, 2026",
-    lastActive: "3 hours ago",
-    subjects: ["Biology", "Chemistry"],
-  },
-  {
-    id: "usr-1008",
-    name: "Rohan Wickramage",
-    email: "rohan.w@studyflow.ai",
-    role: "Student",
-    plan: "Pro",
-    status: "Blocked",
-    joinedDate: "Mar 7, 2026",
-    lastActive: "5 hours ago",
-    subjects: ["ICT", "Mathematics"],
-  },
-  {
-    id: "usr-1009",
-    name: "Ishara Senanayake",
-    email: "ishara.s@studyflow.ai",
-    role: "Admin",
-    plan: "Enterprise",
-    status: "Active",
-    joinedDate: "Mar 5, 2026",
-    lastActive: "Today at 8:40 AM",
-    subjects: ["Security", "Permissions"],
-  },
-  {
-    id: "usr-1010",
-    name: "Tharushi Abeykoon",
-    email: "tharushi.a@studyflow.ai",
-    role: "Student",
-    plan: "Free",
-    status: "Pending",
-    joinedDate: "Mar 3, 2026",
-    lastActive: "Yesterday",
-    subjects: ["Literature", "History"],
-  },
-  {
-    id: "usr-1011",
-    name: "Marcus Perera",
-    email: "marcus.p@studyflow.ai",
-    role: "Mentor",
-    plan: "Team",
-    status: "Active",
-    joinedDate: "Mar 1, 2026",
-    lastActive: "Yesterday",
-    subjects: ["Physics", "Advanced Mathematics"],
-  },
-  {
-    id: "usr-1012",
-    name: "Amara Silva",
-    email: "amara.s@studyflow.ai",
-    role: "Student",
-    plan: "Enterprise",
-    status: "Active",
-    joinedDate: "Feb 25, 2026",
-    lastActive: "2 days ago",
-    subjects: ["Medicine", "Biology", "Chemistry"],
-  },
-];
-
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -255,6 +120,131 @@ function getTodayLabel() {
     day: "numeric",
     year: "numeric",
   }).format(new Date());
+}
+
+function formatDateLabel(value?: string) {
+  if (!value) {
+    return getTodayLabel();
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return getTodayLabel();
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsedDate);
+}
+
+function formatLastActive(value?: string) {
+  if (!value) {
+    return "Recently";
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Recently";
+  }
+
+  const diffMinutes = Math.floor((Date.now() - parsedDate.getTime()) / (1000 * 60));
+
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes} mins ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hours ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Yesterday";
+  return `${diffDays} days ago`;
+}
+
+function mapRoleFromApi(role: string): UserRole {
+  if (role === "mentor") return "Mentor";
+  if (role === "admin") return "Admin";
+  return "Student";
+}
+
+function mapRoleToApi(role: UserRole) {
+  return role.toLowerCase();
+}
+
+function mapPlanFromApi(plan: string): UserPlan {
+  if (plan === "free") return "Free";
+  if (plan === "mentor") return "Team";
+  return "Pro";
+}
+
+function mapPlanToApi(plan: UserPlan) {
+  if (plan === "Free") return "free";
+  if (plan === "Team") return "mentor";
+  if (plan === "Enterprise") return "pro";
+  return "pro";
+}
+
+function mapStatusFromApi(isActive: boolean, isEmailVerified: boolean): UserStatus {
+  if (!isActive) {
+    return "Blocked";
+  }
+
+  if (!isEmailVerified) {
+    return "Pending";
+  }
+
+  return "Active";
+}
+
+function mapStatusToApi(status: UserStatus) {
+  if (status === "Blocked") {
+    return { isActive: false, isEmailVerified: false };
+  }
+
+  if (status === "Pending") {
+    return { isActive: true, isEmailVerified: false };
+  }
+
+  return { isActive: true, isEmailVerified: true };
+}
+
+function mapApiUserToRecord(user: any): AdminUserRecord {
+  const subjects = Array.isArray(user?.subjectExpertise)
+    ? user.subjectExpertise.filter((item: unknown) => typeof item === "string")
+    : [];
+
+  return {
+    id: user?._id || user?.id || `usr-${Date.now()}`,
+    name: typeof user?.name === "string" ? user.name : "Unnamed User",
+    email: typeof user?.email === "string" ? user.email : "",
+    role: mapRoleFromApi(typeof user?.role === "string" ? user.role : "student"),
+    plan: mapPlanFromApi(typeof user?.plan === "string" ? user.plan : "pro"),
+    status: mapStatusFromApi(Boolean(user?.isActive), Boolean(user?.isEmailVerified)),
+    joinedDate: formatDateLabel(user?.createdAt),
+    lastActive: formatLastActive(user?.updatedAt),
+    subjects,
+  };
+}
+
+async function readApiError(response: Response, fallbackMessage: string) {
+  try {
+    const data = await response.json();
+
+    if (typeof data?.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+  } catch {
+    return fallbackMessage;
+  }
+
+  return fallbackMessage;
 }
 
 function getEmptyFormState(): UserFormState {
@@ -583,7 +573,10 @@ function RowActionsMenu({
 }
 
 export default function AdminUsersManagementPage() {
-  const [users, setUsers] = useState<AdminUserRecord[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<AdminUserRecord[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isSavingUser, setIsSavingUser] = useState(false);
+  const [pendingActionUserId, setPendingActionUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All roles");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All statuses");
@@ -598,6 +591,55 @@ export default function AdminUsersManagementPage() {
   });
   const [formState, setFormState] = useState<UserFormState>(getEmptyFormState());
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadUsers = async () => {
+      setIsLoadingUsers(true);
+
+      try {
+        const response = await fetch("/api/admin/users", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(
+            await readApiError(response, "Unable to load users right now."),
+          );
+        }
+
+        const data = await response.json();
+        const nextUsers = Array.isArray(data?.users)
+          ? data.users.map(mapApiUserToRecord)
+          : [];
+
+        if (!isActive) {
+          return;
+        }
+
+        setUsers(nextUsers);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setFormError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load users right now.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingUsers(false);
+        }
+      }
+    };
+
+    void loadUsers();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!panelState.open) {
@@ -741,28 +783,93 @@ export default function AdminUsersManagementPage() {
     });
   }
 
-  function handleBulkStatus(nextStatus: UserStatus) {
+  async function handleBulkStatus(nextStatus: UserStatus) {
     if (selectedIds.length === 0) {
       return;
     }
 
-    setUsers((current) =>
-      current.map((user) =>
-        selectedIds.includes(user.id) ? { ...user, status: nextStatus } : user,
-      ),
-    );
+    setIsSavingUser(true);
+
+    try {
+      const statusPayload = mapStatusToApi(nextStatus);
+      const updatedUsers = await Promise.all(
+        selectedIds.map(async (userId) => {
+          const response = await fetch(`/api/admin/users/${userId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(statusPayload),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              await readApiError(response, "Unable to update user status right now."),
+            );
+          }
+
+          const data = await response.json();
+          return mapApiUserToRecord(data?.user);
+        }),
+      );
+
+      const updatesById = new Map(updatedUsers.map((user) => [user.id, user]));
+      setUsers((current) =>
+        current.map((user) => updatesById.get(user.id) || user),
+      );
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update user status right now.",
+      );
+    } finally {
+      setIsSavingUser(false);
+    }
   }
 
-  function handleBulkRoleAssign() {
+  async function handleBulkRoleAssign() {
     if (selectedIds.length === 0) {
       return;
     }
 
-    setUsers((current) =>
-      current.map((user) =>
-        selectedIds.includes(user.id) ? { ...user, role: bulkRole } : user,
-      ),
-    );
+    setIsSavingUser(true);
+
+    try {
+      const updatedUsers = await Promise.all(
+        selectedIds.map(async (userId) => {
+          const response = await fetch(`/api/admin/users/${userId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ role: mapRoleToApi(bulkRole) }),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              await readApiError(response, "Unable to assign role right now."),
+            );
+          }
+
+          const data = await response.json();
+          return mapApiUserToRecord(data?.user);
+        }),
+      );
+
+      const updatesById = new Map(updatedUsers.map((user) => [user.id, user]));
+      setUsers((current) =>
+        current.map((user) => updatesById.get(user.id) || user),
+      );
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to assign role right now.",
+      );
+    } finally {
+      setIsSavingUser(false);
+    }
   }
 
   function handleExportUsers() {
@@ -770,27 +877,54 @@ export default function AdminUsersManagementPage() {
     exportUsersCsv(exportRows);
   }
 
-  function handleToggleBlocked(userId: string) {
-    setUsers((current) =>
-      current.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              status: user.status === "Blocked" ? "Active" : "Blocked",
-            }
-          : user,
-      ),
-    );
+  async function handleToggleBlocked(userId: string) {
+    const targetUser = users.find((user) => user.id === userId);
 
-    if (panelState.userId === userId) {
-      setFormState((current) => ({
-        ...current,
-        status: current.status === "Blocked" ? "Active" : "Blocked",
-      }));
+    if (!targetUser) {
+      return;
+    }
+
+    const nextStatus: UserStatus =
+      targetUser.status === "Blocked" ? "Active" : "Blocked";
+    setPendingActionUserId(userId);
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mapStatusToApi(nextStatus)),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to update account status right now."),
+        );
+      }
+
+      const data = await response.json();
+      const updatedUser = mapApiUserToRecord(data?.user);
+
+      setUsers((current) =>
+        current.map((user) => (user.id === userId ? updatedUser : user)),
+      );
+
+      if (panelState.userId === userId) {
+        setFormState(createFormState(updatedUser));
+      }
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update account status right now.",
+      );
+    } finally {
+      setPendingActionUserId(null);
     }
   }
 
-  function handleDeleteUser(userId: string) {
+  async function handleDeleteUser(userId: string) {
     const user = users.find((entry) => entry.id === userId);
 
     if (!user) {
@@ -798,18 +932,45 @@ export default function AdminUsersManagementPage() {
     }
 
     const didConfirm = window.confirm(
-      `Delete ${user.name} from StudyFlow AI? This demo action updates the local table state.`,
+      `Delete ${user.name} from StudyFlow AI? This will deactivate the account in the database.`,
     );
 
     if (!didConfirm) {
       return;
     }
 
-    setUsers((current) => current.filter((entry) => entry.id !== userId));
-    setSelectedIds((current) => current.filter((id) => id !== userId));
+    setPendingActionUserId(userId);
 
-    if (panelState.userId === userId) {
-      closePanel();
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to deactivate user right now."),
+        );
+      }
+
+      const data = await response.json();
+      const updatedUser = mapApiUserToRecord(data?.user);
+
+      setUsers((current) =>
+        current.map((entry) => (entry.id === userId ? updatedUser : entry)),
+      );
+      setSelectedIds((current) => current.filter((id) => id !== userId));
+
+      if (panelState.userId === userId) {
+        setFormState(createFormState(updatedUser));
+      }
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to deactivate user right now.",
+      );
+    } finally {
+      setPendingActionUserId(null);
     }
   }
 
@@ -820,7 +981,7 @@ export default function AdminUsersManagementPage() {
     setPlanFilter("All plans");
   }
 
-  function handleSaveUser() {
+  async function handleSaveUser() {
     const trimmedName = formState.name.trim();
     const trimmedEmail = formState.email.trim().toLowerCase();
     const subjects = parseSubjects(formState.subjects);
@@ -840,22 +1001,49 @@ export default function AdminUsersManagementPage() {
       return;
     }
 
-    const normalizedUser: AdminUserRecord = {
-      id: panelState.userId ?? `usr-${Date.now()}`,
-      name: trimmedName,
-      email: trimmedEmail,
-      role: formState.role,
-      plan: formState.plan,
-      status: formState.status,
-      joinedDate:
-        panelState.mode === "create" ? getTodayLabel() : formState.joinedDate,
-      lastActive:
-        panelState.mode === "create" ? "Just now" : formState.lastActive,
-      subjects,
-    };
+    setIsSavingUser(true);
 
-    if (panelState.mode === "create") {
-      setUsers((current) => [normalizedUser, ...current]);
+    try {
+      const endpoint =
+        panelState.mode === "create"
+          ? "/api/admin/users"
+          : `/api/admin/users/${panelState.userId}`;
+      const method = panelState.mode === "create" ? "POST" : "PUT";
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          role: mapRoleToApi(formState.role),
+          plan: mapPlanToApi(formState.plan),
+          subjects,
+          ...mapStatusToApi(formState.status),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await readApiError(response, "Unable to save user right now."),
+        );
+      }
+
+      const data = await response.json();
+      const normalizedUser = mapApiUserToRecord(data?.user);
+
+      if (panelState.mode === "create") {
+        setUsers((current) => [normalizedUser, ...current]);
+      } else {
+        setUsers((current) =>
+          current.map((user) =>
+            user.id === normalizedUser.id ? normalizedUser : user,
+          ),
+        );
+      }
+
       setPanelState({
         open: true,
         mode: "view",
@@ -864,22 +1052,15 @@ export default function AdminUsersManagementPage() {
       });
       setFormState(createFormState(normalizedUser));
       setFormError("");
-      return;
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to save user right now.",
+      );
+    } finally {
+      setIsSavingUser(false);
     }
-
-    setUsers((current) =>
-      current.map((user) =>
-        user.id === normalizedUser.id ? normalizedUser : user,
-      ),
-    );
-    setPanelState({
-      open: true,
-      mode: "view",
-      context: "general",
-      userId: normalizedUser.id,
-    });
-    setFormState(createFormState(normalizedUser));
-    setFormError("");
   }
 
   return (
@@ -933,6 +1114,7 @@ export default function AdminUsersManagementPage() {
                 <Button
                   type="button"
                   className="h-12 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700"
+                  disabled={isLoadingUsers || isSavingUser}
                   onClick={openCreatePanel}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -942,6 +1124,16 @@ export default function AdminUsersManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm">
+          {isLoadingUsers
+            ? "Loading users from the backend..."
+            : isSavingUser
+              ? "Saving updates..."
+              : pendingActionUserId
+                ? "Applying account action..."
+                : "Users are synced with the backend."}
+        </div>
 
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-3">
           {summaryCards.map((item) => (
@@ -1054,7 +1246,7 @@ export default function AdminUsersManagementPage() {
                   type="button"
                   variant="outline"
                   className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-                  disabled={selectedIds.length === 0}
+                  disabled={selectedIds.length === 0 || isSavingUser}
                   onClick={handleBulkRoleAssign}
                 >
                   <UserCog className="mr-2 h-4 w-4" />
@@ -1065,7 +1257,7 @@ export default function AdminUsersManagementPage() {
                   type="button"
                   variant="outline"
                   className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-                  disabled={selectedIds.length === 0}
+                  disabled={selectedIds.length === 0 || isSavingUser}
                   onClick={() => handleBulkStatus("Active")}
                 >
                   <Activity className="mr-2 h-4 w-4" />
@@ -1076,7 +1268,7 @@ export default function AdminUsersManagementPage() {
                   type="button"
                   variant="outline"
                   className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-                  disabled={selectedIds.length === 0}
+                  disabled={selectedIds.length === 0 || isSavingUser}
                   onClick={() => handleBulkStatus("Blocked")}
                 >
                   <Ban className="mr-2 h-4 w-4" />
@@ -1086,7 +1278,7 @@ export default function AdminUsersManagementPage() {
                 <Button
                   type="button"
                   className="rounded-2xl bg-sky-600 px-4 text-white hover:bg-sky-700"
-                  disabled={filteredUsers.length === 0}
+                  disabled={filteredUsers.length === 0 || isLoadingUsers}
                   onClick={handleExportUsers}
                 >
                   <Download className="mr-2 h-4 w-4" />
@@ -1659,9 +1851,14 @@ export default function AdminUsersManagementPage() {
                       <Button
                         type="button"
                         className="rounded-2xl bg-sky-600 px-5 text-white hover:bg-sky-700"
+                        disabled={isSavingUser}
                         onClick={handleSaveUser}
                       >
-                        {panelState.mode === "create" ? "Create User" : "Save Changes"}
+                        {isSavingUser
+                          ? "Saving..."
+                          : panelState.mode === "create"
+                            ? "Create User"
+                            : "Save Changes"}
                       </Button>
                     ) : (
                       <Button

@@ -5,6 +5,7 @@ import User from '@/models/User';
 import { requireAuth } from '@/lib/getSession';
 
 const allowedRoles = new Set(['student', 'mentor', 'admin']);
+const allowedPlans = new Set(['free', 'pro', 'mentor']);
 
 function createErrorResponse(error) {
   console.error('Admin user detail API error:', error);
@@ -27,10 +28,17 @@ function createErrorResponse(error) {
       error.message === 'Invalid JSON body' ||
       error.message === 'Request body must be a JSON object' ||
       error.message === 'At least one user field is required' ||
+      error.message === 'Name is required' ||
+      error.message === 'Email is required' ||
+      error.message === 'Email must be valid' ||
       error.message === 'Role must be one of: student, mentor, admin' ||
+      error.message === 'Plan must be one of: free, pro, mentor' ||
       error.message === 'isActive must be a boolean' ||
+      error.message === 'isEmailVerified must be a boolean' ||
+      error.message === 'Subjects must be an array of strings or a comma-separated string' ||
       error.message === 'You cannot change your own admin role' ||
-      error.message === 'You cannot deactivate your own account'
+      error.message === 'You cannot deactivate your own account' ||
+      error.message === 'Email is already in use'
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -69,6 +77,15 @@ function normalizeRole(value) {
   return allowedRoles.has(normalizedValue) ? normalizedValue : null;
 }
 
+function normalizePlan(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalizedValue = value.trim().toLowerCase();
+  return allowedPlans.has(normalizedValue) ? normalizedValue : null;
+}
+
 function normalizeBoolean(value) {
   if (typeof value === 'boolean') {
     return value;
@@ -89,6 +106,27 @@ function normalizeBoolean(value) {
   return null;
 }
 
+function normalizeSubjects(value) {
+  if (Array.isArray(value)) {
+    if (!value.every((item) => typeof item === 'string')) {
+      throw new Error(
+        'Subjects must be an array of strings or a comma-separated string',
+      );
+    }
+
+    return value.map((item) => item.trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  throw new Error('Subjects must be an array of strings or a comma-separated string');
+}
+
 async function getUserId(context) {
   const params = await context.params;
   const { id } = params;
@@ -106,6 +144,31 @@ function buildUpdatePayload(body, currentUser, targetUserId) {
   }
 
   const updates = {};
+
+  if ('name' in body) {
+    const name = typeof body.name === 'string' ? body.name.trim() : '';
+
+    if (!name) {
+      throw new Error('Name is required');
+    }
+
+    updates.name = name;
+  }
+
+  if ('email' in body) {
+    const email =
+      typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+
+    if (!email) {
+      throw new Error('Email is required');
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error('Email must be valid');
+    }
+
+    updates.email = email;
+  }
 
   if ('role' in body) {
     const role = normalizeRole(body.role);
@@ -133,6 +196,32 @@ function buildUpdatePayload(body, currentUser, targetUserId) {
     }
 
     updates.isActive = isActive;
+  }
+
+  if ('isEmailVerified' in body) {
+    const isEmailVerified = normalizeBoolean(body.isEmailVerified);
+
+    if (isEmailVerified === null) {
+      throw new Error('isEmailVerified must be a boolean');
+    }
+
+    updates.isEmailVerified = isEmailVerified;
+  }
+
+  if ('plan' in body) {
+    const plan = normalizePlan(body.plan);
+
+    if (!plan) {
+      throw new Error('Plan must be one of: free, pro, mentor');
+    }
+
+    updates.plan = plan;
+  }
+
+  if ('subjects' in body || 'subjectExpertise' in body) {
+    updates.subjectExpertise = normalizeSubjects(
+      body.subjects ?? body.subjectExpertise,
+    );
   }
 
   if (Object.keys(updates).length === 0) {
@@ -172,6 +261,20 @@ export async function PUT(request, context) {
     const userId = await getUserId(context);
     const body = await readJsonBody(request);
     const updates = buildUpdatePayload(body, currentUser, userId);
+
+    if (updates.email) {
+      const existingUser = await User.findOne({
+        email: updates.email,
+        _id: { $ne: userId },
+      })
+        .select('_id')
+        .lean();
+
+      if (existingUser) {
+        throw new Error('Email is already in use');
+      }
+    }
+
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: updates },
