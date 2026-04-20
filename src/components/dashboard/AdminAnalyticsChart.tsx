@@ -28,7 +28,7 @@ export default function AdminAnalyticsChart({
   data,
 }: AdminAnalyticsChartProps) {
   return (
-    <div className="h-[320px] w-full">
+    <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
           <defs>

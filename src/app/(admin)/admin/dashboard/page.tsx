@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Area,
   AreaChart,
@@ -31,6 +33,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  RefreshCcw,
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { adminSidebarLinks } from "@/data/sidebarLinks";
@@ -45,6 +48,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  buildAdminDashboardViewModel,
+  loadAdminDashboardData,
+  type AdminDashboardViewModel,
+} from "@/lib/admin-dashboard-client";
 
 type HeroAction = {
   label: string;
@@ -54,48 +62,6 @@ type HeroAction = {
   className: string;
 };
 
-type StatItem = {
-  label: string;
-  value: string;
-  delta: string;
-  detail: string;
-  icon: LucideIcon;
-  accentClassName: string;
-};
-
-type RecentUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: "Student" | "Mentor" | "Admin";
-  status: "Active" | "Pending" | "Suspended";
-  lastSeen: string;
-  manageHref: string;
-};
-
-type GrowthPoint = {
-  month: string;
-  totalUsers: number;
-  activeUsers: number;
-};
-
-type HighlightItem = {
-  label: string;
-  value: string;
-  description: string;
-  icon: LucideIcon;
-  accentClassName: string;
-};
-
-type ReportItem = {
-  id: string;
-  title: string;
-  type: string;
-  status: "Open" | "Investigating" | "Resolved";
-  submittedAt: string;
-  reviewHref: string;
-};
-
 type QuickSetting = {
   title: string;
   description: string;
@@ -103,18 +69,6 @@ type QuickSetting = {
   icon: LucideIcon;
   accentClassName: string;
 };
-
-const adminProfile = {
-  name: "Amina Perera",
-  summary:
-    "StudyFlow AI is trending upward across signups, active study sessions, and premium upgrades. Keep moderation, growth, and platform controls moving from one clean command center.",
-};
-
-const heroHighlights = [
-  { label: "Open moderation queue", value: "14 items" },
-  { label: "Premium conversion", value: "27.8%" },
-  { label: "Study sessions this week", value: "12.6k" },
-];
 
 const heroActions: HeroAction[] = [
   {
@@ -141,183 +95,6 @@ const heroActions: HeroAction[] = [
     className: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
   },
 ];
-
-const stats: StatItem[] = [
-  {
-    label: "Total Users",
-    value: "15,420",
-    delta: "+8.4%",
-    detail: "vs last 7 days",
-    icon: Users,
-    accentClassName: "from-indigo-700 to-sky-600",
-  },
-  {
-    label: "Total Students",
-    value: "12,860",
-    delta: "+6.1%",
-    detail: "weekly learner growth",
-    icon: GraduationCap,
-    accentClassName: "from-sky-600 to-cyan-500",
-  },
-  {
-    label: "Total Mentors",
-    value: "1,148",
-    delta: "+3.7%",
-    detail: "mentor network expansion",
-    icon: Briefcase,
-    accentClassName: "from-teal-700 to-emerald-500",
-  },
-  {
-    label: "Active Users Today",
-    value: "3,942",
-    delta: "+11.2%",
-    detail: "higher than yesterday",
-    icon: Activity,
-    accentClassName: "from-emerald-600 to-teal-500",
-  },
-  {
-    label: "Premium Users",
-    value: "4,286",
-    delta: "+9.5%",
-    detail: "month-over-month growth",
-    icon: Crown,
-    accentClassName: "from-amber-500 to-orange-500",
-  },
-  {
-    label: "Quizzes Completed",
-    value: "182,430",
-    delta: "+14.8%",
-    detail: "completed this month",
-    icon: ClipboardCheck,
-    accentClassName: "from-orange-500 to-rose-500",
-  },
-];
-
-const recentUsers: RecentUser[] = [
-  {
-    id: "user-01",
-    name: "Lena Jayasuriya",
-    email: "lena.j@studyflow.ai",
-    role: "Student",
-    status: "Active",
-    lastSeen: "5 mins ago",
-    manageHref: "/admin/users?focus=user-01",
-  },
-  {
-    id: "user-02",
-    name: "Dilan Fernando",
-    email: "dilan.f@studyflow.ai",
-    role: "Mentor",
-    status: "Active",
-    lastSeen: "12 mins ago",
-    manageHref: "/admin/users?focus=user-02",
-  },
-  {
-    id: "user-03",
-    name: "Maya Gunasekara",
-    email: "maya.g@studyflow.ai",
-    role: "Student",
-    status: "Pending",
-    lastSeen: "28 mins ago",
-    manageHref: "/admin/users?focus=user-03",
-  },
-  {
-    id: "user-04",
-    name: "Kavin De Silva",
-    email: "kavin.d@studyflow.ai",
-    role: "Admin",
-    status: "Active",
-    lastSeen: "42 mins ago",
-    manageHref: "/admin/users?focus=user-04",
-  },
-  {
-    id: "user-05",
-    name: "Nethmi Peris",
-    email: "nethmi.p@studyflow.ai",
-    role: "Student",
-    status: "Suspended",
-    lastSeen: "1 hour ago",
-    manageHref: "/admin/users?focus=user-05",
-  },
-];
-
-const growthData: GrowthPoint[] = [
-  { month: "Oct", totalUsers: 10620, activeUsers: 2520 },
-  { month: "Nov", totalUsers: 11240, activeUsers: 2740 },
-  { month: "Dec", totalUsers: 11890, activeUsers: 2965 },
-  { month: "Jan", totalUsers: 12760, activeUsers: 3210 },
-  { month: "Feb", totalUsers: 13940, activeUsers: 3560 },
-  { month: "Mar", totalUsers: 15420, activeUsers: 3942 },
-];
-
-const analyticsHighlights: HighlightItem[] = [
-  {
-    label: "Most Active Feature",
-    value: "AI Quiz Builder",
-    description: "Drives 38% of all weekly admin-approved activity.",
-    icon: Sparkles,
-    accentClassName: "from-indigo-700 to-sky-600",
-  },
-  {
-    label: "Total Study Sessions",
-    value: "48,320",
-    description: "Up 14% from the previous 30-day window.",
-    icon: Clock3,
-    accentClassName: "from-teal-700 to-emerald-500",
-  },
-  {
-    label: "Most Popular Subject",
-    value: "Mathematics",
-    description: "Leads 21% of active study plans this month.",
-    icon: BookOpen,
-    accentClassName: "from-amber-500 to-orange-500",
-  },
-];
-
-const reports: ReportItem[] = [
-  {
-    id: "report-01",
-    title: "Spam links shared inside a student group thread",
-    type: "Community",
-    status: "Open",
-    submittedAt: "Mar 22, 2026",
-    reviewHref: "/admin/reports?report=report-01",
-  },
-  {
-    id: "report-02",
-    title: "Incorrect chemistry answer explanation flagged by mentors",
-    type: "Content",
-    status: "Investigating",
-    submittedAt: "Mar 21, 2026",
-    reviewHref: "/admin/reports?report=report-02",
-  },
-  {
-    id: "report-03",
-    title: "Repeated failed payments on premium renewal queue",
-    type: "Billing",
-    status: "Investigating",
-    submittedAt: "Mar 21, 2026",
-    reviewHref: "/admin/reports?report=report-03",
-  },
-  {
-    id: "report-04",
-    title: "Harassment complaint escalated from direct mentor chat",
-    type: "Safety",
-    status: "Resolved",
-    submittedAt: "Mar 20, 2026",
-    reviewHref: "/admin/reports?report=report-04",
-  },
-];
-
-const subscriptionSummary = {
-  freeUsers: 11134,
-  premiumUsers: 4286,
-  revenue: "$48,650 MRR",
-  annualRunRate: "$583,800 ARR",
-  conversionRate: "27.8%",
-  note:
-    "Premium growth is strongest among students using weekly plans, quiz streaks, and AI coaching recommendations together.",
-};
 
 const quickSettings: QuickSetting[] = [
   {
@@ -350,6 +127,27 @@ const quickSettings: QuickSetting[] = [
   },
 ];
 
+const statIcons: Record<string, LucideIcon> = {
+  Users,
+  GraduationCap,
+  Briefcase,
+  Activity,
+  Crown,
+  ClipboardCheck,
+};
+
+const analyticsIcons: Record<string, LucideIcon> = {
+  Sparkles,
+  Clock3,
+  BookOpen,
+};
+
+const reportStatusClasses: Record<string, string> = {
+  Open: "!border-amber-300 !bg-amber-100 !text-amber-900",
+  Investigating: "!border-sky-300 !bg-sky-100 !text-sky-900",
+  Resolved: "!border-emerald-300 !bg-emerald-100 !text-emerald-900",
+};
+
 function getGreeting() {
   const hour = new Date().getHours();
 
@@ -374,12 +172,23 @@ function getInitials(name: string) {
 
 function formatChartTick(value: number) {
   if (value >= 1000) {
-    const compact =
-      value >= 10000 ? (value / 1000).toFixed(0) : (value / 1000).toFixed(1);
+    const compact = value >= 10000 ? (value / 1000).toFixed(0) : (value / 1000).toFixed(1);
     return `${compact.replace(".0", "")}k`;
   }
 
   return `${value}`;
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+function formatPercentLabel(value: string) {
+  return value;
+}
+
+function parseCount(value: string) {
+  return Number.parseInt(value.replace(/,/g, ""), 10) || 0;
 }
 
 function SectionShell({
@@ -397,7 +206,7 @@ function SectionShell({
 }) {
   return (
     <Card
-      className={`rounded-[32px] border border-slate-200/90 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.08)] ${className}`}
+      className={`rounded-4xl border border-slate-200/90 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.08)] ${className}`}
     >
       <CardHeader className="gap-4 pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -417,7 +226,7 @@ function SectionShell({
   );
 }
 
-function RoleBadge({ role }: { role: RecentUser["role"] }) {
+function RoleBadge({ role }: { role: "Student" | "Mentor" | "Admin" }) {
   const className =
     role === "Admin"
       ? "!border-violet-300 !bg-violet-100 !text-violet-900"
@@ -435,12 +244,12 @@ function RoleBadge({ role }: { role: RecentUser["role"] }) {
 function StatusBadge({
   status,
 }: {
-  status: RecentUser["status"] | ReportItem["status"];
+  status: "Active" | "Pending" | "Suspended" | "Open" | "Investigating" | "Resolved";
 }) {
   const className =
     status === "Active" || status === "Resolved"
       ? "!border-emerald-300 !bg-emerald-100 !text-emerald-900"
-      : status === "Pending" || status === "Investigating"
+      : status === "Pending" || status === "Investigating" || status === "Open"
         ? "!border-amber-300 !bg-amber-100 !text-amber-900"
         : "!border-rose-300 !bg-rose-100 !text-rose-900";
 
@@ -451,7 +260,7 @@ function StatusBadge({
   );
 }
 
-function reportTypeClass(type: ReportItem["type"]) {
+function reportTypeClass(type: string) {
   if (type === "Community") {
     return "!border-fuchsia-200 !bg-fuchsia-50 !text-fuchsia-800";
   }
@@ -467,8 +276,98 @@ function reportTypeClass(type: ReportItem["type"]) {
   return "!border-rose-200 !bg-rose-50 !text-rose-800";
 }
 
+function LoadingState() {
+  return (
+    <ProtectedDashboardLayout
+      role="admin"
+      links={adminSidebarLinks}
+      loadingMessage="Loading admin dashboard..."
+    >
+      <div className="mx-auto max-w-400 space-y-8 pb-8">
+        <Card className="rounded-[34px] border border-sky-100 bg-white text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
+          <CardContent className="p-8 md:p-10 xl:p-12">
+            <div className="flex items-center gap-3 text-slate-600">
+              <RefreshCcw className="h-5 w-5 animate-spin text-sky-600" />
+              Loading live admin metrics...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </ProtectedDashboardLayout>
+  );
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <ProtectedDashboardLayout
+      role="admin"
+      links={adminSidebarLinks}
+      loadingMessage="Loading admin dashboard..."
+    >
+      <div className="mx-auto max-w-400 space-y-8 pb-8">
+        <Card className="rounded-[34px] border border-rose-100 bg-white text-slate-950 shadow-[0_30px_100px_rgba(244,63,94,0.1)]">
+          <CardContent className="space-y-4 p-8 md:p-10 xl:p-12">
+            <div className="flex items-center gap-3 text-rose-700">
+              <Settings2 className="h-5 w-5" />
+              Failed to load live admin data
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">{message}</p>
+            <Button
+              type="button"
+              className="rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700"
+              onClick={onRetry}
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </ProtectedDashboardLayout>
+  );
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [sourceData, setSourceData] = useState<Awaited<ReturnType<typeof loadAdminDashboardData>> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setError(null);
+
+      try {
+        const data = await loadAdminDashboardData();
+
+        if (!cancelled) {
+          setSourceData(data);
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Unable to load admin dashboard.");
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
+  const dashboard = useMemo<AdminDashboardViewModel | null>(() => {
+    if (!sourceData) {
+      return null;
+    }
+
+    const adminName = session?.user?.name?.trim() || "Admin";
+    return buildAdminDashboardViewModel(sourceData, adminName);
+  }, [session?.user?.name, sourceData]);
+
   const currentDate = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -476,12 +375,18 @@ export default function AdminDashboardPage() {
     year: "numeric",
   }).format(new Date());
 
-  const totalSubscribers =
-    subscriptionSummary.freeUsers + subscriptionSummary.premiumUsers;
-  const premiumShare = Math.round(
-    (subscriptionSummary.premiumUsers / totalSubscribers) * 100,
-  );
+  if (!dashboard && !error) {
+    return <LoadingState />;
+  }
+
+  if (!dashboard && error) {
+    return <ErrorState message={error} onRetry={() => setRefreshKey((value) => value + 1)} />;
+  }
+
+  const totalSubscribers = parseCount(dashboard.revenueSummary.freeUsers) + parseCount(dashboard.revenueSummary.premiumUsers);
+  const premiumShare = totalSubscribers > 0 ? Math.round((parseCount(dashboard.revenueSummary.premiumUsers) / totalSubscribers) * 100) : 0;
   const freeShare = 100 - premiumShare;
+  const adminName = dashboard.adminName;
 
   return (
     <ProtectedDashboardLayout
@@ -489,7 +394,7 @@ export default function AdminDashboardPage() {
       links={adminSidebarLinks}
       loadingMessage="Loading admin dashboard..."
     >
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
+      <div className="mx-auto max-w-400 space-y-8 pb-8">
         <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
           <div
             className="absolute inset-0 opacity-95"
@@ -517,18 +422,18 @@ export default function AdminDashboardPage() {
 
                 <div className="space-y-3">
                   <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-                    {getGreeting()}, {adminProfile.name}
+                    {getGreeting()}, {adminName}
                   </h1>
                   <p className="max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
-                    {adminProfile.summary}
+                    {dashboard.summary}
                   </p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {heroHighlights.map((item) => (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {dashboard.heroHighlights.map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-[24px] border border-sky-100 bg-white/90 p-4 shadow-[0_18px_40px_rgba(14,165,233,0.08)]"
+                      className="rounded-3xl border border-sky-100 bg-white/90 p-4 shadow-[0_18px_40px_rgba(14,165,233,0.08)]"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                         {item.label}
@@ -541,7 +446,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 xl:max-w-[520px] xl:justify-end">
+              <div className="flex flex-wrap gap-3 xl:max-w-130 xl:justify-end">
                 {heroActions.map((action) => {
                   const Icon = action.icon;
 
@@ -564,8 +469,8 @@ export default function AdminDashboardPage() {
         </Card>
 
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-3">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
+          {dashboard.stats.map((stat) => {
+            const Icon = statIcons[stat.icon];
 
             return (
               <Card
@@ -583,14 +488,14 @@ export default function AdminDashboardPage() {
                       </h2>
                       <div className="flex flex-wrap items-center gap-2 text-sm">
                         <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
-                          {stat.delta}
+                          {formatPercentLabel(stat.delta)}
                         </span>
                         <span className="text-slate-500">{stat.detail}</span>
                       </div>
                     </div>
 
                     <div
-                      className={`inline-flex rounded-2xl bg-gradient-to-br ${stat.accentClassName} p-3 text-white shadow-lg`}
+                      className={`inline-flex rounded-2xl bg-linear-to-br ${stat.accentClassName} p-3 text-white shadow-lg`}
                     >
                       <Icon className="h-6 w-6" />
                     </div>
@@ -610,7 +515,7 @@ export default function AdminDashboardPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
+                  className="rounded-2xl border-slate-300! bg-white! px-4 text-slate-900! hover:bg-slate-50! dark:border-slate-300! dark:bg-white! dark:text-slate-900!"
                   onClick={() => router.push("/admin/users")}
                 >
                   Open user hub
@@ -625,7 +530,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="space-y-3">
-                {recentUsers.map((user) => (
+                {dashboard.recentUsers.map((user) => (
                   <div
                     key={user.id}
                     className="grid gap-4 rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] md:grid-cols-[minmax(0,2fr)_1fr_1fr_auto] md:items-center"
@@ -665,7 +570,7 @@ export default function AdminDashboardPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
+                        className="rounded-2xl border-slate-300! bg-white! px-4 text-slate-900! hover:bg-slate-50! dark:border-slate-300! dark:bg-white! dark:text-slate-900!"
                         onClick={() => router.push(user.manageHref)}
                       >
                         Manage
@@ -678,7 +583,7 @@ export default function AdminDashboardPage() {
 
             <SectionShell
               title="Platform Analytics"
-              description="Monitor total user growth alongside daily active participation to spot momentum across the platform."
+              description="Monitor monthly new user growth alongside daily active participation to spot momentum across the platform."
               action={
                 <Badge className="rounded-full border border-slate-200 bg-slate-50 px-4 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-600">
                   Last 6 months
@@ -688,7 +593,7 @@ export default function AdminDashboardPage() {
               <div className="mb-5 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#eb6b39]" />
-                  Total users
+                  New users
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#2b7a78]" />
@@ -696,10 +601,10 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="h-[320px] w-full">
+              <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={growthData}
+                    data={dashboard.chartData}
                     margin={{ top: 12, right: 8, left: -18, bottom: 0 }}
                   >
                     <defs>
@@ -721,7 +626,7 @@ export default function AdminDashboardPage() {
 
                     <XAxis
                       axisLine={false}
-                      dataKey="month"
+                      dataKey="period"
                       tick={{ fill: "#64748b", fontSize: 12 }}
                       tickLine={false}
                       tickMargin={12}
@@ -747,18 +652,9 @@ export default function AdminDashboardPage() {
                         typeof value === "number"
                           ? new Intl.NumberFormat("en-US").format(value)
                           : value,
-                        name === "totalUsers" ? "Total users" : "Active users",
+                        name === "newUsers" ? "New users" : "Active users",
                       ]}
                       labelStyle={{ color: "#0f172a", fontWeight: 600 }}
-                    />
-
-                    <Area
-                      dataKey="totalUsers"
-                      fill="url(#totalUsersFill)"
-                      name="Total users"
-                      stroke="#eb6b39"
-                      strokeWidth={3}
-                      type="monotone"
                     />
 
                     <Area
@@ -769,13 +665,22 @@ export default function AdminDashboardPage() {
                       strokeWidth={3}
                       type="monotone"
                     />
+
+                    <Area
+                      dataKey="newUsers"
+                      fill="url(#totalUsersFill)"
+                      name="New users"
+                      stroke="#eb6b39"
+                      strokeWidth={3}
+                      type="monotone"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
 
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                {analyticsHighlights.map((item) => {
-                  const Icon = item.icon;
+                {dashboard.analyticsHighlights.map((item) => {
+                  const Icon = analyticsIcons[item.icon];
 
                   return (
                     <div
@@ -793,7 +698,7 @@ export default function AdminDashboardPage() {
                         </div>
 
                         <div
-                          className={`inline-flex rounded-2xl bg-gradient-to-br ${item.accentClassName} p-3 text-white shadow-lg`}
+                          className={`inline-flex rounded-2xl bg-linear-to-br ${item.accentClassName} p-3 text-white shadow-lg`}
                         >
                           <Icon className="h-5 w-5" />
                         </div>
@@ -807,16 +712,17 @@ export default function AdminDashboardPage() {
               </div>
             </SectionShell>
           </div>
+
           <div className="space-y-8">
             <SectionShell
               title="Reports Preview"
               description="Recent moderation and platform health reports that need visibility from the admin team."
-              className="border-sky-200/80 bg-gradient-to-br from-white via-sky-50/35 to-cyan-50/45"
+              className="border-sky-200/80 bg-linear-to-br from-white via-sky-50/35 to-cyan-50/45"
               action={
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl !border-sky-300 !bg-sky-600 px-4 !text-white hover:!bg-sky-700 dark:!border-sky-300 dark:!bg-sky-600 dark:!text-white"
+                  className="rounded-2xl border-sky-300! bg-sky-600! px-4 text-white! hover:bg-sky-700! dark:border-sky-300! dark:bg-sky-600! dark:text-white!"
                   onClick={() => router.push("/admin/reports")}
                 >
                   View all reports
@@ -824,10 +730,10 @@ export default function AdminDashboardPage() {
               }
             >
               <div className="space-y-3">
-                {reports.map((report) => (
+                {dashboard.reports.map((report) => (
                   <div
                     key={report.id}
-                    className="rounded-[26px] border border-sky-100 bg-gradient-to-br from-white to-sky-50/45 p-5 shadow-[0_12px_30px_rgba(14,165,233,0.08)]"
+                    className="rounded-[26px] border border-sky-100 bg-linear-to-br from-white to-sky-50/45 p-5 shadow-[0_12px_30px_rgba(14,165,233,0.08)]"
                   >
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -850,7 +756,7 @@ export default function AdminDashboardPage() {
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl !border-sky-300 !bg-white px-4 !text-sky-800 hover:!bg-sky-50 dark:!border-sky-300 dark:!bg-white dark:!text-sky-800"
+                          className="rounded-2xl border-sky-300! bg-white! px-4 text-sky-800! hover:bg-sky-50! dark:border-sky-300! dark:bg-white! dark:text-sky-800!"
                           onClick={() => router.push(report.reviewHref)}
                         >
                           Review
@@ -867,7 +773,7 @@ export default function AdminDashboardPage() {
               </div>
             </SectionShell>
 
-            <Card className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-white text-slate-950 shadow-[0_24px_80px_rgba(14,165,233,0.14)]">
+            <Card className="relative overflow-hidden rounded-4xl border border-sky-100 bg-white text-slate-950 shadow-[0_24px_80px_rgba(14,165,233,0.14)]">
               <div
                 className="absolute inset-0 opacity-95"
                 style={{
@@ -883,10 +789,10 @@ export default function AdminDashboardPage() {
                       Subscription summary
                     </Badge>
                     <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
-                      {subscriptionSummary.revenue}
+                      {dashboard.revenueSummary.monthlyRevenue}
                     </h2>
                     <p className="text-sm leading-6 text-slate-600">
-                      {subscriptionSummary.note}
+                      {dashboard.revenueSummary.note}
                     </p>
                   </div>
 
@@ -900,7 +806,7 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center justify-between gap-4 text-sm">
                       <span className="text-slate-500">Free users</span>
                       <span className="font-semibold text-slate-950">
-                        {subscriptionSummary.freeUsers.toLocaleString()} ({freeShare}%)
+                        {dashboard.revenueSummary.freeUsers} ({freeShare}%)
                       </span>
                     </div>
                     <Progress
@@ -914,7 +820,7 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center justify-between gap-4 text-sm">
                       <span className="text-slate-500">Premium users</span>
                       <span className="font-semibold text-slate-950">
-                        {subscriptionSummary.premiumUsers.toLocaleString()} ({premiumShare}%)
+                        {dashboard.revenueSummary.premiumUsers} ({premiumShare}%)
                       </span>
                     </div>
                     <Progress
@@ -926,26 +832,30 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-sky-100 bg-white p-4 shadow-sm">
+                  <div className="rounded-3xl border border-sky-100 bg-white p-4 shadow-sm">
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                       <TrendingUp className="h-4 w-4 text-amber-500" />
                       Conversion rate
                     </div>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
-                      {subscriptionSummary.conversionRate}
+                      {dashboard.revenueSummary.conversionRate}
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/80 p-4">
+                  <div className="rounded-3xl border border-emerald-100 bg-emerald-50/80 p-4">
                     <div className="flex items-center gap-2 text-sm text-emerald-700">
                       <BarChart3 className="h-4 w-4" />
                       Revenue summary
                     </div>
                     <p className="mt-2 text-2xl font-semibold text-slate-950">
-                      {subscriptionSummary.annualRunRate}
+                      {dashboard.revenueSummary.annualRunRate}
                     </p>
                   </div>
                 </div>
+
+                <p className="mt-5 text-sm leading-6 text-slate-600">
+                  {dashboard.revenueSummary.premiumGrowthLabel}
+                </p>
               </CardContent>
             </Card>
 
@@ -967,7 +877,7 @@ export default function AdminDashboardPage() {
                       <div className="flex h-full flex-col">
                         <div className="mb-5 flex items-start justify-between gap-3">
                           <div
-                            className={`inline-flex rounded-2xl bg-gradient-to-br ${item.accentClassName} p-3 text-white shadow-lg`}
+                            className={`inline-flex rounded-2xl bg-linear-to-br ${item.accentClassName} p-3 text-white shadow-lg`}
                           >
                             <Icon className="h-5 w-5" />
                           </div>

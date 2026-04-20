@@ -89,46 +89,12 @@ const DIFFICULTY_VALUES: DifficultyLevel[] = [
   "Advanced",
 ];
 
-const MENTOR_POOL = [
-  "Dilan Fernando",
-  "Aarav Iqbal",
-  "Marcus Perera",
-  "Priya Raman",
-  "Suhani Jayasinghe",
-  "Isuru Senaratne",
-];
-
-const INITIAL_CATEGORIES: CategoryRecord[] = [
-  {
-    id: "general",
-    name: "General",
-    description: "Fallback category for catalog organization updates.",
-    accentClassName: "from-indigo-700 to-sky-600",
-  },
-  {
-    id: "stem",
-    name: "STEM",
-    description: "Mathematics, science, and analytical tracks.",
-    accentClassName: "from-sky-600 to-cyan-500",
-  },
-  {
-    id: "humanities",
-    name: "Humanities",
-    description: "Language, literature, history, and communication.",
-    accentClassName: "from-amber-500 to-orange-500",
-  },
-  {
-    id: "commerce",
-    name: "Commerce",
-    description: "Business, economics, and accounting pathways.",
-    accentClassName: "from-emerald-600 to-teal-500",
-  },
-  {
-    id: "technology",
-    name: "Technology",
-    description: "Computing, engineering, and applied digital skills.",
-    accentClassName: "from-violet-600 to-indigo-500",
-  },
+const CATEGORY_ACCENTS = [
+  "from-indigo-700 to-sky-600",
+  "from-sky-600 to-cyan-500",
+  "from-amber-500 to-orange-500",
+  "from-emerald-600 to-teal-500",
+  "from-violet-600 to-indigo-500",
 ];
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -144,6 +110,17 @@ function closeParentDetails(target: EventTarget | null) {
 }
 
 function getCategoryById(categories: CategoryRecord[], categoryId: string) {
+  if (categories.length === 0) {
+    const name = toTitleCase(categoryId.replace(/[-_]+/g, " ").trim() || "General");
+
+    return {
+      id: categoryId || "general",
+      name,
+      description: `Subjects grouped under ${name}.`,
+      accentClassName: CATEGORY_ACCENTS[0],
+    };
+  }
+
   return categories.find((category) => category.id === categoryId) ?? categories[0];
 }
 
@@ -179,6 +156,49 @@ function createCategoryForm(category: CategoryRecord): CategoryFormState {
     name: category.name,
     description: category.description,
   };
+}
+
+function deriveCategoryName(categoryId: string) {
+  return toTitleCase(categoryId.replace(/[-_]+/g, " ").trim() || "General");
+}
+
+function buildCategoriesFromSubjects(subjects: SubjectRecord[]) {
+  const uniqueCategoryIds = Array.from(
+    new Set(
+      subjects
+        .map((subject) => subject.categoryId?.trim())
+        .filter((categoryId): categoryId is string => Boolean(categoryId)),
+    ),
+  );
+
+  if (!uniqueCategoryIds.includes("general")) {
+    uniqueCategoryIds.unshift("general");
+  }
+
+  return uniqueCategoryIds.map((categoryId, index) => {
+    const name = deriveCategoryName(categoryId);
+
+    return {
+      id: categoryId,
+      name,
+      description: `Subjects grouped under ${name}.`,
+      accentClassName: CATEGORY_ACCENTS[index % CATEGORY_ACCENTS.length],
+    };
+  });
+}
+
+function buildMentorPoolFromUsers(users: Array<{ name?: unknown; role?: unknown }>) {
+  return Array.from(
+    new Set(
+      users
+        .filter(
+          (user) =>
+            typeof user.role === "string" && user.role.trim().toLowerCase() === "mentor",
+        )
+        .map((user) => (typeof user.name === "string" ? user.name.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
 }
 
 function toTitleCase(value: string) {
@@ -308,7 +328,7 @@ function SummaryCard({
 
           <div
             className={cn(
-              "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg",
+              "inline-flex rounded-2xl bg-linear-to-br p-3 text-white shadow-lg",
               accentClassName,
             )}
           >
@@ -364,7 +384,7 @@ function CategoryBadge({
     <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-[0.72rem] font-semibold text-slate-800">
       <span
         className={cn(
-          "h-2.5 w-2.5 rounded-full bg-gradient-to-br",
+          "h-2.5 w-2.5 rounded-full bg-linear-to-br",
           category.accentClassName,
         )}
       />
@@ -389,7 +409,7 @@ function SectionShell({
   return (
     <Card
       className={cn(
-        "rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-white via-sky-50/25 to-cyan-50/35 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
+        "rounded-4xl border border-sky-200/80 bg-linear-to-br from-white via-sky-50/25 to-cyan-50/35 shadow-[0_24px_80px_rgba(15,23,42,0.08)]",
         className,
       )}
     >
@@ -455,7 +475,7 @@ function SubjectActionsMenu({
         <MoreHorizontal className="h-4 w-4" />
       </summary>
 
-      <div className="absolute right-0 top-12 z-30 w-52 rounded-[24px] border border-slate-200 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+      <div className="absolute right-0 top-12 z-30 w-52 rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
         <button
           type="button"
           className={menuItemClassName}
@@ -517,8 +537,9 @@ function SubjectActionsMenu({
 }
 
 export default function AdminSubjectsManagementPage() {
-  const [categories, setCategories] = useState<CategoryRecord[]>(INITIAL_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
   const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [mentorPool, setMentorPool] = useState<string[]>([]);
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
   const [isSavingSubject, setIsSavingSubject] = useState(false);
   const [pendingSubjectActionId, setPendingSubjectActionId] = useState<string | null>(null);
@@ -528,7 +549,7 @@ export default function AdminSubjectsManagementPage() {
     subjectId: null,
   });
   const [subjectForm, setSubjectForm] = useState<SubjectFormState>(
-    getEmptySubjectForm(INITIAL_CATEGORIES),
+    getEmptySubjectForm([]),
   );
   const [subjectFormError, setSubjectFormError] = useState("");
   const [mentorSelection, setMentorSelection] = useState<string[]>([]);
@@ -545,28 +566,47 @@ export default function AdminSubjectsManagementPage() {
   useEffect(() => {
     let isActive = true;
 
-    const loadSubjects = async () => {
+    const loadWorkspaceData = async () => {
       setIsLoadingSubjects(true);
 
       try {
-        const response = await fetch("/api/admin/subjects", { cache: "no-store" });
+        const [subjectsResponse, usersResponse] = await Promise.all([
+          fetch("/api/admin/subjects", { cache: "no-store" }),
+          fetch("/api/admin/users", { cache: "no-store" }),
+        ]);
 
-        if (!response.ok) {
+        if (!subjectsResponse.ok) {
           throw new Error(
-            await readApiError(response, "Unable to load admin subjects right now."),
+            await readApiError(
+              subjectsResponse,
+              "Unable to load admin subjects right now.",
+            ),
           );
         }
 
-        const data = await response.json();
-        const nextSubjects = Array.isArray(data?.subjects)
-          ? data.subjects.map(mapApiSubjectToRecord)
+        if (!usersResponse.ok) {
+          throw new Error(
+            await readApiError(usersResponse, "Unable to load admin users right now."),
+          );
+        }
+
+        const [subjectsData, usersData] = await Promise.all([
+          subjectsResponse.json(),
+          usersResponse.json(),
+        ]);
+
+        const nextSubjects = Array.isArray(subjectsData?.subjects)
+          ? subjectsData.subjects.map(mapApiSubjectToRecord)
           : [];
+        const nextUsers = Array.isArray(usersData?.users) ? usersData.users : [];
 
         if (!isActive) {
           return;
         }
 
         setSubjects(nextSubjects);
+        setCategories(buildCategoriesFromSubjects(nextSubjects));
+        setMentorPool(buildMentorPoolFromUsers(nextUsers));
       } catch (error) {
         if (!isActive) {
           return;
@@ -584,7 +624,7 @@ export default function AdminSubjectsManagementPage() {
       }
     };
 
-    void loadSubjects();
+    void loadWorkspaceData();
 
     return () => {
       isActive = false;
@@ -1076,7 +1116,7 @@ export default function AdminSubjectsManagementPage() {
       links={adminSidebarLinks}
       loadingMessage="Loading admin subjects workspace..."
     >
-      <div className="mx-auto max-w-[1600px] space-y-8 pb-8">
+      <div className="mx-auto max-w-400 space-y-8 pb-8">
         <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_rgba(14,165,233,0.16)]">
           <div
             className="absolute inset-0 opacity-95"
@@ -1183,16 +1223,16 @@ export default function AdminSubjectsManagementPage() {
 
                       return (
                         <tr key={subject.id}>
-                          <td className="rounded-l-[24px] border border-r-0 border-slate-200/80 bg-white py-4 pl-3 align-top">
+                          <td className="rounded-l-3xl border border-r-0 border-slate-200/80 bg-white py-4 pl-3 align-top">
                             <button
                               type="button"
                               className="text-left"
                               onClick={() => openSubjectModal(subject, "view")}
                             >
-                              <div className="font-semibold text-slate-900 transition hover:text-[color:var(--accent)]">
+                              <div className="font-semibold text-slate-900 transition hover:text-(--accent)">
                                 {subject.name}
                               </div>
-                              <div className="mt-1 max-w-[280px] text-sm leading-6 text-slate-600">
+                              <div className="mt-1 max-w-70 text-sm leading-6 text-slate-600">
                                 {subject.description}
                               </div>
                             </button>
@@ -1209,7 +1249,7 @@ export default function AdminSubjectsManagementPage() {
                                 subject.mentors.map((mentor) => (
                                   <Badge
                                     key={mentor}
-                                    className="rounded-full !border-slate-300 !bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold !text-slate-800"
+                                    className="rounded-full border-slate-300! bg-slate-100! px-3 py-1 text-[0.72rem] font-semibold text-slate-800!"
                                   >
                                     {mentor}
                                   </Badge>
@@ -1228,7 +1268,7 @@ export default function AdminSubjectsManagementPage() {
                           <td className="border border-l-0 border-r-0 border-slate-200/80 bg-white py-4 align-top">
                             <DifficultyBadge difficulty={subject.difficulty} />
                           </td>
-                          <td className="rounded-r-[24px] border border-l-0 border-slate-200/80 bg-white py-4 pr-3 align-top">
+                          <td className="rounded-r-3xl border border-l-0 border-slate-200/80 bg-white py-4 pr-3 align-top">
                             <div className="flex justify-end">
                               <SubjectActionsMenu
                                 subject={subject}
@@ -1332,7 +1372,7 @@ export default function AdminSubjectsManagementPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <Card className="rounded-[28px] border border-white/55 bg-white/70 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
                   <CardContent className="p-5">
-                    <div className="inline-flex rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 p-3 text-white shadow-lg">
+                    <div className="inline-flex rounded-2xl bg-linear-to-br from-sky-600 to-cyan-500 p-3 text-white shadow-lg">
                       <GraduationCap className="h-5 w-5" />
                     </div>
                     <p className="mt-4 text-sm font-medium text-slate-500">
@@ -1349,7 +1389,7 @@ export default function AdminSubjectsManagementPage() {
 
                 <Card className="rounded-[28px] border border-white/55 bg-white/70 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
                   <CardContent className="p-5">
-                    <div className="inline-flex rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 p-3 text-white shadow-lg">
+                    <div className="inline-flex rounded-2xl bg-linear-to-br from-amber-500 to-orange-500 p-3 text-white shadow-lg">
                       <Gauge className="h-5 w-5" />
                     </div>
                     <p className="mt-4 text-sm font-medium text-slate-500">
@@ -1376,7 +1416,7 @@ export default function AdminSubjectsManagementPage() {
                     </p>
                   </div>
 
-                  <div className="inline-flex rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
+                  <div className="inline-flex rounded-2xl bg-linear-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
                     <ClipboardList className="h-5 w-5" />
                   </div>
                 </div>
@@ -1392,7 +1432,7 @@ export default function AdminSubjectsManagementPage() {
                       </div>
                       <div className="h-2.5 w-full rounded-full bg-slate-200">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[color:var(--accent)] to-[color:var(--teal)]"
+                          className="h-full rounded-full bg-linear-to-r from-(--accent) to-(--teal)"
                           style={{
                             width: `${Math.max(
                               (subject.quizzes / maxQuizValue) * 100,
@@ -1409,18 +1449,7 @@ export default function AdminSubjectsManagementPage() {
 
             <SectionShell
               title="Categories"
-              description="Organize the subject catalog into clear category groups and keep fallback routing under control."
-              action={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-2xl !border-slate-300 !bg-white px-4 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-                  onClick={openCreateCategoryModal}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Category
-                </Button>
-              }
+              description="Category groups are derived from the live subject records stored in the backend."
             >
               <div className="space-y-4">
                 {categories.map((category) => (
@@ -1432,7 +1461,7 @@ export default function AdminSubjectsManagementPage() {
                       <div className="space-y-3">
                         <div
                           className={cn(
-                            "inline-flex rounded-2xl bg-gradient-to-br p-3 text-white shadow-lg",
+                            "inline-flex rounded-2xl bg-linear-to-br p-3 text-white shadow-lg",
                             category.accentClassName,
                           )}
                         >
@@ -1447,33 +1476,14 @@ export default function AdminSubjectsManagementPage() {
                           </p>
                         </div>
                       </div>
-
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="rounded-2xl !border-slate-300 !bg-white px-3 !text-slate-900 hover:!bg-slate-50 dark:!border-slate-300 dark:!bg-white dark:!text-slate-900"
-                          onClick={() => openEditCategoryModal(category)}
-                        >
-                          <PencilLine className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="rounded-2xl !border-rose-300 !bg-white px-3 !text-rose-700 hover:!bg-rose-50 dark:!border-rose-300 dark:!bg-white dark:!text-rose-700"
-                          onClick={() => handleDeleteCategory(category.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge className="rounded-full !border-slate-300 !bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold !text-slate-800 dark:!border-slate-300 dark:!bg-slate-100 dark:!text-slate-800">
+                      <Badge className="rounded-full border-slate-300! bg-slate-100! px-3 py-1 text-[0.72rem] font-semibold text-slate-800! dark:border-slate-300! dark:bg-slate-100! dark:text-slate-800!">
                         {categorySubjectCounts[category.id] ?? 0} subjects
                       </Badge>
                       {category.id === "general" ? (
-                        <Badge className="rounded-full !border-amber-300 !bg-amber-100 px-3 py-1 text-[0.72rem] font-semibold !text-amber-900 dark:!border-amber-300 dark:!bg-amber-100 dark:!text-amber-900">
+                        <Badge className="rounded-full border-amber-300! bg-amber-100! px-3 py-1 text-[0.72rem] font-semibold text-amber-900! dark:border-amber-300! dark:bg-amber-100! dark:text-amber-900!">
                           Protected fallback
                         </Badge>
                       ) : null}
@@ -1539,7 +1549,7 @@ export default function AdminSubjectsManagementPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-3">
-                        <div className="inline-flex rounded-2xl bg-gradient-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
+                        <div className="inline-flex rounded-2xl bg-linear-to-br from-indigo-700 to-sky-600 p-3 text-white shadow-lg">
                           <BookOpenText className="h-5 w-5" />
                         </div>
                         <div>
@@ -1575,7 +1585,7 @@ export default function AdminSubjectsManagementPage() {
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="flex flex-wrap gap-3">
-                        {MENTOR_POOL.map((mentor) => {
+                        {mentorPool.map((mentor) => {
                           const isSelected = mentorSelection.includes(mentor);
 
                           return (
@@ -1594,9 +1604,14 @@ export default function AdminSubjectsManagementPage() {
                             </button>
                           );
                         })}
+                        {mentorPool.length === 0 ? (
+                          <span className="text-sm text-slate-400">
+                            No mentor accounts are available yet.
+                          </span>
+                        ) : null}
                       </div>
 
-                      <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+                      <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
                         <p className="text-sm font-medium text-slate-500">
                           Assigned mentors
                         </p>
@@ -1715,7 +1730,7 @@ export default function AdminSubjectsManagementPage() {
                                 name: event.target.value,
                               }))
                             }
-                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                           />
                         </label>
 
@@ -1731,7 +1746,7 @@ export default function AdminSubjectsManagementPage() {
                                 categoryId: event.target.value,
                               }))
                             }
-                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                           >
                             {categories.map((category) => (
                               <option key={category.id} value={category.id}>
@@ -1755,7 +1770,7 @@ export default function AdminSubjectsManagementPage() {
                               description: event.target.value,
                             }))
                           }
-                          className="w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                          className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                         />
                       </label>
 
@@ -1772,7 +1787,7 @@ export default function AdminSubjectsManagementPage() {
                                 status: event.target.value as SubjectStatus,
                               }))
                             }
-                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                           >
                             {SUBJECT_STATUS_VALUES.map((status) => (
                               <option key={status} value={status}>
@@ -1794,7 +1809,7 @@ export default function AdminSubjectsManagementPage() {
                                 difficulty: event.target.value as DifficultyLevel,
                               }))
                             }
-                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                           >
                             {DIFFICULTY_VALUES.map((difficulty) => (
                               <option key={difficulty} value={difficulty}>
@@ -1900,7 +1915,7 @@ export default function AdminSubjectsManagementPage() {
               onClick={closeCategoryModal}
             />
 
-            <Card className="relative z-10 w-full max-w-xl rounded-[32px] border border-white/50 bg-[#fcfaf6] shadow-[0_30px_100px_rgba(15,23,42,0.2)]">
+            <Card className="relative z-10 w-full max-w-xl rounded-4xl border border-white/50 bg-[#fcfaf6] shadow-[0_30px_100px_rgba(15,23,42,0.2)]">
               <CardHeader className="gap-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
@@ -1943,7 +1958,7 @@ export default function AdminSubjectsManagementPage() {
                         name: event.target.value,
                       }))
                     }
-                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                   />
                 </label>
                 <label className="block space-y-2">
@@ -1959,7 +1974,7 @@ export default function AdminSubjectsManagementPage() {
                         description: event.target.value,
                       }))
                     }
-                    className="w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                    className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-(--accent) focus:ring-2 focus:ring-(--accent-soft)"
                   />
                 </label>
 
