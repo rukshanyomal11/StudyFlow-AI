@@ -1,17 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   AlertCircle,
   ArrowRight,
@@ -23,7 +15,6 @@ import {
   GraduationCap,
   Megaphone,
   MessageSquare,
-  Plus,
   Sparkles,
   TrendingUp,
   Upload,
@@ -31,6 +22,7 @@ import {
 } from "lucide-react";
 import ProtectedDashboardLayout from "@/components/layout/ProtectedDashboardLayout";
 import { mentorSidebarLinks } from "@/data/sidebarLinks";
+import mentorService from "@/services/mentor.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,126 +35,189 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-interface StudentPreview {
-  id: string;
+interface MentorStudentItem {
+  studentId: string;
   name: string;
-  level: string;
-  progress: number;
-  weakSubject: string;
-}
-
-interface PerformancePoint {
-  label: string;
-  engagement: number;
-  averageProgress: number;
-}
-
-interface QuickAction {
-  title: string;
-  description: string;
-  icon: ReactNode;
-  href: string;
-  accentClassName: string;
-  surfaceClassName: string;
+  email: string;
+  avatar: string | null;
+  level: string | null;
+  assignedSubjectCount: number;
+  averageProgress: number | null;
+  weakSubject: {
+    subjectId: string;
+    name: string;
+    progress: number | null;
+    examDate: string | null;
+  } | null;
+  assignments: Array<{
+    assignmentId: string;
+    subject: {
+      subjectId: string;
+      name: string;
+      progress: number | null;
+      examDate: string | null;
+    } | null;
+    createdAt: string;
+  }>;
 }
 
 interface DoubtItem {
-  id: string;
-  studentName: string;
-  title: string;
-  time: string;
-  priority: "High" | "Medium" | "Low";
+  _id?: string;
+  id?: string;
+  title?: string;
+  priority?: string;
+  status?: string;
+  createdAt?: string;
+  studentId?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+  };
+  subjectId?: {
+    _id?: string;
+    name?: string;
+  };
 }
 
 interface AnnouncementItem {
-  id: string;
-  title: string;
-  summary: string;
-  audience: string;
-  time: string;
+  id?: string;
+  title?: string;
+  status?: string;
+  audienceType?: string;
+  createdAt?: string | null;
+  scheduledAt?: string | null;
+  message?: string;
 }
 
-const MENTOR_NAME = "Dr. Maya Fernando";
+interface MaterialItem {
+  id?: string;
+  title?: string;
+  type?: string;
+  status?: string;
+  subjectName?: string;
+  createdAt?: string | null;
+}
 
-const STUDENT_OVERVIEW: StudentPreview[] = [
-  { id: "student-01", name: "Nethmi Jayawardena", level: "Grade 12 - Advanced Level", progress: 84, weakSubject: "Organic Chemistry" },
-  { id: "student-02", name: "Ishara Silva", level: "Grade 11", progress: 76, weakSubject: "Algebra" },
-  { id: "student-03", name: "Kavin Dias", level: "Grade 12 - Advanced Level", progress: 68, weakSubject: "Mechanics" },
-  { id: "student-04", name: "Anudi Ramanayake", level: "Grade 10", progress: 91, weakSubject: "Essay Structure" },
-];
-
-const TOP_PERFORMERS: StudentPreview[] = [
-  { id: "top-01", name: "Anudi Ramanayake", level: "Grade 10", progress: 91, weakSubject: "None" },
-  { id: "top-02", name: "Nethmi Jayawardena", level: "Grade 12 - Advanced Level", progress: 84, weakSubject: "Organic Chemistry" },
-  { id: "top-03", name: "Dilan Perera", level: "Grade 11", progress: 82, weakSubject: "Probability" },
-];
-
-const NEEDS_ATTENTION: StudentPreview[] = [
-  { id: "attention-01", name: "Kavin Dias", level: "Grade 12 - Advanced Level", progress: 68, weakSubject: "Mechanics" },
-  { id: "attention-02", name: "Savin De Costa", level: "Grade 11", progress: 64, weakSubject: "Chemical Bonding" },
-  { id: "attention-03", name: "Mihiri Perera", level: "Grade 10", progress: 61, weakSubject: "Comprehension" },
-];
-
-const PERFORMANCE_DATA: PerformancePoint[] = [
-  { label: "Mon", engagement: 72, averageProgress: 61 },
-  { label: "Tue", engagement: 75, averageProgress: 63 },
-  { label: "Wed", engagement: 79, averageProgress: 66 },
-  { label: "Thu", engagement: 82, averageProgress: 68 },
-  { label: "Fri", engagement: 78, averageProgress: 70 },
-  { label: "Sat", engagement: 84, averageProgress: 73 },
-  { label: "Sun", engagement: 87, averageProgress: 76 },
-];
-
-const QUICK_ACTIONS: QuickAction[] = [
-  {
-    title: "Create Quiz",
-    description: "Launch a new checkpoint or mock test for your assigned learners.",
-    icon: <Plus className="h-5 w-5" />,
-    href: "/mentor/quizzes",
-    accentClassName: "bg-sky-600 text-white shadow-lg shadow-sky-200",
-    surfaceClassName: "bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] shadow-[0_20px_50px_-40px_rgba(37,99,235,0.42)]",
-  },
-  {
-    title: "Upload Notes",
-    description: "Add study guides, notes, or handouts to your content library.",
-    icon: <Upload className="h-5 w-5" />,
-    href: "/mentor/content",
-    accentClassName: "bg-emerald-600 text-white shadow-lg shadow-emerald-200",
-    surfaceClassName: "bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] shadow-[0_20px_50px_-40px_rgba(5,150,105,0.34)]",
-  },
-  {
-    title: "Assign Task",
-    description: "Push a focused task to students who need a nudge this week.",
-    icon: <CheckCircle2 className="h-5 w-5" />,
-    href: "/mentor/students",
-    accentClassName: "bg-amber-500 text-white shadow-lg shadow-amber-200",
-    surfaceClassName: "bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_55%,#fde68a_125%)] shadow-[0_20px_50px_-40px_rgba(217,119,6,0.3)]",
-  },
-  {
-    title: "Manage Content",
-    description: "Review existing materials, organize modules, and refresh resources.",
-    icon: <BookOpen className="h-5 w-5" />,
-    href: "/mentor/content",
-    accentClassName: "bg-violet-600 text-white shadow-lg shadow-violet-200",
-    surfaceClassName: "bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_55%,#ddd6fe_125%)] shadow-[0_20px_50px_-40px_rgba(109,40,217,0.28)]",
-  },
-];
-
-const RECENT_DOUBTS: DoubtItem[] = [
-  { id: "doubt-01", studentName: "Ishara Silva", title: "Need help with quadratic factorization shortcuts", time: "14 minutes ago", priority: "High" },
-  { id: "doubt-02", studentName: "Kavin Dias", title: "Why is this force diagram marked incorrect?", time: "42 minutes ago", priority: "High" },
-  { id: "doubt-03", studentName: "Mihiri Perera", title: "How should I structure the literature response?", time: "1 hour ago", priority: "Medium" },
-  { id: "doubt-04", studentName: "Anudi Ramanayake", title: "Can you review my organic reaction summary?", time: "2 hours ago", priority: "Low" },
-];
-
-const ANNOUNCEMENTS: AnnouncementItem[] = [
-  { id: "announcement-01", title: "Weekend revision sprint starts Saturday", summary: "Students will receive a focused schedule covering timed quizzes, recap notes, and live Q&A blocks.", audience: "All assigned students", time: "Posted today" },
-  { id: "announcement-02", title: "Mechanics checkpoint quiz opens tomorrow", summary: "The quiz will stay live for 48 hours and should be completed before the group review session.", audience: "Physics group", time: "Posted yesterday" },
-  { id: "announcement-03", title: "New chemistry notes uploaded", summary: "Reaction pathway notes and worked examples are now available in the content library.", audience: "Chemistry students", time: "Posted 2 days ago" },
-];
+interface QuizItem {
+  id?: string;
+  title?: string;
+  subjectName?: string;
+  questionCount?: number;
+  assignedToCount?: number;
+  createdAt?: string | null;
+}
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function formatDate(value?: string | null) {
+  if (!value) {
+    return "Recently";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Recently";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatRelativeTime(value?: string | null) {
+  if (!value) {
+    return "Recently";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Recently";
+  }
+
+  const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+
+  if (diffMinutes < 1) {
+    return "Just now";
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} mins ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours} hours ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays === 1) {
+    return "Yesterday";
+  }
+
+  return `${diffDays} days ago`;
+}
+
+function getAudienceLabel(audienceType?: string) {
+  if (audienceType === "students") {
+    return "Direct students";
+  }
+
+  if (audienceType === "groups") {
+    return "Subject groups";
+  }
+
+  return "All assigned";
+}
+
+function getPriorityWeight(priority?: string) {
+  if (priority === "Urgent") {
+    return 0;
+  }
+
+  if (priority === "High") {
+    return 1;
+  }
+
+  return 2;
+}
+
+function doubtBadgeClass(priority?: string) {
+  if (priority === "Urgent") {
+    return "border-transparent bg-rose-100 text-rose-700";
+  }
+
+  if (priority === "High") {
+    return "border-transparent bg-amber-100 text-amber-700";
+  }
+
+  return "border-transparent bg-slate-100 text-slate-700";
+}
+
+function announcementBadgeClass(status?: string) {
+  if (status === "Scheduled") {
+    return "border-transparent bg-amber-100 text-amber-700";
+  }
+
+  if (status === "Sent") {
+    return "border-transparent bg-emerald-100 text-emerald-700";
+  }
+
+  return "border-transparent bg-slate-100 text-slate-700";
 }
 
 const SURFACE_CARD_CLASS_NAME =
@@ -176,14 +231,6 @@ const PRIMARY_BUTTON_CLASS_NAME =
 
 const SECONDARY_BUTTON_CLASS_NAME =
   "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function SectionCard({
   title,
@@ -258,14 +305,78 @@ function SummaryCard({
   );
 }
 
-function priorityBadgeClass(priority: DoubtItem["priority"]) {
-  if (priority === "High") return "border-transparent bg-rose-100 text-rose-700";
-  if (priority === "Medium") return "border-transparent bg-amber-100 text-amber-700";
-  return "border-transparent bg-emerald-100 text-emerald-700";
-}
-
 export default function MentorDashboardPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [students, setStudents] = useState<MentorStudentItem[]>([]);
+  const [totalAssignments, setTotalAssignments] = useState(0);
+  const [doubts, setDoubts] = useState<DoubtItem[]>([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadDashboard = async () => {
+      try {
+        setIsLoading(true);
+        const [
+          studentsResponse,
+          doubtsResponse,
+          announcementsResponse,
+          materialsResponse,
+          quizzesResponse,
+        ] = await Promise.all([
+          mentorService.getStudents(),
+          mentorService.getDoubts(),
+          mentorService.getAnnouncements(),
+          mentorService.getContent(),
+          mentorService.getQuizzes(),
+        ]);
+
+        if (!isActive) {
+          return;
+        }
+
+        setStudents(Array.isArray(studentsResponse?.students) ? studentsResponse.students : []);
+        setTotalAssignments(
+          typeof studentsResponse?.totalAssignments === "number"
+            ? studentsResponse.totalAssignments
+            : 0,
+        );
+        setDoubts(Array.isArray(doubtsResponse) ? doubtsResponse : []);
+        setAnnouncements(
+          Array.isArray(announcementsResponse) ? announcementsResponse : [],
+        );
+        setMaterials(Array.isArray(materialsResponse) ? materialsResponse : []);
+        setQuizzes(Array.isArray(quizzesResponse) ? quizzesResponse : []);
+        setError(null);
+      } catch (loadError) {
+        if (!isActive) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load mentor dashboard.",
+        );
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadDashboard();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -273,28 +384,171 @@ export default function MentorDashboardPage() {
     day: "numeric",
   }).format(new Date());
 
-  const averageStudentProgress = useMemo(
+  const mentorName = session?.user?.name?.trim() || "Mentor";
+
+  const studentsWithProgress = useMemo(
     () =>
-      Math.round(
-        STUDENT_OVERVIEW.reduce((total, student) => total + student.progress, 0) /
-          STUDENT_OVERVIEW.length,
-      ),
-    [],
+      students.filter(
+        (student) => typeof student.averageProgress === "number",
+      ) as Array<MentorStudentItem & { averageProgress: number }>,
+    [students],
   );
 
-  const unreadDoubts = useMemo(
-    () => RECENT_DOUBTS.filter((item) => item.priority !== "Low").length,
-    [],
+  const averageStudentProgress = studentsWithProgress.length
+    ? Math.round(
+        studentsWithProgress.reduce(
+          (total, student) => total + student.averageProgress,
+          0,
+        ) / studentsWithProgress.length,
+      )
+    : 0;
+
+  const pendingDoubts = useMemo(
+    () => doubts.filter((item) => item.status !== "Answered"),
+    [doubts],
+  );
+
+  const scheduledAnnouncements = useMemo(
+    () => announcements.filter((item) => item.status === "Scheduled"),
+    [announcements],
+  );
+
+  const recentMaterials = useMemo(() => materials.slice(0, 3), [materials]);
+  const recentQuizzes = useMemo(() => quizzes.slice(0, 3), [quizzes]);
+
+  const topStudents = useMemo(
+    () =>
+      [...studentsWithProgress]
+        .sort((first, second) => second.averageProgress - first.averageProgress)
+        .slice(0, 3),
+    [studentsWithProgress],
+  );
+
+  const needsAttention = useMemo(
+    () =>
+      [...students]
+        .sort((first, second) => {
+          const firstProgress =
+            typeof first.averageProgress === "number" ? first.averageProgress : -1;
+          const secondProgress =
+            typeof second.averageProgress === "number" ? second.averageProgress : -1;
+
+          return firstProgress - secondProgress;
+        })
+        .slice(0, 3),
+    [students],
+  );
+
+  const recentDoubts = useMemo(
+    () =>
+      [...pendingDoubts]
+        .sort((first, second) => {
+          const byPriority =
+            getPriorityWeight(first.priority) - getPriorityWeight(second.priority);
+
+          if (byPriority !== 0) {
+            return byPriority;
+          }
+
+          const firstDate = first.createdAt ? new Date(first.createdAt).getTime() : 0;
+          const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
+          return secondDate - firstDate;
+        })
+        .slice(0, 4),
+    [pendingDoubts],
   );
 
   const summaryCards = [
-    { label: "Total Students", value: "284", detail: "Assigned across mentor cohorts", icon: <Users className="h-5 w-5" />, accentClassName: "from-indigo-700 to-sky-600" },
-    { label: "Active Students", value: "126", detail: "Learners active in the past 24 hours", icon: <GraduationCap className="h-5 w-5" />, accentClassName: "from-sky-600 to-cyan-500" },
-    { label: "Pending Doubts", value: "18", detail: "Questions waiting for mentor response", icon: <MessageSquare className="h-5 w-5" />, accentClassName: "from-amber-500 to-orange-500" },
-    { label: "Quizzes Created", value: "42", detail: "Published across all active subjects", icon: <CheckCircle2 className="h-5 w-5" />, accentClassName: "from-emerald-600 to-teal-500" },
-    { label: "Study Materials", value: "128", detail: "Notes, guides, and revision uploads", icon: <FileText className="h-5 w-5" />, accentClassName: "from-violet-600 to-fuchsia-500" },
-    { label: "Announcements", value: "24", detail: "Mentor updates shared this month", icon: <Megaphone className="h-5 w-5" />, accentClassName: "from-rose-600 to-pink-500" },
+    {
+      label: "Assigned Students",
+      value: `${students.length}`,
+      detail: `${totalAssignments} mentor assignments across your roster`,
+      icon: <Users className="h-5 w-5" />,
+      accentClassName: "from-indigo-700 to-sky-600",
+    },
+    {
+      label: "Average Progress",
+      value: `${averageStudentProgress}%`,
+      detail: "Across student subjects that already have progress data",
+      icon: <GraduationCap className="h-5 w-5" />,
+      accentClassName: "from-sky-600 to-cyan-500",
+    },
+    {
+      label: "Pending Doubts",
+      value: `${pendingDoubts.length}`,
+      detail: "Student questions waiting for your reply",
+      icon: <MessageSquare className="h-5 w-5" />,
+      accentClassName: "from-amber-500 to-orange-500",
+    },
+    {
+      label: "Published Resources",
+      value: `${materials.filter((item) => item.status === "Published").length}`,
+      detail: "Mentor notes, PDFs, videos, and assignments",
+      icon: <FileText className="h-5 w-5" />,
+      accentClassName: "from-emerald-600 to-teal-500",
+    },
+    {
+      label: "Quizzes Created",
+      value: `${quizzes.length}`,
+      detail: "Assessments currently in your mentor library",
+      icon: <CheckCircle2 className="h-5 w-5" />,
+      accentClassName: "from-violet-600 to-fuchsia-500",
+    },
+    {
+      label: "Scheduled Announcements",
+      value: `${scheduledAnnouncements.length}`,
+      detail: "Updates queued for later delivery",
+      icon: <Megaphone className="h-5 w-5" />,
+      accentClassName: "from-rose-600 to-pink-500",
+    },
   ];
+
+  if (isLoading) {
+    return (
+      <ProtectedDashboardLayout
+        role="mentor"
+        links={mentorSidebarLinks}
+        loadingMessage="Loading your mentor dashboard..."
+      >
+        <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+          <Card className={SURFACE_CARD_CLASS_NAME}>
+            <CardContent className="p-8 text-sm text-slate-600">
+              Loading live mentor dashboard data...
+            </CardContent>
+          </Card>
+        </div>
+      </ProtectedDashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedDashboardLayout
+        role="mentor"
+        links={mentorSidebarLinks}
+        loadingMessage="Loading your mentor dashboard..."
+      >
+        <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
+          <Card className="rounded-[30px] border border-rose-100 bg-white shadow-[0_24px_70px_-40px_rgba(244,63,94,0.16)]">
+            <CardContent className="space-y-4 p-8">
+              <div className="flex items-center gap-3 text-rose-700">
+                <AlertCircle className="h-5 w-5" />
+                Unable to load mentor dashboard
+              </div>
+              <p className="text-sm leading-6 text-slate-600">{error}</p>
+              <Button
+                className="rounded-2xl bg-slate-900 px-5 text-white hover:bg-slate-800"
+                onClick={() => window.location.reload()}
+                type="button"
+              >
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </ProtectedDashboardLayout>
+    );
+  }
 
   return (
     <ProtectedDashboardLayout
@@ -321,13 +575,10 @@ export default function MentorDashboardPage() {
 
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl dark:!text-slate-950">
-                    Welcome back, {MENTOR_NAME}
+                    Welcome back, {mentorName}
                   </h1>
                   <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
-                    Your learners are building solid momentum today. Clear the
-                    highest-priority doubts, publish one high-value resource, and
-                    keep the strongest students moving while supporting the ones who
-                    need extra attention.
+                    Your dashboard is now reading the real mentor workspace. Student assignments, doubts, announcements, content, and quizzes are all coming from the live backend.
                   </p>
                 </div>
 
@@ -336,10 +587,13 @@ export default function MentorDashboardPage() {
                     {todayLabel}
                   </div>
                   <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
-                    {averageStudentProgress}% average progress
+                    {students.length} students assigned
                   </div>
                   <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
-                    {unreadDoubts} priority doubts waiting
+                    {pendingDoubts.length} pending doubts
+                  </div>
+                  <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 shadow-sm">
+                    {scheduledAnnouncements.length} announcements scheduled
                   </div>
                 </div>
               </div>
@@ -350,16 +604,8 @@ export default function MentorDashboardPage() {
                   onClick={() => router.push("/mentor/content")}
                   type="button"
                 >
-                  <BookOpen className="mr-2 h-4 w-4" />
+                  <Upload className="mr-2 h-4 w-4" />
                   Manage Content
-                </Button>
-                <Button
-                  className="h-12 rounded-2xl border border-slate-200 bg-white/85 px-5 text-sm font-semibold text-slate-900 hover:bg-white dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-white"
-                  onClick={() => router.push("/mentor/quizzes")}
-                  type="button"
-                >
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  View Quizzes
                 </Button>
                 <Button
                   className="h-12 rounded-2xl border border-slate-200 bg-white/85 px-5 text-sm font-semibold text-slate-900 hover:bg-white dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-white"
@@ -368,6 +614,14 @@ export default function MentorDashboardPage() {
                 >
                   <Users className="mr-2 h-4 w-4" />
                   View Students
+                </Button>
+                <Button
+                  className="h-12 rounded-2xl border border-slate-200 bg-white/85 px-5 text-sm font-semibold text-slate-900 hover:bg-white dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-white"
+                  onClick={() => router.push("/mentor/doubts")}
+                  type="button"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Open Doubts
                 </Button>
               </div>
             </div>
@@ -400,148 +654,85 @@ export default function MentorDashboardPage() {
                   type="button"
                   variant="outline"
                 >
-                  View All Students
+                  Open student workspace
                 </Button>
               }
-              description="A quick snapshot of assigned learners, their current progress, and the weak area that may need coaching next."
+              description="A live snapshot of assigned learners, their progress, and the subject that currently needs the most support."
               title="Students Overview"
             >
               <div className="space-y-4">
-                {STUDENT_OVERVIEW.map((student) => (
-                  <div
-                    className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}
-                    key={student.id}
-                  >
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex min-w-0 items-start gap-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-slate-900 text-white">
-                            {getInitials(student.name)}
-                          </AvatarFallback>
-                        </Avatar>
+                {students.length ? (
+                  students.slice(0, 5).map((student) => (
+                    <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")} key={student.studentId}>
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback className="bg-slate-900 text-white">
+                              {getInitials(student.name)}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-base font-semibold text-slate-950 dark:!text-slate-950">
-                              {student.name}
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-base font-semibold text-slate-950 dark:!text-slate-950">
+                                {student.name}
+                              </p>
+                              <Badge className="border-transparent bg-sky-50 text-sky-700 dark:!bg-sky-50 dark:!text-sky-700">
+                                {student.level || "Student"}
+                              </Badge>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">
+                              Weak subject: {student.weakSubject?.name || "No subject data yet"}
                             </p>
-                            <Badge className="border-transparent bg-sky-50 text-sky-700 dark:!bg-sky-50 dark:!text-sky-700">
-                              {student.level}
-                            </Badge>
                           </div>
-                          <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">
-                            Weak subject: {student.weakSubject}
-                          </p>
                         </div>
-                      </div>
 
-                      <div className="w-full max-w-[360px] space-y-3">
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                          <span className="font-medium text-slate-500 dark:!text-slate-500">
-                            Progress
-                          </span>
-                          <span className="font-semibold text-slate-950 dark:!text-slate-950">
-                            {student.progress}%
-                          </span>
+                        <div className="w-full max-w-[360px] space-y-3">
+                          <div className="flex items-center justify-between gap-3 text-sm">
+                            <span className="font-medium text-slate-500 dark:!text-slate-500">
+                              Progress
+                            </span>
+                            <span className="font-semibold text-slate-950 dark:!text-slate-950">
+                              {typeof student.averageProgress === "number"
+                                ? `${student.averageProgress}%`
+                                : "No data"}
+                            </span>
+                          </div>
+                          <Progress
+                            className="h-3 bg-slate-200 dark:!bg-slate-200"
+                            indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
+                            value={student.averageProgress ?? 0}
+                          />
                         </div>
-                        <Progress
-                          className="h-3 bg-slate-200 dark:!bg-slate-200"
-                          indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
-                          value={student.progress}
-                        />
-                      </div>
 
-                      <Button
-                        className={cn(
-                          "h-10 rounded-2xl px-4",
-                          PRIMARY_BUTTON_CLASS_NAME,
-                        )}
-                        onClick={() => router.push("/mentor/students")}
-                        type="button"
-                      >
-                        View Details
-                      </Button>
+                        <Button
+                          className={cn(
+                            "h-10 rounded-2xl px-4",
+                            PRIMARY_BUTTON_CLASS_NAME,
+                          )}
+                          onClick={() =>
+                            router.push(`/mentor/students?student=${student.studentId}`)
+                          }
+                          type="button"
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-6 text-sm text-slate-600">
+                    No mentor assignments found yet. Assign a student to start building your live dashboard.
                   </div>
-                ))}
+                )}
               </div>
             </SectionCard>
 
             <SectionCard
-              description="Track how learner engagement and average progress move through the week, then focus on the students at both ends of the curve."
-              title="Performance"
+              description="Students with the strongest momentum and the ones who need a faster intervention next."
+              title="Momentum Snapshot"
             >
-              <div className="h-[320px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={PERFORMANCE_DATA}
-                    margin={{ top: 16, right: 10, left: -18, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="mentorEngagement" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0f766e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#0f766e" stopOpacity={0.02} />
-                      </linearGradient>
-                      <linearGradient id="mentorProgress" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.36} />
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      vertical={false}
-                      stroke="rgba(15,23,42,0.08)"
-                      strokeDasharray="4 4"
-                    />
-                    <XAxis
-                      axisLine={false}
-                      dataKey="label"
-                      tick={{ fill: "#64748b", fontSize: 12 }}
-                      tickLine={false}
-                      tickMargin={12}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      domain={[40, 100]}
-                      tick={{ fill: "#64748b", fontSize: 12 }}
-                      tickFormatter={(value) => `${value}%`}
-                      tickLine={false}
-                      width={58}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "rgba(255,255,255,0.98)",
-                        border: "1px solid rgba(15,23,42,0.08)",
-                        borderRadius: "18px",
-                        boxShadow: "0 20px 50px rgba(15,23,42,0.12)",
-                        padding: "12px 14px",
-                      }}
-                      formatter={(value: number | string, name: string) => [
-                        `${value}%`,
-                        name === "engagement" ? "Engagement" : "Average progress",
-                      ]}
-                      labelStyle={{ color: "#0f172a", fontWeight: 600 }}
-                    />
-                    <Area
-                      dataKey="engagement"
-                      fill="url(#mentorEngagement)"
-                      name="engagement"
-                      stroke="#0f766e"
-                      strokeWidth={3}
-                      type="monotone"
-                    />
-                    <Area
-                      dataKey="averageProgress"
-                      fill="url(#mentorProgress)"
-                      name="averageProgress"
-                      stroke="#2563eb"
-                      strokeWidth={3}
-                      type="monotone"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="mt-6 grid gap-6 xl:grid-cols-2">
+              <div className="grid gap-6 xl:grid-cols-2">
                 <div className="rounded-[28px] border border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.92),rgba(255,255,255,0.98))] p-5 shadow-[0_20px_44px_-36px_rgba(5,150,105,0.32)]">
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
@@ -552,35 +743,43 @@ export default function MentorDashboardPage() {
                         Top Performing Students
                       </p>
                       <p className="text-sm text-slate-600">
-                        Learners sustaining the strongest momentum.
+                        Best average progress across assigned subjects.
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-5 space-y-3">
-                    {TOP_PERFORMERS.map((student) => (
-                      <div
-                        className="flex items-center justify-between rounded-[22px] border border-emerald-200 bg-white px-4 py-3 shadow-sm"
-                        key={student.id}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                              {getInitials(student.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-950">
-                              {student.name}
-                            </p>
-                            <p className="text-sm text-slate-500">{student.level}</p>
+                    {topStudents.length ? (
+                      topStudents.map((student) => (
+                        <div
+                          className="flex items-center justify-between rounded-[22px] border border-emerald-200 bg-white px-4 py-3 shadow-sm"
+                          key={student.studentId}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                                {getInitials(student.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-950">
+                                {student.name}
+                              </p>
+                              <p className="text-sm text-slate-500">
+                                {student.weakSubject?.name || "No weak subject logged"}
+                              </p>
+                            </div>
                           </div>
+                          <Badge className="border-transparent bg-emerald-600 text-white">
+                            {student.averageProgress}%
+                          </Badge>
                         </div>
-                        <Badge className="border-transparent bg-emerald-600 text-white">
-                          {student.progress}%
-                        </Badge>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-600">
+                        Progress data will appear here once assigned student subjects start updating.
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -594,37 +793,45 @@ export default function MentorDashboardPage() {
                         Students Needing Attention
                       </p>
                       <p className="text-sm text-slate-600">
-                        The next set of learners to support proactively.
+                        Lowest visible average progress or missing subject progress.
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-5 space-y-3">
-                    {NEEDS_ATTENTION.map((student) => (
-                      <div
-                        className="flex items-center justify-between rounded-[22px] border border-amber-200 bg-white px-4 py-3 shadow-sm"
-                        key={student.id}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-amber-100 text-amber-700">
-                              {getInitials(student.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-950">
-                              {student.name}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              Weak: {student.weakSubject}
-                            </p>
+                    {needsAttention.length ? (
+                      needsAttention.map((student) => (
+                        <div
+                          className="flex items-center justify-between rounded-[22px] border border-amber-200 bg-white px-4 py-3 shadow-sm"
+                          key={student.studentId}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-amber-100 text-amber-700">
+                                {getInitials(student.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-950">
+                                {student.name}
+                              </p>
+                              <p className="text-sm text-slate-500">
+                                Weak: {student.weakSubject?.name || "No subject data"}
+                              </p>
+                            </div>
                           </div>
+                          <Badge className="border-transparent bg-amber-500 text-white">
+                            {typeof student.averageProgress === "number"
+                              ? `${student.averageProgress}%`
+                              : "No data"}
+                          </Badge>
                         </div>
-                        <Badge className="border-transparent bg-amber-500 text-white">
-                          {student.progress}%
-                        </Badge>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-600">
+                        Your attention list will appear once students are assigned.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -633,11 +840,51 @@ export default function MentorDashboardPage() {
 
           <div className="space-y-8">
             <SectionCard
-              description="High-value teaching actions that keep your content, assessments, and support loop moving."
+              description="High-value teaching actions backed by the live mentor workspace."
               title="Quick Actions"
             >
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                {QUICK_ACTIONS.map((action) => (
+                {[
+                  {
+                    title: "Create Quiz",
+                    description: "Build a new checkpoint from your assigned subject coverage.",
+                    icon: <CheckCircle2 className="h-5 w-5" />,
+                    href: "/mentor/quizzes",
+                    accentClassName: "bg-sky-600 text-white shadow-lg shadow-sky-200",
+                    surfaceClassName:
+                      "bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] shadow-[0_20px_50px_-40px_rgba(37,99,235,0.42)]",
+                  },
+                  {
+                    title: "Upload Content",
+                    description: "Add notes, PDFs, videos, or assignments for your learners.",
+                    icon: <Upload className="h-5 w-5" />,
+                    href: "/mentor/content",
+                    accentClassName:
+                      "bg-emerald-600 text-white shadow-lg shadow-emerald-200",
+                    surfaceClassName:
+                      "bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] shadow-[0_20px_50px_-40px_rgba(5,150,105,0.34)]",
+                  },
+                  {
+                    title: "Reply to Doubts",
+                    description: "Clear the learner questions still waiting for your help.",
+                    icon: <MessageSquare className="h-5 w-5" />,
+                    href: "/mentor/doubts",
+                    accentClassName:
+                      "bg-amber-500 text-white shadow-lg shadow-amber-200",
+                    surfaceClassName:
+                      "bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_55%,#fde68a_125%)] shadow-[0_20px_50px_-40px_rgba(217,119,6,0.3)]",
+                  },
+                  {
+                    title: "Share Announcement",
+                    description: "Send or schedule an update for assigned learners.",
+                    icon: <Megaphone className="h-5 w-5" />,
+                    href: "/mentor/announcements",
+                    accentClassName:
+                      "bg-violet-600 text-white shadow-lg shadow-violet-200",
+                    surfaceClassName:
+                      "bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_55%,#ddd6fe_125%)] shadow-[0_20px_50px_-40px_rgba(109,40,217,0.28)]",
+                  },
+                ].map((action) => (
                   <button
                     className={cn(
                       "group rounded-[28px] border border-slate-200/90 p-5 text-left transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_24px_55px_-36px_rgba(15,23,42,0.18)] dark:!border-slate-200 dark:!text-slate-950",
@@ -672,50 +919,53 @@ export default function MentorDashboardPage() {
             <SectionCard
               action={
                 <Badge className="border-transparent bg-rose-100 text-rose-700">
-                  {unreadDoubts} urgent
+                  {pendingDoubts.length} open
                 </Badge>
               }
-              description="The newest learner questions that are still waiting for a reply."
-              title="Recent Doubts and Messages"
+              description="The newest or most urgent student questions that still need a mentor response."
+              title="Recent Doubts"
             >
               <div className="space-y-4">
-                {RECENT_DOUBTS.map((doubt) => (
-                  <div
-                    className={cn(SOFT_PANEL_CLASS_NAME, "p-4")}
-                    key={doubt.id}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
-                            {doubt.studentName}
+                {recentDoubts.length ? (
+                  recentDoubts.map((doubt) => (
+                    <div className={cn(SOFT_PANEL_CLASS_NAME, "p-4")} key={doubt._id || doubt.id}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
+                              {doubt.studentId?.name || "Student"}
+                            </p>
+                            <Badge className={doubtBadgeClass(doubt.priority)}>
+                              {doubt.priority || "Normal"}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
+                            {doubt.title || "Untitled doubt"}
                           </p>
-                          <Badge className={priorityBadgeClass(doubt.priority)}>
-                            {doubt.priority}
-                          </Badge>
+                          <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
+                            <Clock3 className="h-3.5 w-3.5" />
+                            {formatRelativeTime(doubt.createdAt)}
+                          </div>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
-                          {doubt.title}
-                        </p>
-                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {doubt.time}
-                        </div>
-                      </div>
 
-                      <Button
-                        className={cn(
-                          "h-10 rounded-2xl px-4",
-                          PRIMARY_BUTTON_CLASS_NAME,
-                        )}
-                        onClick={() => router.push("/mentor/doubts")}
-                        type="button"
-                      >
-                        Reply
-                      </Button>
+                        <Button
+                          className={cn(
+                            "h-10 rounded-2xl px-4",
+                            PRIMARY_BUTTON_CLASS_NAME,
+                          )}
+                          onClick={() => router.push("/mentor/doubts")}
+                          type="button"
+                        >
+                          Reply
+                        </Button>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-6 text-sm text-slate-600">
+                    No pending doubts right now.
                   </div>
-                ))}
+                )}
               </div>
             </SectionCard>
 
@@ -730,45 +980,149 @@ export default function MentorDashboardPage() {
                   type="button"
                 >
                   <Megaphone className="mr-2 h-4 w-4" />
-                  Create Announcement
+                  Open announcements
                 </Button>
               }
-              description="Recent mentor announcements and course-wide updates shared with learners."
+              description="Recent mentor announcements created from the live announcement store."
               title="Announcements Preview"
             >
               <div className="space-y-4">
-                {ANNOUNCEMENTS.map((announcement) => (
-                  <div
-                    className={cn(SOFT_PANEL_CLASS_NAME, "p-4")}
-                    key={announcement.id}
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
-                        <Megaphone className="h-5 w-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
-                            {announcement.title}
+                {announcements.length ? (
+                  announcements.slice(0, 3).map((announcement) => (
+                    <div className={cn(SOFT_PANEL_CLASS_NAME, "p-4")} key={announcement.id}>
+                      <div className="flex items-start gap-4">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-[0_16px_26px_-18px_rgba(37,99,235,0.44)]">
+                          <Megaphone className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-950 dark:!text-slate-950">
+                              {announcement.title || "Untitled announcement"}
+                            </p>
+                            <Badge className={announcementBadgeClass(announcement.status)}>
+                              {announcement.status || "Draft"}
+                            </Badge>
+                            <Badge className="border-transparent bg-indigo-50 text-indigo-700 dark:!bg-indigo-50 dark:!text-indigo-700">
+                              {getAudienceLabel(announcement.audienceType)}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
+                            {announcement.message || "No announcement message."}
                           </p>
-                          <Badge className="border-transparent bg-indigo-50 text-indigo-700 dark:!bg-indigo-50 dark:!text-indigo-700">
-                            {announcement.audience}
-                          </Badge>
-                        </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:!text-slate-600">
-                          {announcement.summary}
-                        </p>
-                        <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
-                          <CalendarDays className="h-3.5 w-3.5" />
-                          {announcement.time}
+                          <div className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 dark:!text-slate-500">
+                            <CalendarDays className="h-3.5 w-3.5" />
+                            {announcement.status === "Scheduled"
+                              ? `Scheduled for ${formatDate(announcement.scheduledAt)}`
+                              : `Created ${formatRelativeTime(announcement.createdAt)}`}
+                          </div>
                         </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-6 text-sm text-slate-600">
+                    No mentor announcements created yet.
                   </div>
-                ))}
+                )}
               </div>
             </SectionCard>
           </div>
+        </div>
+
+        <div className="grid gap-8 xl:grid-cols-2">
+          <SectionCard
+            description="Your most recent mentor resources from the live content library."
+            title="Recent Content"
+          >
+            <div className="space-y-4">
+              {recentMaterials.length ? (
+                recentMaterials.map((material) => (
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-4")} key={material.id}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-950">
+                            {material.title || "Untitled material"}
+                          </p>
+                          <Badge className="border-transparent bg-sky-100 text-sky-700">
+                            {material.type || "Notes"}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          {material.subjectName || "General"} | {material.status || "Published"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Added {formatRelativeTime(material.createdAt)}
+                        </p>
+                      </div>
+                      <Button
+                        className={cn(
+                          "h-10 rounded-2xl px-4",
+                          SECONDARY_BUTTON_CLASS_NAME,
+                        )}
+                        onClick={() => router.push("/mentor/content")}
+                        type="button"
+                        variant="outline"
+                      >
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-6 text-sm text-slate-600">
+                  No materials uploaded yet.
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            description="The newest quizzes created from your assigned subject coverage."
+            title="Recent Quizzes"
+          >
+            <div className="space-y-4">
+              {recentQuizzes.length ? (
+                recentQuizzes.map((quiz) => (
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-4")} key={quiz.id}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-950">
+                            {quiz.title || "Untitled quiz"}
+                          </p>
+                          <Badge className="border-transparent bg-emerald-100 text-emerald-700">
+                            {quiz.subjectName || "General"}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          {quiz.questionCount || 0} questions | {quiz.assignedToCount || 0} direct assignments
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Created {formatRelativeTime(quiz.createdAt)}
+                        </p>
+                      </div>
+                      <Button
+                        className={cn(
+                          "h-10 rounded-2xl px-4",
+                          SECONDARY_BUTTON_CLASS_NAME,
+                        )}
+                        onClick={() => router.push("/mentor/quizzes")}
+                        type="button"
+                        variant="outline"
+                      >
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-6 text-sm text-slate-600">
+                  No mentor quizzes created yet.
+                </div>
+              )}
+            </div>
+          </SectionCard>
         </div>
       </div>
     </ProtectedDashboardLayout>

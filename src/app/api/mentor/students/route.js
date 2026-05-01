@@ -68,6 +68,22 @@ async function resolveMentorId(request, currentUser) {
   return mentorId;
 }
 
+function addSubjectOnce(assignedSubjects, subjectSummary) {
+  if (!subjectSummary) {
+    return;
+  }
+
+  if (
+    assignedSubjects.some(
+      (subject) => subject.subjectId === subjectSummary.subjectId,
+    )
+  ) {
+    return;
+  }
+
+  assignedSubjects.push(subjectSummary);
+}
+
 function buildGroupedStudentResponse(assignments) {
   const groupedStudents = new Map();
 
@@ -88,25 +104,61 @@ function buildGroupedStudentResponse(assignments) {
         avatar: student.avatar ?? null,
         level: student.level ?? null,
         assignments: [],
+        assignedSubjects: [],
       });
     }
 
-    groupedStudents.get(studentKey).assignments.push({
+    const entry = groupedStudents.get(studentKey);
+    const subject = assignment.subjectId
+      ? {
+          subjectId: String(assignment.subjectId._id),
+          name: assignment.subjectId.name,
+          progress:
+            typeof assignment.subjectId.progress === 'number'
+              ? assignment.subjectId.progress
+              : null,
+          examDate: assignment.subjectId.examDate ?? null,
+        }
+      : null;
+
+    entry.assignments.push({
       assignmentId: String(assignment._id),
-      subject: assignment.subjectId
-        ? {
-            subjectId: String(assignment.subjectId._id),
-            name: assignment.subjectId.name,
-          }
-        : null,
+      subject,
       createdAt: assignment.createdAt,
       updatedAt: assignment.updatedAt,
     });
+
+    addSubjectOnce(entry.assignedSubjects, subject);
   }
 
-  return Array.from(groupedStudents.values()).sort((first, second) =>
-    first.name.localeCompare(second.name),
-  );
+  return Array.from(groupedStudents.values())
+    .map((student) => {
+      const subjectsWithProgress = student.assignedSubjects.filter(
+        (subject) => typeof subject.progress === 'number',
+      );
+      const averageProgress = subjectsWithProgress.length
+        ? Math.round(
+            subjectsWithProgress.reduce(
+              (total, subject) => total + subject.progress,
+              0,
+            ) / subjectsWithProgress.length,
+          )
+        : null;
+      const weakSubject = subjectsWithProgress.length
+        ? [...subjectsWithProgress].sort(
+            (first, second) => first.progress - second.progress,
+          )[0]
+        : student.assignedSubjects[0] ?? null;
+
+      return {
+        ...student,
+        assignedSubjectCount: student.assignedSubjects.length,
+        averageProgress,
+        weakSubject,
+        lastAssignmentAt: student.assignments[0]?.createdAt ?? null,
+      };
+    })
+    .sort((first, second) => first.name.localeCompare(second.name));
 }
 
 export async function GET(request) {
@@ -125,7 +177,7 @@ export async function GET(request) {
       })
       .populate({
         path: 'subjectId',
-        select: 'name',
+        select: 'name progress examDate',
       })
       .sort({ createdAt: -1 })
       .lean();

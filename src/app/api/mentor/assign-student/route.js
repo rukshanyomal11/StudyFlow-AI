@@ -76,7 +76,7 @@ async function resolveMentorId(body, currentUser) {
     return currentUser.id;
   }
 
-  const mentorId = typeof body.mentorId === 'string' ? body.mentorId.trim() : '';
+  const mentorId = typeof body?.mentorId === 'string' ? body.mentorId.trim() : '';
 
   if (!mentorId) {
     throw new Error('Mentor ID is required');
@@ -87,6 +87,34 @@ async function resolveMentorId(body, currentUser) {
   }
 
   return mentorId;
+}
+
+async function resolveMentorIdForGet(request, currentUser) {
+  if (currentUser.role === 'mentor') {
+    return currentUser.id;
+  }
+
+  const mentorId = request.nextUrl.searchParams.get('mentorId')?.trim() || '';
+
+  if (!mentorId) {
+    throw new Error('Mentor ID is required');
+  }
+
+  if (!isValidObjectId(mentorId)) {
+    throw new Error('Mentor ID is invalid');
+  }
+
+  return mentorId;
+}
+
+async function ensureMentorExists(mentorId) {
+  const mentor = await User.findOne({ _id: mentorId, role: 'mentor' })
+    .select('_id name email role')
+    .lean();
+
+  if (!mentor) {
+    throw new Error('Mentor not found');
+  }
 }
 
 async function buildAssignmentPayload(body, currentUser) {
@@ -152,6 +180,96 @@ async function buildAssignmentPayload(body, currentUser) {
     studentId,
     subjectId: subjectId || null,
   };
+}
+
+function buildAssignableStudents(students, subjects, assignments) {
+  const subjectsByStudentId = new Map();
+  const assignmentKeys = new Set();
+  const generalAssignments = new Set();
+
+  subjects.forEach((subject) => {
+    const studentKey = String(subject.userId);
+
+    if (!subjectsByStudentId.has(studentKey)) {
+      subjectsByStudentId.set(studentKey, []);
+    }
+
+    subjectsByStudentId.get(studentKey).push({
+      subjectId: String(subject._id),
+      name: subject.name,
+      progress: typeof subject.progress === 'number' ? subject.progress : null,
+    });
+  });
+
+  assignments.forEach((assignment) => {
+    const studentKey = String(assignment.studentId);
+    const subjectKey = assignment.subjectId ? String(assignment.subjectId) : null;
+
+    if (subjectKey) {
+      assignmentKeys.add(`${studentKey}:${subjectKey}`);
+      return;
+    }
+
+    generalAssignments.add(studentKey);
+  });
+
+  return students.map((student) => {
+    const studentId = String(student._id);
+    const subjectOptions = (subjectsByStudentId.get(studentId) ?? [])
+      .map((subject) => ({
+        ...subject,
+        isAssignedToMentor: assignmentKeys.has(`${studentId}:${subject.subjectId}`),
+      }))
+      .sort((first, second) => first.name.localeCompare(second.name));
+
+    return {
+      studentId,
+      name: student.name,
+      email: student.email,
+      avatar: student.avatar ?? null,
+      level: student.level ?? null,
+      hasGeneralAssignment: generalAssignments.has(studentId),
+      subjects: subjectOptions,
+    };
+  });
+}
+
+export async function GET(request) {
+  try {
+    const currentUser = await requireAuth();
+    ensureMentorAccess(currentUser);
+
+    await connectDB();
+
+    const mentorId = await resolveMentorIdForGet(request, currentUser);
+    await ensureMentorExists(mentorId);
+
+    const students = await User.find({ role: 'student' })
+      .select('_id name email avatar level')
+      .sort({ name: 1 })
+      .lean();
+    const studentIds = students.map((student) => student._id);
+
+    const [subjects, assignments] = await Promise.all([
+      Subject.find({ userId: { $in: studentIds } })
+        .select('_id name progress userId')
+        .sort({ name: 1 })
+        .lean(),
+      MentorStudent.find({ mentorId })
+        .select('studentId subjectId')
+        .lean(),
+    ]);
+
+    return NextResponse.json(
+      {
+        mentorId,
+        students: buildAssignableStudents(students, subjects, assignments),
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    return createErrorResponse(error);
+  }
 }
 
 export async function POST(request) {

@@ -1,343 +1,277 @@
 const API_BASE = '/api/mentor';
 
-export const mentorService = {
-  // ============== STUDENTS ==============
-  async getStudents() {
-    try {
-      const response = await fetch(`${API_BASE}/students`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch students: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      throw error;
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function requestJson(path, options = {}, fallbackMessage = 'Request failed.') {
+  const response = await fetch(path, {
+    cache: options.method === 'GET' || !options.method ? 'no-store' : 'default',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers ?? {}),
+    },
+  });
+
+  const payload = await readJson(response);
+
+  if (!response.ok) {
+    const message =
+      typeof payload?.error === 'string' && payload.error.trim()
+        ? payload.error
+        : typeof payload?.message === 'string' && payload.message.trim()
+          ? payload.message
+          : fallbackMessage;
+
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+function buildQueryString(filters = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') {
+      return;
     }
+
+    searchParams.set(key, String(value));
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+export const mentorService = {
+  async getStudents(filters = {}) {
+    const payload = await requestJson(
+      `${API_BASE}/students${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load mentor students right now.',
+    );
+
+    return payload;
+  },
+
+  async getAssignableStudents(filters = {}) {
+    const payload = await requestJson(
+      `${API_BASE}/assign-student${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load assignable students right now.',
+    );
+
+    return payload?.students ?? [];
   },
 
   async assignStudent(studentData) {
-    try {
-      const response = await fetch(`${API_BASE}/assign-student`, {
+    return requestJson(
+      `${API_BASE}/assign-student`,
+      {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData),
-      });
-      if (!response.ok) throw new Error(`Failed to assign student: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error assigning student:', error);
-      throw error;
-    }
+      },
+      'Unable to assign this student right now.',
+    );
   },
 
   async updateStudent(studentId, updates) {
-    try {
-      const response = await fetch(`${API_BASE}/students/${studentId}`, {
+    return requestJson(
+      `${API_BASE}/students/${studentId}`,
+      {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error(`Failed to update student: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating student:', error);
-      throw error;
-    }
+      },
+      'Unable to update this student right now.',
+    );
   },
 
-  // ============== ANNOUNCEMENTS ==============
-  async getAnnouncements() {
-    try {
-      const response = await fetch(`${API_BASE}/announcements`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch announcements: ${response.status}`);
-      const data = await response.json();
-      return data?.announcements || [];
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-      throw error;
-    }
+  async getAnnouncements(filters = {}) {
+    const payload = await requestJson(
+      `${API_BASE}/announcements${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load mentor announcements right now.',
+    );
+
+    return payload?.announcements ?? [];
   },
 
   async createAnnouncement(announcementData) {
-    try {
-      const response = await fetch(`${API_BASE}/announcements`, {
+    return requestJson(
+      `${API_BASE}/announcements`,
+      {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(announcementData),
-      });
-      if (!response.ok) throw new Error(`Failed to create announcement: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating announcement:', error);
-      throw error;
-    }
+      },
+      'Unable to create this announcement right now.',
+    );
   },
 
-  async updateAnnouncement(announcementId, updates) {
-    try {
-      const response = await fetch(`${API_BASE}/announcements/${announcementId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error(`Failed to update announcement: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating announcement:', error);
-      throw error;
-    }
+  async updateAnnouncement() {
+    throw new Error('Announcement editing is not wired to a detail API route yet.');
   },
 
-  async deleteAnnouncement(announcementId) {
-    try {
-      const response = await fetch(`${API_BASE}/announcements/${announcementId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete announcement: ${response.status}`);
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting announcement:', error);
-      throw error;
-    }
+  async deleteAnnouncement() {
+    throw new Error('Announcement deletion is not wired to a detail API route yet.');
   },
 
-  // ============== DOUBTS ==============
   async getDoubts(filters = {}) {
-    try {
-      const params = new URLSearchParams(filters);
-      const response = await fetch(`${API_BASE}/doubts?${params.toString()}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch doubts: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching doubts:', error);
-      throw error;
-    }
+    const payload = await requestJson(
+      `${API_BASE}/doubts${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load mentor doubts right now.',
+    );
+
+    return payload?.doubts ?? [];
   },
 
   async resolveDoubt(doubtId, resolution) {
-    try {
-      const response = await fetch(`${API_BASE}/doubts/${doubtId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+    return requestJson(
+      `${API_BASE}/doubts/${doubtId}/reply`,
+      {
+        method: 'POST',
         body: JSON.stringify(resolution),
-      });
-      if (!response.ok) throw new Error(`Failed to resolve doubt: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error resolving doubt:', error);
-      throw error;
-    }
+      },
+      'Unable to save this doubt reply right now.',
+    );
   },
 
-  // ============== CONTENT ==============
-  async getSubjects() {
-    try {
-      const response = await fetch('/api/subjects', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch subjects: ${response.status}`);
-      const data = await response.json();
-      return data?.subjects || [];
-    } catch (error) {
-      console.error('Error fetching subjects:', error);
-      throw error;
-    }
+  async getSubjects(filters = {}) {
+    const payload = await requestJson(
+      `${API_BASE}/subjects${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load mentor subjects right now.',
+    );
+
+    return payload?.subjects ?? [];
   },
 
-  async getContent() {
-    try {
-      const response = await fetch(`${API_BASE}/content`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        let serverError = '';
-        try {
-          const errorBody = await response.json();
-          serverError = errorBody?.error || '';
-        } catch {
-          serverError = '';
-        }
+  async getContent(filters = {}) {
+    const payload = await requestJson(
+      `${API_BASE}/content${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load mentor content right now.',
+    );
 
-        const message = serverError
-          ? `Failed to fetch content: ${response.status} (${serverError})`
-          : `Failed to fetch content: ${response.status}`;
-        throw new Error(message);
-      }
-      const data = await response.json();
-      return data?.materials || [];
-    } catch (error) {
-      throw error;
-    }
+    return payload?.materials ?? [];
   },
 
   async createContent(contentData) {
-    try {
-      const response = await fetch(`${API_BASE}/content`, {
+    return requestJson(
+      `${API_BASE}/content`,
+      {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contentData),
-      });
-      if (!response.ok) throw new Error(`Failed to create content: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating content:', error);
-      throw error;
-    }
+      },
+      'Unable to create this content right now.',
+    );
   },
 
   async updateContent(contentId, updates) {
-    try {
-      const response = await fetch(`${API_BASE}/content/${contentId}`, {
+    return requestJson(
+      `${API_BASE}/content/${contentId}`,
+      {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error(`Failed to update content: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating content:', error);
-      throw error;
-    }
+      },
+      'Unable to update this content right now.',
+    );
   },
 
   async deleteContent(contentId) {
-    try {
-      const response = await fetch(`${API_BASE}/content/${contentId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete content: ${response.status}`);
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting content:', error);
-      throw error;
-    }
+    await requestJson(
+      `${API_BASE}/content/${contentId}`,
+      { method: 'DELETE' },
+      'Unable to delete this content right now.',
+    );
+
+    return { success: true };
   },
 
-  // ============== QUIZZES ==============
-  async getQuizzes() {
-    try {
-      const response = await fetch(`${API_BASE}/quizzes`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch quizzes: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching quizzes:', error);
-      throw error;
-    }
+  async getQuizzes(filters = {}) {
+    const payload = await requestJson(
+      `/api/quizzes${buildQueryString(filters)}`,
+      { method: 'GET' },
+      'Unable to load quizzes right now.',
+    );
+
+    return payload?.quizzes ?? [];
   },
 
   async createQuiz(quizData) {
-    try {
-      const response = await fetch(`${API_BASE}/quizzes`, {
+    return requestJson(
+      '/api/quizzes',
+      {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(quizData),
-      });
-      if (!response.ok) throw new Error(`Failed to create quiz: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating quiz:', error);
-      throw error;
-    }
+      },
+      'Unable to create this quiz right now.',
+    );
   },
 
   async updateQuiz(quizId, updates) {
-    try {
-      const response = await fetch(`${API_BASE}/quizzes/${quizId}`, {
+    return requestJson(
+      `/api/quizzes/${quizId}`,
+      {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error(`Failed to update quiz: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating quiz:', error);
-      throw error;
-    }
+      },
+      'Unable to update this quiz right now.',
+    );
   },
 
   async deleteQuiz(quizId) {
-    try {
-      const response = await fetch(`${API_BASE}/quizzes/${quizId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete quiz: ${response.status}`);
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting quiz:', error);
-      throw error;
-    }
+    await requestJson(
+      `/api/quizzes/${quizId}`,
+      { method: 'DELETE' },
+      'Unable to delete this quiz right now.',
+    );
+
+    return { success: true };
   },
 
-  // ============== PROFILE ==============
   async getProfile() {
-    try {
-      const response = await fetch(`${API_BASE}/profile`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch profile: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      throw error;
-    }
+    return requestJson(
+      `${API_BASE}/profile`,
+      { method: 'GET' },
+      'Unable to load mentor profile right now.',
+    );
   },
 
   async updateProfile(updates) {
-    try {
-      const response = await fetch(`${API_BASE}/profile`, {
+    return requestJson(
+      `${API_BASE}/profile`,
+      {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error(`Failed to update profile: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
-    }
+      },
+      'Unable to update mentor profile right now.',
+    );
   },
 
-  // ============== SETTINGS ==============
   async getSettings() {
-    try {
-      const response = await fetch(`${API_BASE}/settings`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`Failed to fetch settings: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-      throw error;
-    }
+    return requestJson(
+      `${API_BASE}/settings`,
+      { method: 'GET' },
+      'Unable to load mentor settings right now.',
+    );
   },
 
   async updateSettings(settings) {
-    try {
-      const response = await fetch(`${API_BASE}/settings`, {
+    return requestJson(
+      `${API_BASE}/settings`,
+      {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
-      });
-      if (!response.ok) throw new Error(`Failed to update settings: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      throw error;
-    }
+      },
+      'Unable to update mentor settings right now.',
+    );
   },
 };
 

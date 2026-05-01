@@ -3,8 +3,23 @@ import { NextResponse } from 'next/server';
 import Goal from '@/models/Goal';
 import connectDB from '@/lib/mongoose';
 import { requireAuth } from '@/lib/getSession';
+import {
+  calculateGoalTaskProgress,
+  getGoalStatusFromProgress,
+  serializeGoal,
+} from '@/lib/goal-utils';
 
 const allowedStatuses = new Set(['pending', 'in_progress', 'completed']);
+const allowedTimeframes = new Map([
+  ['short_term', 'short_term'],
+  ['short-term', 'short_term'],
+  ['short term', 'short_term'],
+  ['shortterm', 'short_term'],
+  ['long_term', 'long_term'],
+  ['long-term', 'long_term'],
+  ['long term', 'long_term'],
+  ['longterm', 'long_term'],
+]);
 
 function createErrorResponse(error) {
   console.error('Goal detail API error:', error);
@@ -26,8 +41,15 @@ function createErrorResponse(error) {
       error.message === 'Goal title is required' ||
       error.message === 'Goal deadline must be a valid date' ||
       error.message === 'Description must be a string' ||
+      error.message === 'Subject must be a string' ||
+      error.message === 'Target must be a string' ||
+      error.message === 'Notes must be a string' ||
       error.message === 'Progress must be a number between 0 and 100' ||
+      error.message === 'Timeframe must be one of: short_term, long_term' ||
       error.message === 'Status must be one of: pending, in_progress, completed'
+      || error.message === 'Tasks must be an array'
+      || error.message === 'Each goal task must be an object'
+      || error.message === 'Each goal task title is required'
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -60,6 +82,14 @@ function normalizeStatus(value) {
   return allowedStatuses.has(normalizedValue) ? normalizedValue : null;
 }
 
+function normalizeTimeframe(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return allowedTimeframes.get(value.trim().toLowerCase()) || null;
+}
+
 function normalizeNumber(value) {
   if (typeof value === 'number') {
     return value;
@@ -72,16 +102,39 @@ function normalizeNumber(value) {
   return Number.NaN;
 }
 
-function getStatusFromProgress(progress) {
-  if (progress >= 100) {
-    return 'completed';
+function normalizeOptionalTextField(value, label) {
+  if (value === undefined) {
+    return undefined;
   }
 
-  if (progress > 0) {
-    return 'in_progress';
+  if (value !== null && typeof value !== 'string') {
+    throw new Error(`${label} must be a string`);
   }
 
-  return 'pending';
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeGoalTasks(value) {
+  if (!Array.isArray(value)) {
+    throw new Error('Tasks must be an array');
+  }
+
+  return value.map((task) => {
+    if (!task || typeof task !== 'object' || Array.isArray(task)) {
+      throw new Error('Each goal task must be an object');
+    }
+
+    const title = typeof task.title === 'string' ? task.title.trim() : '';
+
+    if (!title) {
+      throw new Error('Each goal task title is required');
+    }
+
+    return {
+      title,
+      completed: Boolean(task.completed),
+    };
+  });
 }
 
 async function getGoalId(context) {
@@ -103,6 +156,8 @@ function buildUpdatePayload(body) {
   const updates = {};
   let normalizedProgress;
   let hasProgressUpdate = false;
+  let normalizedTasks = null;
+  let hasTasksUpdate = false;
 
   if ('title' in body) {
     const title = typeof body.title === 'string' ? body.title.trim() : '';
@@ -115,16 +170,39 @@ function buildUpdatePayload(body) {
   }
 
   if ('description' in body) {
-    if (
-      body.description !== null &&
-      body.description !== undefined &&
-      typeof body.description !== 'string'
-    ) {
-      throw new Error('Description must be a string');
+    updates.description =
+      normalizeOptionalTextField(body.description, 'Description') || '';
+
+    if (!('target' in body)) {
+      updates.target = updates.description;
+    }
+  }
+
+  if ('subject' in body) {
+    updates.subject = normalizeOptionalTextField(body.subject, 'Subject') || '';
+  }
+
+  if ('target' in body) {
+    const target = normalizeOptionalTextField(body.target, 'Target') || '';
+    updates.target = target;
+
+    if (!('description' in body)) {
+      updates.description = target;
+    }
+  }
+
+  if ('notes' in body) {
+    updates.notes = normalizeOptionalTextField(body.notes, 'Notes') || '';
+  }
+
+  if ('timeframe' in body) {
+    const timeframe = normalizeTimeframe(body.timeframe);
+
+    if (!timeframe) {
+      throw new Error('Timeframe must be one of: short_term, long_term');
     }
 
-    updates.description =
-      typeof body.description === 'string' ? body.description.trim() : '';
+    updates.timeframe = timeframe;
   }
 
   if ('deadline' in body) {
@@ -152,6 +230,17 @@ function buildUpdatePayload(body) {
     hasProgressUpdate = true;
   }
 
+  if ('tasks' in body) {
+    normalizedTasks = normalizeGoalTasks(body.tasks);
+    updates.tasks = normalizedTasks;
+    hasTasksUpdate = true;
+  }
+
+  if (!hasProgressUpdate && hasTasksUpdate && normalizedTasks.length > 0) {
+    updates.progress = calculateGoalTaskProgress(normalizedTasks);
+    hasProgressUpdate = true;
+  }
+
   if ('status' in body) {
     const status = normalizeStatus(body.status);
 
@@ -161,7 +250,7 @@ function buildUpdatePayload(body) {
 
     updates.status = status;
   } else if (hasProgressUpdate) {
-    updates.status = getStatusFromProgress(normalizedProgress);
+    updates.status = getGoalStatusFromProgress(updates.progress);
   }
 
   if (Object.keys(updates).length === 0) {
@@ -187,7 +276,7 @@ export async function GET(_request, context) {
       throw new Error('Goal not found');
     }
 
-    return NextResponse.json({ goal }, { status: 200 });
+    return NextResponse.json({ goal: serializeGoal(goal) }, { status: 200 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -218,7 +307,7 @@ export async function PUT(request, context) {
     return NextResponse.json(
       {
         message: 'Goal updated successfully',
-        goal,
+        goal: serializeGoal(goal),
       },
       { status: 200 },
     );

@@ -51,7 +51,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   buildAdminDashboardViewModel,
   loadAdminDashboardData,
-  type AdminDashboardViewModel,
 } from "@/lib/admin-dashboard-client";
 
 type HeroAction = {
@@ -359,7 +358,7 @@ export default function AdminDashboardPage() {
     };
   }, [refreshKey]);
 
-  const dashboard = useMemo<AdminDashboardViewModel | null>(() => {
+  const dashboard = useMemo(() => {
     if (!sourceData) {
       return null;
     }

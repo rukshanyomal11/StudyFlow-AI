@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronRight,
   ClipboardList,
+  Flag,
   ListTodo,
   Megaphone,
   PlayCircle,
@@ -185,6 +186,137 @@ function mapApiTaskToDashboardTask(task) {
   };
 }
 
+function clampGoalProgress(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.min(Math.max(Math.round(value), 0), 100);
+}
+
+function formatGoalDeadline(value) {
+  if (!value) {
+    return "No deadline";
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "No deadline";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsedDate);
+}
+
+function getGoalDaysRemaining(value) {
+  if (!value) {
+    return null;
+  }
+
+  const deadline = new Date(value);
+
+  if (Number.isNaN(deadline.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const deadlineStart = new Date(
+    deadline.getFullYear(),
+    deadline.getMonth(),
+    deadline.getDate(),
+  );
+
+  return Math.round(
+    (deadlineStart.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24),
+  );
+}
+
+function getGoalTimeframeLabel(value) {
+  return value === "long_term" ? "Long term" : "Short term";
+}
+
+function getGoalDeadlineBadge(goal) {
+  const daysRemaining = getGoalDaysRemaining(goal.deadline);
+
+  if (goal.progress >= 100 || goal.status === "completed") {
+    return {
+      className: "bg-emerald-100 text-emerald-700",
+      label: "Completed",
+    };
+  }
+
+  if (daysRemaining === null) {
+    return {
+      className: "bg-slate-100 text-slate-700",
+      label: "No date",
+    };
+  }
+
+  if (daysRemaining < 0) {
+    return {
+      className: "bg-rose-100 text-rose-700",
+      label: "Overdue",
+    };
+  }
+
+  if (daysRemaining <= 7) {
+    return {
+      className: "bg-amber-100 text-amber-700",
+      label: `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`,
+    };
+  }
+
+  return {
+    className: "bg-sky-100 text-sky-700",
+    label: "On track",
+  };
+}
+
+function mapApiGoalToDashboardGoal(goal) {
+  const tasks = Array.isArray(goal?.tasks) ? goal.tasks : [];
+  const completedTaskCount = tasks.filter((task) => task?.completed).length;
+  const derivedProgress = tasks.length
+    ? Math.round((completedTaskCount / tasks.length) * 100)
+    : 0;
+  const progress =
+    typeof goal?.progress === "number"
+      ? clampGoalProgress(goal.progress)
+      : clampGoalProgress(derivedProgress);
+
+  return {
+    id: goal?._id || goal?.id,
+    title:
+      typeof goal?.title === "string" && goal.title.trim()
+        ? goal.title.trim()
+        : "Untitled goal",
+    subject:
+      typeof goal?.subject === "string" && goal.subject.trim()
+        ? goal.subject.trim()
+        : "General",
+    target:
+      typeof goal?.target === "string" && goal.target.trim()
+        ? goal.target.trim()
+        : typeof goal?.description === "string" && goal.description.trim()
+          ? goal.description.trim()
+          : "Set a clear target to keep this goal moving.",
+    deadline: goal?.deadline || "",
+    progress,
+    timeframe: getGoalTimeframeLabel(goal?.timeframe),
+    status: typeof goal?.status === "string" ? goal.status : "pending",
+    completedTaskCount,
+    totalTaskCount: tasks.length,
+  };
+}
+
 async function readApiError(response, fallbackMessage) {
   try {
     const data = await response.json();
@@ -216,6 +348,7 @@ export default function StudentDashboardPage() {
   const [allTasks, setAllTasks] = useState([]);
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [allAnnouncements, setAllAnnouncements] = useState([]);
+  const [allGoals, setAllGoals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingTaskId, setPendingTaskId] = useState(null);
   const [statusTone, setStatusTone] = useState("info");
@@ -223,7 +356,7 @@ export default function StudentDashboardPage() {
     "Loading your dashboard...",
   );
   const [statusHint, setStatusHint] = useState(
-    "We are syncing your tasks and quiz availability.",
+    "We are syncing your tasks, quizzes, goals, and announcements.",
   );
 
   const updateStatus = (tone, message, hint) => {
@@ -239,10 +372,16 @@ export default function StudentDashboardPage() {
       setIsLoading(true);
 
       try {
-        const [tasksResponse, quizzesResponse, announcementsResponse] = await Promise.all([
+        const [
+          tasksResponse,
+          quizzesResponse,
+          announcementsResponse,
+          goalsResponse,
+        ] = await Promise.all([
           fetch("/api/tasks", { cache: "no-store" }),
           fetch("/api/quizzes", { cache: "no-store" }),
           fetch("/api/announcements", { cache: "no-store" }),
+          fetch("/api/goals", { cache: "no-store" }),
         ]);
 
         if (!tasksResponse.ok) {
@@ -272,9 +411,19 @@ export default function StudentDashboardPage() {
           );
         }
 
+        if (!goalsResponse.ok) {
+          throw new Error(
+            await readApiError(
+              goalsResponse,
+              "Unable to load your goals right now.",
+            ),
+          );
+        }
+
         const tasksData = await tasksResponse.json();
         const quizzesData = await quizzesResponse.json();
         const announcementsData = await announcementsResponse.json();
+        const goalsData = await goalsResponse.json();
         const nextTasks = Array.isArray(tasksData?.tasks)
           ? tasksData.tasks.map(mapApiTaskToDashboardTask)
           : [];
@@ -284,6 +433,9 @@ export default function StudentDashboardPage() {
         const nextAnnouncements = Array.isArray(announcementsData?.announcements)
           ? announcementsData.announcements.map(mapApiAnnouncementToDashboardItem)
           : [];
+        const nextGoals = Array.isArray(goalsData?.goals)
+          ? goalsData.goals.map(mapApiGoalToDashboardGoal)
+          : [];
 
         if (!isActive) {
           return;
@@ -292,11 +444,16 @@ export default function StudentDashboardPage() {
         setAllTasks(nextTasks);
         setAllQuizzes(nextQuizzes);
         setAllAnnouncements(nextAnnouncements);
+        setAllGoals(nextGoals);
 
         const assignedCount = nextQuizzes.filter(
           (quiz) => quiz.isAssignedToCurrentStudent,
         ).length;
         const announcementCount = nextAnnouncements.length;
+        const dueSoonGoals = nextGoals.filter((goal) => {
+          const daysRemaining = getGoalDaysRemaining(goal.deadline);
+          return daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7 && goal.progress < 100;
+        }).length;
 
         if (assignedCount > 0 && announcementCount > 0) {
           updateStatus(
@@ -325,9 +482,18 @@ export default function StudentDashboardPage() {
           return;
         }
 
+        if (dueSoonGoals > 0) {
+          updateStatus(
+            "warning",
+            "Goal deadlines are approaching.",
+            `${dueSoonGoals} goal${dueSoonGoals === 1 ? "" : "s"} need attention within the next 7 days.`,
+          );
+          return;
+        }
+
         updateStatus(
           "info",
-          "Dashboard is synced with your latest tasks, quizzes, and announcements.",
+          "Dashboard is synced with your latest tasks, quizzes, goals, and announcements.",
           "Your study feed is up to date.",
         );
       } catch (error) {
@@ -399,6 +565,49 @@ export default function StudentDashboardPage() {
         return Date.now() - deliveryDate.getTime() <= 1000 * 60 * 60 * 24 * 7;
       }).length,
     [allAnnouncements],
+  );
+
+  const featuredGoals = useMemo(
+    () =>
+      [...allGoals]
+        .sort((first, second) => {
+          const firstDeadline = new Date(first.deadline).getTime();
+          const secondDeadline = new Date(second.deadline).getTime();
+          const safeFirst = Number.isNaN(firstDeadline)
+            ? Number.MAX_SAFE_INTEGER
+            : firstDeadline;
+          const safeSecond = Number.isNaN(secondDeadline)
+            ? Number.MAX_SAFE_INTEGER
+            : secondDeadline;
+
+          return safeFirst - safeSecond;
+        })
+        .slice(0, 3),
+    [allGoals],
+  );
+
+  const activeGoalCount = useMemo(
+    () => allGoals.filter((goal) => goal.progress < 100).length,
+    [allGoals],
+  );
+
+  const dueSoonGoalCount = useMemo(
+    () =>
+      allGoals.filter((goal) => {
+        const daysRemaining = getGoalDaysRemaining(goal.deadline);
+        return daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7 && goal.progress < 100;
+      }).length,
+    [allGoals],
+  );
+
+  const completedGoalTasksCount = useMemo(
+    () => allGoals.reduce((total, goal) => total + goal.completedTaskCount, 0),
+    [allGoals],
+  );
+
+  const totalGoalTasksCount = useMemo(
+    () => allGoals.reduce((total, goal) => total + goal.totalTaskCount, 0),
+    [allGoals],
   );
 
   const featuredQuiz = assignedQuizzes[0] ?? visibleQuizzes[0] ?? null;
@@ -506,6 +715,9 @@ export default function StudentDashboardPage() {
                 <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(14,165,233,0.14)] backdrop-blur-sm">
                   {visibleQuizzes.length} quizzes available
                 </span>
+                <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(16,185,129,0.14)] backdrop-blur-sm">
+                  {activeGoalCount} goals in motion
+                </span>
                 <span className="rounded-2xl border border-white/90 bg-white/88 px-4 py-2 font-medium text-slate-700 shadow-[0_14px_30px_-22px_rgba(249,115,22,0.14)] backdrop-blur-sm">
                   {allAnnouncements.length} mentor alerts
                 </span>
@@ -535,6 +747,14 @@ export default function StudentDashboardPage() {
                 >
                   <PlayCircle className="mr-2 h-4 w-4" />
                   Start Session
+                </Button>
+                <Button
+                  className="h-11 rounded-2xl border border-white/90 bg-white/88 px-5 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-sky-50"
+                  onClick={() => router.push("/student/goals")}
+                  type="button"
+                >
+                  <Target className="mr-2 h-4 w-4" />
+                  Goals
                 </Button>
                 <Button
                   className="h-11 rounded-2xl border border-white/90 bg-white/88 px-5 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-sky-50"
@@ -613,7 +833,7 @@ export default function StudentDashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             accentClassName="from-sky-600 to-cyan-500"
             cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.84)_42%,rgba(217,249,255,0.72)_100%)]"
@@ -645,6 +865,14 @@ export default function StudentDashboardPage() {
             icon={<BellRing className="h-5 w-5" />}
             label="Recent Alerts"
             value={`${recentAnnouncementCount}`}
+          />
+          <StatCard
+            accentClassName="from-emerald-600 to-cyan-500"
+            cardClassName="bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(220,252,231,0.84)_42%,rgba(217,249,255,0.72)_100%)]"
+            detail="Short-term and long-term goals still active"
+            icon={<Flag className="h-5 w-5" />}
+            label="Goals In Motion"
+            value={`${activeGoalCount}`}
           />
         </section>
 
@@ -845,6 +1073,123 @@ export default function StudentDashboardPage() {
           action={
             <Button
               className="h-10 rounded-2xl border border-white/90 bg-white/88 px-4 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm hover:bg-sky-50"
+              onClick={() => router.push("/student/goals")}
+              type="button"
+            >
+              <Target className="mr-2 h-4 w-4" />
+              Open Goals
+            </Button>
+          }
+          description="Live goals from your student workspace, including deadlines, target outcomes, and checklist progress."
+          title="Goal Focus"
+        >
+          {isLoading ? (
+            <div className="rounded-[24px] border border-dashed border-sky-200/80 bg-white/80 p-6 text-center text-sm font-medium text-slate-600 shadow-sm">
+              Loading your goals...
+            </div>
+          ) : featuredGoals.length ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {featuredGoals.map((goal) => {
+                const deadlineBadge = getGoalDeadlineBadge(goal);
+
+                return (
+                  <div
+                    className="rounded-[26px] border border-sky-100/80 bg-[linear-gradient(135deg,#eefaf7_0%,#ffffff_56%,#eff6ff_118%)] p-4 shadow-[0_18px_38px_-26px_rgba(16,185,129,0.14)]"
+                    key={goal.id}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge className="border-transparent bg-emerald-100 text-emerald-700">
+                            {goal.timeframe}
+                          </Badge>
+                          <Badge
+                            className={cn(
+                              "border-transparent",
+                              deadlineBadge.className,
+                            )}
+                          >
+                            {deadlineBadge.label}
+                          </Badge>
+                        </div>
+                        <p className="mt-3 text-sm font-bold text-slate-950">
+                          {goal.title}
+                        </p>
+                        <p className="mt-2 text-sm text-slate-500">
+                          {goal.subject} - Due {formatGoalDeadline(goal.deadline)}
+                        </p>
+                      </div>
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#10b981_0%,#0ea5e9_100%)] text-white shadow-[0_18px_34px_-20px_rgba(16,185,129,0.28)]">
+                        <Target className="h-5 w-5" />
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-slate-600">
+                          Progress
+                        </span>
+                        <span className="font-semibold text-slate-900">
+                          {goal.progress}%
+                        </span>
+                      </div>
+                      <Progress
+                        className="mt-3 h-3 bg-slate-100"
+                        indicatorClassName="bg-[linear-gradient(90deg,#10b981_0%,#0ea5e9_100%)]"
+                        value={goal.progress}
+                      />
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 font-medium text-slate-600">
+                        {goal.completedTaskCount}/{goal.totalTaskCount} tasks done
+                      </span>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                      {goal.target}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-sky-200/80 bg-white/80 p-6 text-center shadow-sm">
+              <p className="text-sm font-semibold text-slate-900">
+                No goals saved yet
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                Create a short-term or long-term goal and it will show up here automatically.
+              </p>
+            </div>
+          )}
+
+          {!isLoading && allGoals.length ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[24px] border border-sky-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(14,165,233,0.18)]">
+                <p className="text-sm font-semibold text-slate-950">
+                  Upcoming pressure
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {dueSoonGoalCount} goal{dueSoonGoalCount === 1 ? "" : "s"} are due within the next 7 days.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-emerald-100/80 bg-[linear-gradient(180deg,#ffffff_0%,#f0fdf4_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(16,185,129,0.18)]">
+                <p className="text-sm font-semibold text-slate-950">
+                  Achievement steps
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {completedGoalTasksCount} of {totalGoalTasksCount} checklist tasks are already complete.
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </SectionCard>
+
+        <SectionCard
+          action={
+            <Button
+              className="h-10 rounded-2xl border border-white/90 bg-white/88 px-4 font-semibold text-sky-700 shadow-[0_16px_34px_-24px_rgba(56,189,248,0.2)] backdrop-blur-sm hover:bg-sky-50"
               onClick={() => router.push("/student/notifications")}
               type="button"
             >
@@ -917,7 +1262,7 @@ export default function StudentDashboardPage() {
           description="Jump straight into the next action without digging through the rest of the workspace."
           title="Quick Actions"
         >
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <button
               className="group rounded-[30px] border border-white/85 bg-[linear-gradient(135deg,#eef6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_20px_46px_-30px_rgba(37,99,235,0.2)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-32px_rgba(37,99,235,0.24)]"
               onClick={() => router.push("/student/planner")}
@@ -972,6 +1317,25 @@ export default function StudentDashboardPage() {
               </h3>
               <p className="mt-2 text-sm leading-7 text-slate-600">
                 Launch a focused study block and keep your momentum moving.
+              </p>
+            </button>
+
+            <button
+              className="group rounded-[30px] border border-white/85 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_20px_46px_-30px_rgba(16,185,129,0.18)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-32px_rgba(16,185,129,0.22)]"
+              onClick={() => router.push("/student/goals")}
+              type="button"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#10b981_0%,#0ea5e9_100%)] text-white shadow-lg">
+                  <Target className="h-5 w-5" />
+                </span>
+                <ChevronRight className="h-5 w-5 text-slate-400 transition group-hover:text-slate-700" />
+              </div>
+              <h3 className="mt-5 text-lg font-bold text-slate-950">
+                Manage Goals
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-slate-600">
+                Review deadlines, set targets, and break larger goals into smaller steps.
               </p>
             </button>
           </div>

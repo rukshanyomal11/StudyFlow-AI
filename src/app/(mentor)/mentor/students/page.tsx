@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   BookOpen,
+  CalendarDays,
   CheckCircle2,
   GraduationCap,
   Mail,
   MessageSquare,
   Plus,
   Search,
-  Send,
   ShieldAlert,
   Sparkles,
   Target,
@@ -32,62 +32,160 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-type StudentStatus = "Active Today" | "Monitoring" | "Inactive";
-type TaskStatus = "Assigned" | "In Progress" | "Completed";
 type ProgressFilter = "all" | "high" | "medium" | "low";
 
-interface StudentQuiz {
-  id: string;
-  title: string;
-  score: string;
-  date: string;
-}
-
-interface StudentTask {
-  id: string;
-  title: string;
-  dueLabel: string;
-  status: TaskStatus;
-}
-
-interface StudentItem {
-  id: string;
-  fullName: string;
+interface MentorStudentItem {
+  studentId: string;
+  name: string;
   email: string;
-  level: string;
-  progress: number;
-  weakSubject: string;
-  activityStatus: StudentStatus;
-  mentorNotes: string;
-  recentQuizzes: StudentQuiz[];
-  assignedTasks: StudentTask[];
+  avatar: string | null;
+  level: string | null;
+  assignedSubjectCount: number;
+  averageProgress: number | null;
+  weakSubject: {
+    subjectId: string;
+    name: string;
+    progress: number | null;
+    examDate: string | null;
+  } | null;
+  assignedSubjects: Array<{
+    subjectId: string;
+    name: string;
+    progress: number | null;
+    examDate: string | null;
+  }>;
+  assignments: Array<{
+    assignmentId: string;
+    subject: {
+      subjectId: string;
+      name: string;
+      progress: number | null;
+      examDate: string | null;
+    } | null;
+    createdAt: string;
+  }>;
+}
+
+interface DoubtItem {
+  _id?: string;
+  id?: string;
+  title?: string;
+  status?: string;
+  priority?: string;
+  createdAt?: string;
+  studentId?: {
+    _id?: string;
+    name?: string;
+  };
+  subjectId?: {
+    _id?: string;
+    name?: string;
+  };
+}
+
+interface AssignableStudentOption {
+  studentId: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  level: string | null;
+  hasGeneralAssignment: boolean;
+  subjects: Array<{
+    subjectId: string;
+    name: string;
+    progress: number | null;
+    isAssignedToMentor: boolean;
+  }>;
 }
 
 interface AssignStudentForm {
-  fullName: string;
-  email: string;
-  level: string;
-  weakSubject: string;
-  progress: string;
-  activityStatus: StudentStatus;
+  studentId: string;
+  subjectId: string;
 }
 
-const INITIAL_STUDENTS: StudentItem[] = [
-  { id: "student-01", fullName: "Nethmi Jayawardena", email: "nethmi.j@studyflow.ai", level: "Grade 12 - Advanced Level", progress: 84, weakSubject: "Organic Chemistry", activityStatus: "Active Today", mentorNotes: "Strong overall momentum. Keep reinforcing reaction pathways and continue assigning mixed-question drills.", recentQuizzes: [{ id: "quiz-01", title: "Chemistry Reaction Checkpoint", score: "84%", date: "2 days ago" }, { id: "quiz-02", title: "Calculus Derivatives Sprint", score: "89%", date: "5 days ago" }], assignedTasks: [{ id: "task-01", title: "Finish organic mechanism summary", dueLabel: "Due tomorrow", status: "In Progress" }, { id: "task-02", title: "Solve 10 mixed chemistry MCQs", dueLabel: "Due Friday", status: "Assigned" }] },
-  { id: "student-02", fullName: "Ishara Silva", email: "ishara.s@studyflow.ai", level: "Grade 11", progress: 76, weakSubject: "Algebra", activityStatus: "Active Today", mentorNotes: "Responds well to short challenge sets. Continue with targeted algebra revisions and quick feedback loops.", recentQuizzes: [{ id: "quiz-03", title: "Algebra Skill Check", score: "76%", date: "Yesterday" }, { id: "quiz-04", title: "Physics Motion Drill", score: "81%", date: "4 days ago" }], assignedTasks: [{ id: "task-03", title: "Practice quadratic equations worksheet", dueLabel: "Due tomorrow", status: "Assigned" }, { id: "task-04", title: "Revise algebra mistakes from quiz", dueLabel: "Due this week", status: "In Progress" }] },
-  { id: "student-03", fullName: "Kavin Dias", email: "kavin.d@studyflow.ai", level: "Grade 12 - Advanced Level", progress: 68, weakSubject: "Mechanics", activityStatus: "Monitoring", mentorNotes: "Needs more confidence with force diagrams and motion breakdowns. Plan one-on-one practice before the next assessment.", recentQuizzes: [{ id: "quiz-05", title: "Mechanics Checkpoint", score: "68%", date: "Today" }, { id: "quiz-06", title: "Vectors Warmup", score: "71%", date: "6 days ago" }], assignedTasks: [{ id: "task-05", title: "Redo force diagram corrections", dueLabel: "Due tomorrow", status: "In Progress" }, { id: "task-06", title: "Watch mentor explanation on Newton's laws", dueLabel: "Due Thursday", status: "Assigned" }] },
-  { id: "student-04", fullName: "Anudi Ramanayake", email: "anudi.r@studyflow.ai", level: "Grade 10", progress: 91, weakSubject: "Essay Structure", activityStatus: "Active Today", mentorNotes: "Excellent consistency. Shift from accuracy to speed and push for stronger written argument structure.", recentQuizzes: [{ id: "quiz-07", title: "Biology Unit Review", score: "93%", date: "Today" }, { id: "quiz-08", title: "Literature Comprehension Set", score: "88%", date: "3 days ago" }], assignedTasks: [{ id: "task-07", title: "Draft one timed essay intro", dueLabel: "Due Friday", status: "Assigned" }, { id: "task-08", title: "Complete biology recap notes", dueLabel: "Completed today", status: "Completed" }] },
-  { id: "student-05", fullName: "Savin De Costa", email: "savin.d@studyflow.ai", level: "Grade 11", progress: 64, weakSubject: "Chemical Bonding", activityStatus: "Monitoring", mentorNotes: "Retention is uneven. A smaller set of repeated concept checks should help improve bonding recall and confidence.", recentQuizzes: [{ id: "quiz-09", title: "Bonding Basics Quiz", score: "64%", date: "Yesterday" }, { id: "quiz-10", title: "Math Foundations Drill", score: "70%", date: "1 week ago" }], assignedTasks: [{ id: "task-09", title: "Review bonding flashcards", dueLabel: "Due tomorrow", status: "Assigned" }, { id: "task-10", title: "Submit corrected chemistry notes", dueLabel: "Due this week", status: "In Progress" }] },
-  { id: "student-06", fullName: "Mihiri Perera", email: "mihiri.p@studyflow.ai", level: "Grade 10", progress: 61, weakSubject: "Comprehension", activityStatus: "Inactive", mentorNotes: "Engagement has dipped this week. Reach out with a lighter task load and one direct encouragement message.", recentQuizzes: [{ id: "quiz-11", title: "Reading Comprehension Check", score: "61%", date: "4 days ago" }, { id: "quiz-12", title: "History Recap Quiz", score: "67%", date: "8 days ago" }], assignedTasks: [{ id: "task-11", title: "Complete reading summary outline", dueLabel: "Overdue", status: "Assigned" }, { id: "task-12", title: "Review mentor note on main idea questions", dueLabel: "Due tomorrow", status: "Assigned" }] },
-];
+const EMPTY_ASSIGN_FORM: AssignStudentForm = {
+  studentId: "",
+  subjectId: "",
+};
 
-const EMPTY_ASSIGN_FORM: AssignStudentForm = { fullName: "", email: "", level: "Grade 10", weakSubject: "", progress: "72", activityStatus: "Active Today" };
-
-const inputClassName = "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
-const textareaClassName = "min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
+const inputClassName =
+  "h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-4 focus:ring-sky-100";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function formatDate(value?: string | null) {
+  if (!value) {
+    return "No date";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "No date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatRelativeTime(value?: string | null) {
+  if (!value) {
+    return "Recently";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Recently";
+  }
+
+  const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+
+  if (diffMinutes < 1) {
+    return "Just now";
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} mins ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours} hours ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays === 1) {
+    return "Yesterday";
+  }
+
+  return `${diffDays} days ago`;
+}
+
+function priorityBadgeClass(priority?: string) {
+  if (priority === "Urgent") {
+    return "border-transparent bg-rose-100 text-rose-700";
+  }
+
+  if (priority === "High") {
+    return "border-transparent bg-amber-100 text-amber-700";
+  }
+
+  return "border-transparent bg-slate-100 text-slate-700";
 }
 
 const SURFACE_CARD_CLASS_NAME =
@@ -102,18 +200,28 @@ const PRIMARY_BUTTON_CLASS_NAME =
 const SECONDARY_BUTTON_CLASS_NAME =
   "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:!border-slate-200 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-slate-50";
 
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
-}
-
-function SectionCard({ title, description, action, children }: { title: string; description: string; action?: ReactNode; children: ReactNode }) {
+function SectionCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <Card className={SURFACE_CARD_CLASS_NAME}>
       <CardHeader className="pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">{title}</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">{description}</CardDescription>
+            <CardTitle className="text-xl text-slate-950 dark:!text-slate-950">
+              {title}
+            </CardTitle>
+            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:!text-slate-600">
+              {description}
+            </CardDescription>
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
@@ -123,38 +231,55 @@ function SectionCard({ title, description, action, children }: { title: string; 
   );
 }
 
-function SummaryCard({ label, value, detail, icon, accentClassName }: { label: string; value: string; detail: string; icon: ReactNode; accentClassName: string }) {
+function SummaryCard({
+  label,
+  value,
+  detail,
+  icon,
+  accentClassName,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: ReactNode;
+  accentClassName: string;
+}) {
   return (
     <Card className={cn(SURFACE_CARD_CLASS_NAME, "rounded-[28px]")}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">{value}</p>
-            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">{detail}</p>
+            <p className="text-sm font-medium text-slate-500 dark:!text-slate-500">
+              {label}
+            </p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:!text-slate-950">
+              {value}
+            </p>
+            <p className="mt-2 text-sm text-slate-500 dark:!text-slate-500">
+              {detail}
+            </p>
           </div>
-          <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8", accentClassName)}>{icon}</span>
+          <span
+            className={cn(
+              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_14px_28px_-16px_rgba(15,23,42,0.4)] -mt-8",
+              accentClassName,
+            )}
+          >
+            {icon}
+          </span>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function statusBadgeClass(status: StudentStatus) {
-  if (status === "Active Today") return "border-transparent bg-emerald-100 text-emerald-700";
-  if (status === "Monitoring") return "border-transparent bg-amber-100 text-amber-700";
-  return "border-transparent bg-slate-200 text-slate-700";
-}
-
-function taskBadgeClass(status: TaskStatus) {
-  if (status === "Completed") return "border-transparent bg-emerald-100 text-emerald-700";
-  if (status === "In Progress") return "border-transparent bg-sky-100 text-sky-700";
-  return "border-transparent bg-slate-100 text-slate-700";
-}
-
 export default function MentorStudentsPage() {
-  const [students, setStudents] = useState<StudentItem[]>([]);
+  const [students, setStudents] = useState<MentorStudentItem[]>([]);
+  const [totalAssignments, setTotalAssignments] = useState(0);
+  const [doubts, setDoubts] = useState<DoubtItem[]>([]);
+  const [assignableStudents, setAssignableStudents] = useState<AssignableStudentOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [assignLoading, setAssignLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
@@ -163,105 +288,244 @@ export default function MentorStudentsPage() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [assignForm, setAssignForm] = useState<AssignStudentForm>(EMPTY_ASSIGN_FORM);
-  const [actionMessage, setActionMessage] = useState("Select a student to review quizzes, tasks, and mentor notes.");
+  const [actionMessage, setActionMessage] = useState(
+    "Select a student to review assigned subjects and current doubts.",
+  );
 
-  // Fetch students on mount
   useEffect(() => {
-    const fetchStudents = async () => {
+    let isActive = true;
+
+    const loadWorkspace = async () => {
       try {
         setLoading(true);
-        const data = await mentorService.getStudents();
-        setStudents(data || []);
-        if (data && data.length > 0) {
-          setSelectedStudentId(data[0].id);
+        const [studentsResponse, doubtsResponse] = await Promise.all([
+          mentorService.getStudents(),
+          mentorService.getDoubts(),
+        ]);
+
+        if (!isActive) {
+          return;
         }
+
+        const nextStudents = Array.isArray(studentsResponse?.students)
+          ? studentsResponse.students
+          : [];
+
+        setStudents(nextStudents);
+        setTotalAssignments(
+          typeof studentsResponse?.totalAssignments === "number"
+            ? studentsResponse.totalAssignments
+            : 0,
+        );
+        setDoubts(Array.isArray(doubtsResponse) ? doubtsResponse : []);
+
+        if (nextStudents.length > 0) {
+          setSelectedStudentId((current) => current || nextStudents[0].studentId);
+          setActionMessage(
+            "Open a student to see real subject progress, assignment history, and doubts.",
+          );
+        } else {
+          setSelectedStudentId("");
+          setActionMessage(
+            "No students are assigned to this mentor yet.",
+          );
+        }
+
         setError(null);
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "Failed to fetch students";
-        setError(errorMsg);
-        console.error("Error fetching students:", err);
-        setActionMessage(`Error: ${errorMsg}`);
+      } catch (loadError) {
+        if (!isActive) {
+          return;
+        }
+
+        const message =
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load mentor students.";
+        setError(message);
+        setActionMessage(message);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchStudents();
+    void loadWorkspace();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
-  const weakSubjectOptions = useMemo(() => Array.from(new Set(students.map((student) => student.weakSubject))).sort(), [students]);
+  useEffect(() => {
+    if (!assignModalOpen) {
+      return;
+    }
+
+    let isActive = true;
+
+    const loadAssignableStudents = async () => {
+      try {
+        const options = await mentorService.getAssignableStudents();
+
+        if (!isActive) {
+          return;
+        }
+
+        setAssignableStudents(Array.isArray(options) ? options : []);
+        setAssignForm((current) => ({
+          studentId: current.studentId || options?.[0]?.studentId || "",
+          subjectId: "",
+        }));
+      } catch (loadError) {
+        if (!isActive) {
+          return;
+        }
+
+        setActionMessage(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load assignable students.",
+        );
+      }
+    };
+
+    void loadAssignableStudents();
+
+    return () => {
+      isActive = false;
+    };
+  }, [assignModalOpen]);
+
+  const weakSubjectOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          students
+            .map((student) => student.weakSubject?.name || "")
+            .filter(Boolean),
+        ),
+      ).sort(),
+    [students],
+  );
 
   const filteredStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+
     return students.filter((student) => {
-      const matchesSearch = !query || student.fullName.toLowerCase().includes(query) || student.email.toLowerCase().includes(query);
+      const progress = student.averageProgress;
+      const matchesSearch =
+        !query ||
+        student.name.toLowerCase().includes(query) ||
+        student.email.toLowerCase().includes(query);
       const matchesLevel = levelFilter === "all" || student.level === levelFilter;
-      const matchesSubject = subjectFilter === "all" || student.weakSubject === subjectFilter;
-      const matchesProgress = progressFilter === "all" || (progressFilter === "high" && student.progress >= 85) || (progressFilter === "medium" && student.progress >= 70 && student.progress < 85) || (progressFilter === "low" && student.progress < 70);
+      const matchesSubject =
+        subjectFilter === "all" || student.weakSubject?.name === subjectFilter;
+      const matchesProgress =
+        progressFilter === "all" ||
+        (progressFilter === "high" && typeof progress === "number" && progress >= 85) ||
+        (progressFilter === "medium" &&
+          typeof progress === "number" &&
+          progress >= 70 &&
+          progress < 85) ||
+        (progressFilter === "low" &&
+          (typeof progress !== "number" || progress < 70));
+
       return matchesSearch && matchesLevel && matchesSubject && matchesProgress;
     });
   }, [levelFilter, progressFilter, searchQuery, students, subjectFilter]);
 
   const selectedStudent =
-    filteredStudents.length > 0
-      ? filteredStudents.find((student) => student.id === selectedStudentId) ??
-        filteredStudents[0]
-      : null;
+    filteredStudents.find((student) => student.studentId === selectedStudentId) ??
+    filteredStudents[0] ??
+    null;
+
+  const selectedStudentDoubts = useMemo(() => {
+    if (!selectedStudent) {
+      return [];
+    }
+
+    return doubts.filter(
+      (item) => item.studentId?._id === selectedStudent.studentId,
+    );
+  }, [doubts, selectedStudent]);
+
+  const selectedAssignableStudent =
+    assignableStudents.find(
+      (student) => student.studentId === assignForm.studentId,
+    ) ?? null;
+
+  const availableAssignableSubjects = useMemo(
+    () =>
+      selectedAssignableStudent?.subjects.filter(
+        (subject) => !subject.isAssignedToMentor,
+      ) ?? [],
+    [selectedAssignableStudent],
+  );
 
   const totalStudents = students.length;
-  const activeStudents = students.filter((student) => student.activityStatus === "Active Today").length;
-  const studentsNeedingAttention = students.filter((student) => student.activityStatus !== "Active Today" || student.progress < 70).length;
-  const topPerformers = students.filter((student) => student.progress >= 85).length;
+  const studentsNeedingAttention = students.filter(
+    (student) =>
+      typeof student.averageProgress !== "number" || student.averageProgress < 70,
+  ).length;
+  const openDoubts = doubts.filter((item) => item.status !== "Answered").length;
+  const topPerformers = students.filter(
+    (student) =>
+      typeof student.averageProgress === "number" && student.averageProgress >= 85,
+  ).length;
 
   const handleAssignStudent = async () => {
-    const fullName = assignForm.fullName.trim();
-    const email = assignForm.email.trim();
-    const weakSubject = assignForm.weakSubject.trim();
-    const parsedProgress = Number(assignForm.progress);
-
-    if (!fullName || !email || !weakSubject || Number.isNaN(parsedProgress)) {
-      setActionMessage("Add a student name, email, weak subject, and valid progress.");
+    if (!assignForm.studentId) {
+      setActionMessage("Choose a student before creating a mentor assignment.");
       return;
     }
+
+    if (!assignForm.subjectId && selectedAssignableStudent?.hasGeneralAssignment) {
+      setActionMessage(
+        "This student already has a general mentor assignment. Choose a subject instead.",
+      );
+      return;
+    }
+
+    setAssignLoading(true);
 
     try {
-      const studentData = {
-        fullName,
-        email,
-        level: assignForm.level,
-        weakSubject,
-        progress: Math.max(0, Math.min(parsedProgress, 100)),
-        activityStatus: assignForm.activityStatus,
-      };
+      await mentorService.assignStudent({
+        studentId: assignForm.studentId,
+        ...(assignForm.subjectId ? { subjectId: assignForm.subjectId } : {}),
+      });
 
-      await mentorService.assignStudent(studentData);
-      
-      // Refresh the students list
-      const updatedStudents = await mentorService.getStudents();
-      setStudents(updatedStudents || []);
-      
+      const [studentsResponse, doubtsResponse, options] = await Promise.all([
+        mentorService.getStudents(),
+        mentorService.getDoubts(),
+        mentorService.getAssignableStudents(),
+      ]);
+
+      const nextStudents = Array.isArray(studentsResponse?.students)
+        ? studentsResponse.students
+        : [];
+
+      setStudents(nextStudents);
+      setTotalAssignments(
+        typeof studentsResponse?.totalAssignments === "number"
+          ? studentsResponse.totalAssignments
+          : 0,
+      );
+      setDoubts(Array.isArray(doubtsResponse) ? doubtsResponse : []);
+      setAssignableStudents(Array.isArray(options) ? options : []);
+      setSelectedStudentId(assignForm.studentId);
       setAssignForm(EMPTY_ASSIGN_FORM);
       setAssignModalOpen(false);
-      setActionMessage(`Successfully assigned ${fullName} to your student roster.`);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to assign student";
-      setActionMessage(`Error: ${errorMsg}`);
-      console.error("Error assigning student:", err);
+      setActionMessage("Mentor assignment created successfully.");
+    } catch (assignError) {
+      setActionMessage(
+        assignError instanceof Error
+          ? assignError.message
+          : "Unable to assign this student right now.",
+      );
+    } finally {
+      setAssignLoading(false);
     }
-  };
-
-  const handleMentorNoteChange = (value: string) => {
-    if (!selectedStudent) {
-      return;
-    }
-
-    setStudents((current) =>
-      current.map((student) =>
-        student.id === selectedStudent.id
-          ? { ...student, mentorNotes: value }
-          : student,
-      ),
-    );
   };
 
   const triggerAction = (label: string) => {
@@ -269,11 +533,15 @@ export default function MentorStudentsPage() {
       return;
     }
 
-    setActionMessage(`${label} prepared for ${selectedStudent.fullName}.`);
+    setActionMessage(`${label} prepared for ${selectedStudent.name}.`);
   };
 
   return (
-    <ProtectedDashboardLayout role="mentor" links={mentorSidebarLinks} loadingMessage="Loading your students workspace...">
+    <ProtectedDashboardLayout
+      role="mentor"
+      links={mentorSidebarLinks}
+      loadingMessage="Loading your students workspace..."
+    >
       <div className="mx-auto max-w-[1600px] space-y-8 pb-8 text-slate-950">
         <Card className="relative overflow-hidden rounded-[34px] border border-sky-100 bg-transparent text-slate-950 shadow-[0_30px_100px_-48px_rgba(15,23,42,0.24)] dark:!border-sky-100 dark:!bg-transparent dark:!text-slate-950">
           <div
@@ -296,14 +564,16 @@ export default function MentorStudentsPage() {
                     Students
                   </h1>
                   <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base dark:!text-slate-600">
-                    Review learner progress, surface weak subjects quickly, and
-                    keep mentoring decisions close to the students who need them.
+                    This workspace now reads real mentor assignments, subject progress, and student doubts directly from the backend.
                   </p>
                 </div>
               </div>
 
               <Button
-                className={cn("h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]", PRIMARY_BUTTON_CLASS_NAME)}
+                className={cn(
+                  "h-12 rounded-2xl px-5 text-sm font-semibold shadow-[0_18px_35px_-18px_rgba(2,132,199,0.45)]",
+                  PRIMARY_BUTTON_CLASS_NAME,
+                )}
                 onClick={() => setAssignModalOpen(true)}
                 type="button"
               >
@@ -315,153 +585,198 @@ export default function MentorStudentsPage() {
         </Card>
 
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard accentClassName="from-indigo-700 to-sky-600" detail="Students currently assigned to you" icon={<Users className="h-5 w-5" />} label="Total Students" value={`${totalStudents}`} />
-          <SummaryCard accentClassName="from-emerald-600 to-teal-500" detail="Learners active today" icon={<Sparkles className="h-5 w-5" />} label="Active Students" value={`${activeStudents}`} />
-          <SummaryCard accentClassName="from-amber-500 to-orange-500" detail="Students who need closer support" icon={<ShieldAlert className="h-5 w-5" />} label="Need Attention" value={`${studentsNeedingAttention}`} />
-          <SummaryCard accentClassName="from-sky-600 to-cyan-500" detail="High-performing learners" icon={<Target className="h-5 w-5" />} label="Top Performers" value={`${topPerformers}`} />
+          <SummaryCard
+            accentClassName="from-indigo-700 to-sky-600"
+            detail="Students currently assigned to you"
+            icon={<Users className="h-5 w-5" />}
+            label="Total Students"
+            value={`${totalStudents}`}
+          />
+          <SummaryCard
+            accentClassName="from-emerald-600 to-teal-500"
+            detail="Active mentor assignments across student subjects"
+            icon={<Sparkles className="h-5 w-5" />}
+            label="Assignments"
+            value={`${totalAssignments}`}
+          />
+          <SummaryCard
+            accentClassName="from-amber-500 to-orange-500"
+            detail="Students missing progress or below 70%"
+            icon={<ShieldAlert className="h-5 w-5" />}
+            label="Need Attention"
+            value={`${studentsNeedingAttention}`}
+          />
+          <SummaryCard
+            accentClassName="from-sky-600 to-cyan-500"
+            detail="Open student questions in your queue"
+            icon={<Target className="h-5 w-5" />}
+            label="Open Doubts"
+            value={`${openDoubts}`}
+          />
         </section>
 
-        <SectionCard description="Search your roster and narrow the list by level, progress band, or weak subject." title="Search and Filters">
+        <SectionCard
+          description="Search your roster and narrow the list by level, visible progress band, or weak subject."
+          title="Search and Filters"
+        >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input className={cn(inputClassName, "pl-11")} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search by name or email" value={searchQuery} />
+              <input
+                className={cn(inputClassName, "pl-11")}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by name or email"
+                value={searchQuery}
+              />
             </label>
-            <select className={inputClassName} onChange={(event) => setLevelFilter(event.target.value)} value={levelFilter}>
+            <select
+              className={inputClassName}
+              onChange={(event) => setLevelFilter(event.target.value)}
+              value={levelFilter}
+            >
               <option value="all">All levels</option>
-              {Array.from(new Set(students.map((student) => student.level))).map((level) => (
-                <option key={level} value={level}>{level}</option>
-              ))}
+              {Array.from(new Set(students.map((student) => student.level).filter(Boolean))).map(
+                (level) => (
+                  <option key={level} value={level ?? ""}>
+                    {level}
+                  </option>
+                ),
+              )}
             </select>
-            <select className={inputClassName} onChange={(event) => setProgressFilter(event.target.value as ProgressFilter)} value={progressFilter}>
+            <select
+              className={inputClassName}
+              onChange={(event) =>
+                setProgressFilter(event.target.value as ProgressFilter)
+              }
+              value={progressFilter}
+            >
               <option value="all">All progress</option>
               <option value="high">High progress (85%+)</option>
               <option value="medium">Mid progress (70-84%)</option>
-              <option value="low">Needs support (&lt; 70%)</option>
+              <option value="low">Needs support (&lt; 70% or no data)</option>
             </select>
-            <select className={inputClassName} onChange={(event) => setSubjectFilter(event.target.value)} value={subjectFilter}>
+            <select
+              className={inputClassName}
+              onChange={(event) => setSubjectFilter(event.target.value)}
+              value={subjectFilter}
+            >
               <option value="all">All weak subjects</option>
               {weakSubjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subject}</option>
+                <option key={subject} value={subject}>
+                  {subject}
+                </option>
               ))}
             </select>
           </div>
         </SectionCard>
 
+        {error ? (
+          <Card className="rounded-[30px] border border-rose-100 bg-white shadow-[0_24px_70px_-40px_rgba(244,63,94,0.16)]">
+            <CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
+          </Card>
+        ) : null}
+
         <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
           <SectionCard
-            action={<Badge className="border-transparent bg-sky-100 text-sky-700">{filteredStudents.length} visible</Badge>}
-            description="Review the current roster in a clean table on larger screens and a card list on mobile."
+            action={
+              <Badge className="border-transparent bg-sky-100 text-sky-700">
+                {filteredStudents.length} visible
+              </Badge>
+            }
+            description="Review your live mentor roster with subject coverage and average progress."
             title="Student Roster"
           >
-            <div className="hidden xl:block">
-              <div className="grid grid-cols-[1.5fr_1.5fr_1.15fr_0.85fr_1fr_1fr_0.9fr] gap-4 border-b border-slate-200 px-2 pb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                <span>Student</span>
-                <span>Email</span>
-                <span>Level</span>
-                <span>Progress</span>
-                <span>Weak Subject</span>
-                <span>Status</span>
-                <span>Action</span>
+            {loading ? (
+              <div className="rounded-[26px] border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center text-sm text-slate-600">
+                Loading assigned students...
               </div>
-
-              <div className="mt-4 space-y-3">
+            ) : filteredStudents.length ? (
+              <div className="space-y-4">
                 {filteredStudents.map((student) => (
                   <div
                     className={cn(
-                      "grid grid-cols-[1.5fr_1.5fr_1.15fr_0.85fr_1fr_1fr_0.9fr] items-center gap-4 rounded-[24px] border p-4 transition",
-                      selectedStudent?.id === student.id
+                      "rounded-[26px] border p-5 transition",
+                      selectedStudent?.studentId === student.studentId
                         ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
                         : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
                     )}
-                    key={student.id}
+                    key={student.studentId}
                   >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-11 w-11">
-                        <AvatarFallback className="bg-slate-900 text-white">{getInitials(student.fullName)}</AvatarFallback>
-                      </Avatar>
-                      <p className="truncate text-sm font-semibold text-slate-950">{student.fullName}</p>
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-slate-900 text-white">
+                            {getInitials(student.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-base font-semibold text-slate-950">
+                              {student.name}
+                            </p>
+                            <Badge className="border-transparent bg-sky-50 text-sky-700">
+                              {student.level || "Student"}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-sm text-slate-600">
+                            {student.email}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
+                              {student.assignedSubjectCount} subjects
+                            </span>
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
+                              Weak: {student.weakSubject?.name || "Not set"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full max-w-[320px] space-y-3">
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="font-medium text-slate-500">
+                            Average progress
+                          </span>
+                          <span className="font-semibold text-slate-950">
+                            {typeof student.averageProgress === "number"
+                              ? `${student.averageProgress}%`
+                              : "No data"}
+                          </span>
+                        </div>
+                        <Progress
+                          className="h-3 bg-slate-200"
+                          indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
+                          value={student.averageProgress ?? 0}
+                        />
+                      </div>
+
+                      <Button
+                        className={cn(
+                          "h-10 rounded-2xl px-4",
+                          PRIMARY_BUTTON_CLASS_NAME,
+                        )}
+                        onClick={() => {
+                          setSelectedStudentId(student.studentId);
+                          setActionMessage(`Opened ${student.name}.`);
+                        }}
+                        type="button"
+                      >
+                        View Details
+                      </Button>
                     </div>
-                    <p className="truncate text-sm text-slate-600">{student.email}</p>
-                    <p className="text-sm text-slate-600">{student.level}</p>
-                    <p className="text-sm font-semibold text-slate-950">{student.progress}%</p>
-                    <p className="text-sm text-slate-600">{student.weakSubject}</p>
-                    <Badge className={statusBadgeClass(student.activityStatus)}>{student.activityStatus}</Badge>
-                    <Button
-                      className={cn("h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
-                      onClick={() => {
-                        setSelectedStudentId(student.id);
-                        setActionMessage(`Opened ${student.fullName}.`);
-                      }}
-                      type="button"
-                    >
-                      View Details
-                    </Button>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="space-y-4 xl:hidden">
-              {filteredStudents.map((student) => (
-                <div
-                  className={cn(
-                    "rounded-[26px] border p-5 transition",
-                    selectedStudent?.id === student.id
-                      ? "border-sky-300 bg-sky-50/70 ring-4 ring-sky-100"
-                      : "border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-md",
-                  )}
-                  key={student.id}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-slate-900 text-white">{getInitials(student.fullName)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-base font-semibold text-slate-950">{student.fullName}</p>
-                          <Badge className={statusBadgeClass(student.activityStatus)}>{student.activityStatus}</Badge>
-                        </div>
-                        <p className="mt-2 text-sm text-slate-600">{student.email}</p>
-                      </div>
-                    </div>
-                    <Badge className="border-transparent bg-sky-50 text-sky-700 dark:!bg-sky-50 dark:!text-sky-700">{student.level}</Badge>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
-                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Progress</p>
-                      <p className="mt-2 font-semibold text-slate-950">{student.progress}%</p>
-                    </div>
-                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Weak Subject</p>
-                      <p className="mt-2 font-semibold text-slate-950">{student.weakSubject}</p>
-                    </div>
-                    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Level</p>
-                      <p className="mt-2 font-semibold text-slate-950">{student.level}</p>
-                    </div>
-                  </div>
-
-                  <Button
-                    className={cn("mt-4 h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
-                    onClick={() => {
-                      setSelectedStudentId(student.id);
-                      setActionMessage(`Opened ${student.fullName}.`);
-                    }}
-                    type="button"
-                  >
-                    View Details
-                  </Button>
-                </div>
-              ))}
-            </div>
+            ) : (
+              <div className="rounded-[26px] border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center text-sm text-slate-600">
+                No student matched the current filters.
+              </div>
+            )}
           </SectionCard>
 
           <div className="space-y-8">
             <SectionCard
-              description="Preview profile details, current progress, recent quizzes, active tasks, and private mentor notes."
+              description="Real subject progress, recent mentor assignments, and the student's current doubt queue."
               title="Student Details"
             >
               {selectedStudent ? (
@@ -469,16 +784,28 @@ export default function MentorStudentsPage() {
                   <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <div className="flex items-start gap-4">
                       <Avatar className="h-16 w-16">
-                        <AvatarFallback className="bg-slate-900 text-lg text-white">{getInitials(selectedStudent.fullName)}</AvatarFallback>
+                        <AvatarFallback className="bg-slate-900 text-lg text-white">
+                          {getInitials(selectedStudent.name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-xl font-semibold text-slate-950">{selectedStudent.fullName}</h2>
-                          <Badge className={statusBadgeClass(selectedStudent.activityStatus)}>{selectedStudent.activityStatus}</Badge>
+                          <h2 className="text-xl font-semibold text-slate-950">
+                            {selectedStudent.name}
+                          </h2>
+                          <Badge className="border-transparent bg-sky-50 text-sky-700">
+                            {selectedStudent.level || "Student"}
+                          </Badge>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
-                          <span className="inline-flex items-center gap-2"><Mail className="h-4 w-4" />{selectedStudent.email}</span>
-                          <span className="inline-flex items-center gap-2"><GraduationCap className="h-4 w-4" />{selectedStudent.level}</span>
+                          <span className="inline-flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            {selectedStudent.email}
+                          </span>
+                          <span className="inline-flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            {selectedStudent.assignedSubjectCount} tracked subjects
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -486,94 +813,205 @@ export default function MentorStudentsPage() {
 
                   <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-950">Current Progress</p>
-                      <span className="text-sm font-semibold text-slate-950">{selectedStudent.progress}%</span>
+                      <p className="text-sm font-semibold text-slate-950">
+                        Average Progress
+                      </p>
+                      <span className="text-sm font-semibold text-slate-950">
+                        {typeof selectedStudent.averageProgress === "number"
+                          ? `${selectedStudent.averageProgress}%`
+                          : "No data"}
+                      </span>
                     </div>
-                    <Progress className="mt-4 h-3 bg-slate-200 dark:!bg-slate-200" indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500" value={selectedStudent.progress} />
+                    <Progress
+                      className="mt-4 h-3 bg-slate-200"
+                      indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
+                      value={selectedStudent.averageProgress ?? 0}
+                    />
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge className="border-transparent bg-amber-100 text-amber-700">Weak Subject: {selectedStudent.weakSubject}</Badge>
+                      <Badge className="border-transparent bg-amber-100 text-amber-700">
+                        Weak Subject: {selectedStudent.weakSubject?.name || "Not set"}
+                      </Badge>
+                      <Badge className="border-transparent bg-sky-100 text-sky-700">
+                        {selectedStudent.assignedSubjectCount} subjects assigned
+                      </Badge>
                     </div>
                   </div>
 
                   <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
-                    <p className="text-sm font-semibold text-slate-950">Recent Quizzes</p>
-                    <div className="mt-4 space-y-3">
-                      {selectedStudent.recentQuizzes.map((quiz) => (
-                        <div className="flex items-center justify-between rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm" key={quiz.id}>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-950">{quiz.title}</p>
-                            <p className="mt-1 text-sm text-slate-500">{quiz.date}</p>
+                    <p className="text-sm font-semibold text-slate-950">
+                      Assigned Subject Progress
+                    </p>
+                    <div className="mt-4 space-y-4">
+                      {selectedStudent.assignedSubjects.length ? (
+                        selectedStudent.assignedSubjects.map((subject) => (
+                          <div
+                            className="rounded-[20px] border border-slate-200 bg-white px-4 py-4 shadow-sm"
+                            key={subject.subjectId}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-950">
+                                  {subject.name}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-500">
+                                  Exam {formatDate(subject.examDate)}
+                                </p>
+                              </div>
+                              <Badge className="border-transparent bg-sky-100 text-sky-700">
+                                {typeof subject.progress === "number"
+                                  ? `${subject.progress}%`
+                                  : "No data"}
+                              </Badge>
+                            </div>
+                            <Progress
+                              className="mt-4 h-3 bg-slate-200"
+                              indicatorClassName="bg-gradient-to-r from-sky-600 to-teal-500"
+                              value={subject.progress ?? 0}
+                            />
                           </div>
-                          <Badge className="border-transparent bg-sky-600 text-white">{quiz.score}</Badge>
+                        ))
+                      ) : (
+                        <div className="rounded-[20px] border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+                          This student has a general mentor assignment but no subject-specific assignment yet.
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
 
                   <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
-                    <p className="text-sm font-semibold text-slate-950">Assigned Tasks</p>
+                    <p className="text-sm font-semibold text-slate-950">
+                      Recent Mentor Assignments
+                    </p>
                     <div className="mt-4 space-y-3">
-                      {selectedStudent.assignedTasks.map((task) => (
-                        <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm" key={task.id}>
+                      {selectedStudent.assignments.map((assignment) => (
+                        <div
+                          className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                          key={assignment.assignmentId}
+                        >
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="text-sm font-semibold text-slate-950">{task.title}</p>
-                              <p className="mt-1 text-sm text-slate-500">{task.dueLabel}</p>
+                              <p className="text-sm font-semibold text-slate-950">
+                                {assignment.subject?.name || "General mentorship"}
+                              </p>
+                              <p className="mt-1 text-sm text-slate-500">
+                                Assigned {formatRelativeTime(assignment.createdAt)}
+                              </p>
                             </div>
-                            <Badge className={taskBadgeClass(task.status)}>{task.status}</Badge>
+                            <Badge className="border-transparent bg-slate-100 text-slate-700">
+                              {assignment.subject ? "Subject assignment" : "General"}
+                            </Badge>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-950">Mentor Notes</p>
-                      <Button
-                        className={cn("h-10 rounded-2xl px-4", PRIMARY_BUTTON_CLASS_NAME)}
-                        onClick={() => setActionMessage(`Saved mentor notes for ${selectedStudent.fullName}.`)}
-                        type="button"
-                      >
-                        Save Note
-                      </Button>
+                  <div className={cn(SOFT_PANEL_CLASS_NAME, "p-5")}>
+                    <p className="text-sm font-semibold text-slate-950">
+                      Student Doubts
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {selectedStudentDoubts.length ? (
+                        selectedStudentDoubts.slice(0, 4).map((doubt) => (
+                          <div
+                            className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                            key={doubt._id || doubt.id}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-950">
+                                  {doubt.title || "Untitled doubt"}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {doubt.subjectId?.name || "General"} | {formatRelativeTime(doubt.createdAt)}
+                                </p>
+                              </div>
+                              <Badge className={priorityBadgeClass(doubt.priority)}>
+                                {doubt.priority || doubt.status || "Normal"}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-[20px] border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+                          No doubts filed by this student yet.
+                        </div>
+                      )}
                     </div>
-                    <textarea className={cn(textareaClassName, "mt-4")} onChange={(event) => handleMentorNoteChange(event.target.value)} value={selectedStudent.mentorNotes} />
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[26px] border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center text-sm text-slate-600">No student matched the current filters.</div>
+                <div className="rounded-[26px] border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center text-sm text-slate-600">
+                  No student matched the current filters.
+                </div>
               )}
             </SectionCard>
 
-            <SectionCard description="Fast mentor moves for the currently selected student." title="Quick Actions">
+            <SectionCard
+              description="Fast mentor moves for the currently selected student."
+              title="Quick Actions"
+            >
               <div className="grid gap-4 sm:grid-cols-2">
-                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(37,99,235,0.42)] transition hover:-translate-y-1" onClick={() => triggerAction("Feedback draft")} type="button">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-200"><Send className="h-5 w-5" /></span>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Send Feedback</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">Prepare structured feedback around the latest progress and weak areas.</p>
+                <button
+                  className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(37,99,235,0.42)] transition hover:-translate-y-1"
+                  onClick={() => triggerAction("Doubt review")}
+                  type="button"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-200">
+                    <MessageSquare className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Open Doubts</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Review the current student&apos;s live doubt queue.
+                  </p>
                 </button>
 
-                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(5,150,105,0.34)] transition hover:-translate-y-1" onClick={() => triggerAction("Quiz assignment")} type="button">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200"><CheckCircle2 className="h-5 w-5" /></span>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Assign Quiz</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">Queue the right checkpoint quiz based on the selected student&apos;s gaps.</p>
+                <button
+                  className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_55%,#d1fae5_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(5,150,105,0.34)] transition hover:-translate-y-1"
+                  onClick={() => triggerAction("Quiz planning")}
+                  type="button"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Plan Quiz</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Use weak-subject signals to prepare the next checkpoint quiz.
+                  </p>
                 </button>
 
-                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_55%,#fde68a_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(217,119,6,0.28)] transition hover:-translate-y-1" onClick={() => triggerAction("Material assignment")} type="button">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-200"><BookOpen className="h-5 w-5" /></span>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Assign Material</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">Attach notes, recap guides, or worked examples to the current learner.</p>
+                <button
+                  className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#fffbeb_0%,#ffffff_55%,#fde68a_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(217,119,6,0.28)] transition hover:-translate-y-1"
+                  onClick={() => triggerAction("Resource follow-up")}
+                  type="button"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-200">
+                    <BookOpen className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Assign Content</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Prepare the next study resource for this learner&apos;s weaker area.
+                  </p>
                 </button>
 
-                <button className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_55%,#ddd6fe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(109,40,217,0.25)] transition hover:-translate-y-1" onClick={() => triggerAction("Student message")} type="button">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200"><MessageSquare className="h-5 w-5" /></span>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Message Student</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">Send a direct check-in message or a fast encouragement note.</p>
+                <button
+                  className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_55%,#ddd6fe_120%)] p-5 text-left shadow-[0_18px_45px_-40px_rgba(109,40,217,0.25)] transition hover:-translate-y-1"
+                  onClick={() => triggerAction("Student encouragement")}
+                  type="button"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200">
+                    <MessageSquare className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">Send Check-in</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Use the current progress and doubt pattern to plan a targeted follow-up.
+                  </p>
                 </button>
               </div>
 
-              <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">{actionMessage}</div>
+              <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {actionMessage}
+              </div>
             </SectionCard>
           </div>
         </div>
@@ -585,44 +1023,103 @@ export default function MentorStudentsPage() {
                 <div>
                   <h2 className="text-xl font-semibold text-slate-950">Assign Student</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Add a student to your mentor roster using local demo data.
+                    Create a real mentor assignment using live students and subjects from the database.
                   </p>
                 </div>
                 <button
                   className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
-                  onClick={() => setAssignModalOpen(false)}
+                  onClick={() => {
+                    setAssignModalOpen(false);
+                    setAssignForm(EMPTY_ASSIGN_FORM);
+                  }}
                   type="button"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="grid gap-5 px-6 py-6 md:grid-cols-2">
-                <input className={inputClassName} onChange={(event) => setAssignForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Full name" value={assignForm.fullName} />
-                <input className={inputClassName} onChange={(event) => setAssignForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" type="email" value={assignForm.email} />
-                <select className={inputClassName} onChange={(event) => setAssignForm((current) => ({ ...current, level: event.target.value }))} value={assignForm.level}>
-                  <option>Grade 10</option>
-                  <option>Grade 11</option>
-                  <option>Grade 12 - Advanced Level</option>
-                </select>
-                <input className={inputClassName} onChange={(event) => setAssignForm((current) => ({ ...current, weakSubject: event.target.value }))} placeholder="Weak subject" value={assignForm.weakSubject} />
-                <input className={inputClassName} max={100} min={0} onChange={(event) => setAssignForm((current) => ({ ...current, progress: event.target.value }))} placeholder="Progress %" type="number" value={assignForm.progress} />
-                <select className={inputClassName} onChange={(event) => setAssignForm((current) => ({ ...current, activityStatus: event.target.value as StudentStatus }))} value={assignForm.activityStatus}>
-                  <option value="Active Today">Active Today</option>
-                  <option value="Monitoring">Monitoring</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+              <div className="grid gap-5 px-6 py-6">
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-slate-700">Student</span>
+                  <select
+                    className={inputClassName}
+                    onChange={(event) =>
+                      setAssignForm({
+                        studentId: event.target.value,
+                        subjectId: "",
+                      })
+                    }
+                    value={assignForm.studentId}
+                  >
+                    <option value="">Select a student</option>
+                    {assignableStudents.map((student) => (
+                      <option key={student.studentId} value={student.studentId}>
+                        {student.name} - {student.email}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-slate-700">Subject</span>
+                  <select
+                    className={inputClassName}
+                    onChange={(event) =>
+                      setAssignForm((current) => ({
+                        ...current,
+                        subjectId: event.target.value,
+                      }))
+                    }
+                    value={assignForm.subjectId}
+                  >
+                    <option value="">General mentorship only</option>
+                    {availableAssignableSubjects.map((subject) => (
+                      <option key={subject.subjectId} value={subject.subjectId}>
+                        {subject.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {selectedAssignableStudent ? (
+                  <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <p className="font-semibold text-slate-900">
+                      {selectedAssignableStudent.name}
+                    </p>
+                    <p className="mt-1">
+                      {selectedAssignableStudent.level || "Student"} | {selectedAssignableStudent.subjects.length} subjects in the system
+                    </p>
+                    <p className="mt-2">
+                      {selectedAssignableStudent.hasGeneralAssignment
+                        ? "A general mentor assignment already exists for this student."
+                        : "You can create a general assignment or choose a specific subject."}
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-slate-500">
-                  Connect this flow to MongoDB later to persist mentor assignments.
+                  Subject options already assigned to this mentor are filtered out automatically.
                 </p>
                 <div className="flex gap-3">
-                  <Button className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)} onClick={() => setAssignModalOpen(false)} type="button" variant="outline">
+                  <Button
+                    className={cn("h-11 rounded-2xl px-5", SECONDARY_BUTTON_CLASS_NAME)}
+                    onClick={() => {
+                      setAssignModalOpen(false);
+                      setAssignForm(EMPTY_ASSIGN_FORM);
+                    }}
+                    type="button"
+                    variant="outline"
+                  >
                     Cancel
                   </Button>
-                  <Button className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)} onClick={handleAssignStudent} type="button">
+                  <Button
+                    className={cn("h-11 rounded-2xl px-5", PRIMARY_BUTTON_CLASS_NAME)}
+                    disabled={assignLoading}
+                    onClick={() => void handleAssignStudent()}
+                    type="button"
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Assign Student
                   </Button>
